@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+@theme {
+  --color-void: #0a0812;
+  --color-deep: #0e0c1a;
+  --color-surface: #151228;
+  --color-card: #211e38;
+  --color-card-hover: #292548;
+  --color-border: #362f5a;
+  --color-border-glow: #5a4f8a;
+
+  --color-purple-core: #7c5cbf;
+  --color-purple-bright: #9b7ee0;
+  --color-purple-glow: #b89ff0;
+  --color-purple-soft: #d4c4f8;
+  --color-purple-mist: #ede7ff;
+
+  --color-gold: #c9a96e;
+  --color-gold-soft: #e8d5a8;
+  --color-white: #f4f1ff;
+  --color-grey: #8b87a8;
+  --color-grey-light: #c4c0d8;
+
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'DM Sans', Arial, sans-serif;
+}
+
+/* ========== BASE STYLES ========== */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  background: var(--color-void);
+  color: var(--color-white);
+  line-height: 1.7;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  line-height: 1.2;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ========== FADE UP ANIMATION ========== */
+.fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ========== CARD GLOW SHADOWS ========== */
+.card-glow {
+  box-shadow: 0 4px 24px rgba(124, 92, 191, 0.12), 0 0 0 1px rgba(54, 47, 90, 0.5);
+}
+
+.card-glow-hover {
+  box-shadow: 0 12px 48px rgba(124, 92, 191, 0.22), 0 0 0 1px rgba(124, 92, 191, 0.4);
+}
+
+/* ========== SECTION DIVIDER ========== */
+.section-divider-top {
+  position: relative;
+}
+
+.section-divider-top::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  max-width: 600px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border-glow), transparent);
+  opacity: 0.4;
+}
+
+/* ========== BOUNCE KEYFRAME ========== */
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(10px); }
+}
+
+/* ========== HAMBURGER ANIMATION ========== */
+.hamburger.active span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
