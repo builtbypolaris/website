@@ -24,7 +24,7 @@ export function ProblemSection() {
         </MotionReveal>
 
         <StaggerContainer stagger={0.15} className="flex flex-col gap-5">
-          {problems.map((problem, i) => (
+          {problems.map((problem) => (
             <StaggerItem key={problem.title}>
               <div className="group relative">
                 <div className="relative bg-card border border-border rounded-2xl p-4 transition-all duration-500 hover:border-purple-core/50 hover:bg-card-hover card-glow overflow-hidden">

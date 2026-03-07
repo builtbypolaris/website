@@ -22,7 +22,7 @@ export function ValuesGrid() {
         </MotionReveal>
 
         <StaggerContainer stagger={0.12} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {values.map((value, i) => (
+          {values.map((value) => (
             <StaggerItem key={value.number}>
               <div className="group relative h-full">
                 <div className="relative bg-card border border-border rounded-2xl p-5 h-full transition-all duration-500 hover:border-purple-core/50 hover:bg-card-hover card-glow overflow-hidden">
