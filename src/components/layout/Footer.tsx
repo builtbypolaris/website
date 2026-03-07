@@ -5,15 +5,15 @@ import { socials } from '../../data/socials'
 
 export function Footer() {
   return (
-    <footer className="bg-void border-t border-border/50 pt-16">
+    <footer className="bg-void border-t border-border/50 pt-10">
       <Container>
-        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr] gap-9 md:gap-12 pb-12">
+        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr] gap-6 md:gap-8 pb-8">
           {/* Brand */}
           <div>
             <img
               src="/logo-dark.png"
               alt="Polaris"
-              className="h-9 w-auto mb-5"
+              className="h-14 w-auto mb-5"
             />
             <p className="text-sm text-grey leading-relaxed max-w-[280px]">
               Diagnostic-first IT consultancy for growing Indonesian businesses.
@@ -44,10 +44,10 @@ export function Footer() {
               Get in Touch
             </h5>
             <a
-              href="mailto:hello@polarissolusi.id"
+              href="mailto:builtbypolaris@gmail.com"
               className="text-sm text-grey-light mb-3 block hover:text-white transition-colors duration-200"
             >
-              hello@polarissolusi.id
+              builtbypolaris@gmail.com
             </a>
             <p className="text-sm text-grey-light mb-3">Jakarta, Indonesia</p>
             <div className="flex gap-3 mt-5">

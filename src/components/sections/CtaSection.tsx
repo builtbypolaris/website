@@ -39,7 +39,7 @@ export function CtaSection() {
         </MotionReveal>
 
         <MotionReveal delay={0.2}>
-          <p className="font-sans font-light text-[14px] text-purple-mist/80 max-w-[500px] mx-auto mb-4 leading-[1.8]">
+          <p className="font-sans font-light text-base text-purple-mist/80 max-w-[500px] mx-auto mb-4 leading-[1.8]">
             Start with a Business Health Check. 3 days. A clear written report. And finally, direction.
           </p>
           <p className="font-sans text-[14px] text-gold tracking-widest uppercase mb-10">
@@ -50,7 +50,7 @@ export function CtaSection() {
         <MotionReveal delay={0.3}>
           <Button
             variant="white"
-            href="mailto:hello@polarissolusi.id?subject=Business Health Check"
+            href="mailto:builtbypolaris@gmail.com?subject=Business Health Check"
             className="!text-[15px] !py-4 !px-9"
           >
             Book Your Business Health Check
@@ -58,10 +58,10 @@ export function CtaSection() {
           <p className="mt-6 font-sans text-sm text-purple-soft/70">
             Or email us at{' '}
             <a
-              href="mailto:hello@polarissolusi.id"
+              href="mailto:builtbypolaris@gmail.com"
               className="text-white/90 border-b border-white/20 hover:border-white/60 transition-colors duration-200"
             >
-              hello@polarissolusi.id
+              builtbypolaris@gmail.com
             </a>
           </p>
         </MotionReveal>
