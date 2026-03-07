@@ -2,6 +2,7 @@ import { motion } from 'motion/react'
 import { Button } from '../ui/Button'
 import { ChevronDown } from '../../assets/icons'
 import { ConstellationCanvas } from '../canvas/ConstellationCanvas'
+import { StarMascot } from '../canvas/StarMascot'
 
 const cascade = {
   hidden: { opacity: 0, y: 30 },
@@ -14,12 +15,13 @@ const cascade = {
 
 export function Hero() {
   return (
-    <section className="min-h-screen flex items-center justify-center text-center relative bg-void overflow-hidden pt-[72px]">
+    <section className="min-h-screen flex items-center justify-center text-center relative bg-void overflow-hidden pt-[88px]">
       {/* Multi-layered atmospheric glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(124,92,191,0.10)_0%,transparent_60%)] pointer-events-none" />
       <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(201,169,110,0.05)_0%,transparent_70%)] pointer-events-none" />
 
       <ConstellationCanvas />
+      <StarMascot />
 
       <div className="relative z-[2] max-w-[820px] px-10">
         {/* Badge */}
@@ -74,7 +76,7 @@ export function Hero() {
       </div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-9 left-1/2 -translate-x-1/2 z-[2] animate-[bounce_2s_infinite]">
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[1] animate-[bounce_2s_infinite]">
         <ChevronDown className="w-6 h-6 text-grey" />
       </div>
     </section>
