@@ -13,7 +13,7 @@ const stats: StatBox[] = [
 
 export function AboutSection() {
   return (
-    <section className="bg-void py-[100px] relative overflow-x-clip section-divider-top">
+    <section className="bg-void py-[100px] relative section-divider-top">
       {/* Subtle atmospheric glow */}
       <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(201,169,110,0.04)_0%,transparent_70%)] pointer-events-none" />
 
@@ -37,13 +37,13 @@ export function AboutSection() {
             </div>
 
             <div className="space-y-6">
-              <p className="font-sans font-light text-[14px] text-grey-light leading-[1.8]">
+              <p className="font-sans font-light text-base text-grey-light leading-[1.8]">
                 Expensive websites that didn&rsquo;t drive revenue. Automation that automated the wrong things. Tools that created more confusion than clarity.
               </p>
-              <p className="font-sans font-light text-[14px] text-grey-light leading-[1.8]">
+              <p className="font-sans font-light text-base text-grey-light leading-[1.8]">
                 We&rsquo;re different: we start by listening, diagnose the real problem, then build what actually fixes it. We&rsquo;re all-female, Indonesia-based, and genuinely invested in your growth.
               </p>
-              <p className="font-sans font-light text-[14px] text-white/80 leading-[1.8]">
+              <p className="font-sans font-light text-base text-white/80 leading-[1.8]">
                 When you work with Polaris, you get a partner who cares about your outcome &mdash; not just the invoice.
               </p>
             </div>
@@ -66,7 +66,7 @@ export function AboutSection() {
                         <h5 className="font-sans font-normal text-[13px] text-gold uppercase tracking-[2px] mb-1.5">
                           {stat.title}
                         </h5>
-                        <p className="font-sans font-light text-[14px] text-grey-light leading-[1.8]">{stat.description}</p>
+                        <p className="font-sans font-light text-base text-grey-light leading-[1.8]">{stat.description}</p>
                       </div>
                     </div>
                   </div>

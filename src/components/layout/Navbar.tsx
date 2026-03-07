@@ -16,23 +16,25 @@ export function Navbar() {
         scrolled ? 'bg-deep/[0.97]' : 'bg-deep/80'
       }`}
     >
-      <Container className="flex items-center justify-between h-[72px]">
-        <Link to="/" className="block">
+      <div className="relative max-w-[1100px] mx-auto px-10 flex items-center justify-between h-[88px]">
+        {/* Logo — left */}
+        <Link to="/" className="relative z-[1] block">
           <img
             src="/logo-dark.png"
             alt="Polaris — Your Business Compass"
-            className="h-10 w-auto"
+            className="h-14 w-auto"
           />
         </Link>
 
-        <div className="hidden md:flex items-center gap-9">
+        {/* Nav links — absolute center of the bar */}
+        <div className="hidden md:flex items-center gap-10 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           {navItems.map((item) => {
             const isActive = item.to === '/' ? pathname === '/' : pathname.startsWith(item.to)
             return (
               <Link
                 key={item.to}
                 to={item.to}
-                className={`relative text-sm tracking-wide transition-colors duration-200 group ${
+                className={`relative text-[15px] tracking-wide transition-colors duration-200 group ${
                   isActive ? 'text-white' : 'text-grey-light hover:text-white'
                 }`}
               >
@@ -47,12 +49,14 @@ export function Navbar() {
           })}
         </div>
 
-        <div className="hidden md:block">
-          <Button to="/contact" className="!py-2.5 !px-5.5 !text-[13px]">
+        {/* CTA — right */}
+        <div className="hidden md:block relative z-[1]">
+          <Button to="/contact" className="!py-3 !px-6 !text-[13px]">
             Get Your Free Diagnosis
           </Button>
         </div>
 
+        {/* Hamburger — mobile only */}
         <button
           className={`md:hidden flex flex-col gap-[5px] cursor-pointer bg-none border-none p-1 hamburger ${isOpen ? 'active' : ''}`}
           onClick={toggle}
@@ -62,13 +66,13 @@ export function Navbar() {
           <span className="block w-6 h-0.5 bg-white rounded-sm transition-all duration-300" />
           <span className="block w-6 h-0.5 bg-white rounded-sm transition-all duration-300" />
         </button>
-      </Container>
+      </div>
 
       {/* Mobile Menu */}
       <div
         className={`${
           isOpen ? 'flex' : 'hidden'
-        } fixed top-[72px] left-0 w-full bg-deep/[0.98] backdrop-blur-[16px] border-b border-border p-8 flex-col gap-6 items-center md:hidden`}
+        } fixed top-[88px] left-0 w-full bg-deep/[0.98] backdrop-blur-[16px] border-b border-border p-8 flex-col gap-6 items-center md:hidden`}
       >
         {navItems.map((item) => {
           const isActive = item.to === '/' ? pathname === '/' : pathname.startsWith(item.to)

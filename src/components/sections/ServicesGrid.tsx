@@ -9,7 +9,7 @@ import { services } from '../../data/services'
 
 export function ServicesGrid() {
   return (
-    <section className="bg-surface py-[100px] relative overflow-x-clip section-divider-top">
+    <section className="bg-surface py-[100px] relative section-divider-top">
       {/* Atmospheric glow */}
       <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(124,92,191,0.05)_0%,transparent_70%)] pointer-events-none" />
 
@@ -25,27 +25,27 @@ export function ServicesGrid() {
         <StaggerContainer stagger={0.12} className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {services.map((service, i) => (
             <StaggerItem key={service.title}>
-              <div className="group relative bg-card border border-border rounded-2xl p-7 h-full transition-all duration-500 hover:border-purple-core/50 hover:bg-card-hover card-glow overflow-hidden">
+              <div className="group relative bg-card border border-border rounded-2xl p-5 h-full transition-all duration-500 hover:border-purple-core/50 hover:bg-card-hover card-glow overflow-hidden">
                 {/* Decorative number */}
-                <div className="absolute -top-2 -right-1 font-serif text-[100px] font-light leading-none text-purple-core/[0.04] pointer-events-none select-none">
+                <div className="absolute -top-1 -right-1 font-serif text-[52px] font-light leading-none text-white/20 pointer-events-none select-none">
                   {String(i + 1).padStart(2, '0')}
                 </div>
 
-                <div className="w-12 h-12 mb-6 rounded-xl bg-purple-core/10 border border-purple-core/20 flex items-center justify-center">
-                  <service.icon className="w-6 h-6" />
+                <div className="w-10 h-10 mb-4 rounded-xl bg-purple-core/10 border border-purple-core/20 flex items-center justify-center">
+                  <service.icon className="w-5 h-5" />
                 </div>
-                <h4 className="font-sans font-normal text-[13px] text-purple-glow uppercase tracking-[2px] mb-3">
+                <h4 className="font-sans font-normal text-[11px] text-purple-glow uppercase tracking-[2px] mb-2">
                   {service.title}
                 </h4>
-                <p className="font-sans font-light text-[14px] text-grey-light leading-[1.8] mb-5">
+                <p className="font-sans font-light text-sm text-grey-light leading-[1.7] mb-4">
                   {service.description}
                 </p>
-                <div className="font-sans text-[13px] text-gold tracking-widest uppercase mb-5">
+                <div className="font-sans text-[11px] text-gold tracking-widest uppercase mb-4">
                   {service.price}
                 </div>
                 <Link
                   to={service.link}
-                  className="font-sans text-[13px] text-purple-bright tracking-wide hover:text-purple-glow transition-colors duration-200 inline-flex items-center gap-1.5 group/link"
+                  className="font-sans text-[12px] text-purple-bright tracking-wide hover:text-purple-glow transition-colors duration-200 inline-flex items-center gap-1.5 group/link"
                 >
                   Learn More
                   <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover/link:translate-x-1" />

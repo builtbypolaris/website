@@ -4,7 +4,7 @@ export const timelineSteps: TimelineStep[] = [
   {
     number: '01',
     title: 'Business Health Check',
-    description: 'A paid 3-day diagnostic. We ask the right questions, analyze your business with AI tools, and deliver a written report showing exactly what\u2019s holding you back and what to do first. No fluff. Just clarity.',
+    description: 'A paid 3-day diagnostic. We ask the right questions, analyze your business with AI tools, and deliver a written report showing exactly what\u2019s holding you back and what to do first.',
     tag: 'Rp 2.5 \u2013 5 juta',
   },
   {
