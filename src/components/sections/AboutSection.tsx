@@ -5,10 +5,12 @@ import { StaggerContainer, StaggerItem } from '../ui/StaggerContainer'
 import type { StatBox } from '../../types'
 
 const stats: StatBox[] = [
-  { title: 'Diagnostic First', description: 'We find the real problem before proposing any solution.' },
+  { title: 'Diagnostic-first', description: 'We start by listening, diagnose the real problem, then build what actually fixes it.' },
   { title: 'One Relationship', description: 'You never re-explain your business to a new person.' },
-  { title: 'Full Stack', description: 'Web, AI, data, automation — we handle it all.' },
-  { title: 'Long Term', description: 'We grow with you, not just deliver and disappear.' },
+  { title: 'Ongoing Partnership', description: 'We grow with you, not just deliver and disappear.' },
+  { title: 'All-female team', description: 'Indonesia-based, genuinely invested in your growth.' },
+  { title: 'Outcome-driven', description: 'We care about your outcome, not just the invoice.' },
+  { title: 'AI-powered efficiency', description: 'We leverage cutting-edge AI to deliver faster and better.' },
 ]
 
 export function AboutSection() {
@@ -51,22 +53,22 @@ export function AboutSection() {
 
           {/* Stats - right column */}
           <MotionReveal direction="right" className="lg:col-span-5">
-            <StaggerContainer stagger={0.1} className="flex flex-col gap-5">
+            <StaggerContainer stagger={0.1} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {stats.map((stat, i) => (
                 <StaggerItem key={stat.title}>
-                  <div className="group relative bg-card border border-border rounded-2xl p-7 transition-all duration-500 hover:border-purple-core/50 hover:bg-card-hover card-glow">
-                    <div className="flex items-start gap-5">
+                  <div className="group relative bg-card border border-border rounded-2xl p-5 h-full transition-all duration-500 hover:border-purple-core/50 hover:bg-card-hover card-glow">
+                    <div className="flex items-start gap-3">
                       {/* Number indicator */}
-                      <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-purple-core/10 border border-purple-core/20 flex items-center justify-center">
-                        <span className="font-sans text-[12px] text-purple-bright font-normal">
+                      <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-purple-core/10 border border-purple-core/20 flex items-center justify-center">
+                        <span className="font-sans text-[11px] text-purple-bright font-normal">
                           {String(i + 1).padStart(2, '0')}
                         </span>
                       </div>
                       <div>
-                        <h5 className="font-sans font-normal text-[13px] text-gold uppercase tracking-[2px] mb-1.5">
+                        <h5 className="font-sans font-normal text-[12px] text-gold uppercase tracking-[1.5px] mb-1">
                           {stat.title}
                         </h5>
-                        <p className="font-sans font-light text-base text-grey-light leading-[1.8]">{stat.description}</p>
+                        <p className="font-sans font-light text-sm text-grey-light leading-[1.7]">{stat.description}</p>
                       </div>
                     </div>
                   </div>

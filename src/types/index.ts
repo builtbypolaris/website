@@ -3,11 +3,19 @@ export interface NavItem {
   to: string
 }
 
-export interface Service {
+export interface ServiceTier {
+  name: string
+  price: string
+  description?: string
+}
+
+export interface ServiceCategory {
   icon: React.ComponentType<{ className?: string }>
   title: string
+  tagline: string
   description: string
-  price: string
+  tiers: ServiceTier[]
+  highlight?: string
   link: string
 }
 

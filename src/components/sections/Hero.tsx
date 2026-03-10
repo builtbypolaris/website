@@ -70,7 +70,7 @@ export function Hero() {
           variants={cascade}
           className="flex gap-4 justify-center flex-wrap"
         >
-          <Button to="/contact">Start With a Free Diagnosis</Button>
+          <Button to="/contact">Get Your Free Health Check</Button>
           <Button variant="ghost" to="/services">See How It Works</Button>
         </motion.div>
       </div>

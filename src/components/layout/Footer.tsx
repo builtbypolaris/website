@@ -66,7 +66,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-border/40 py-6 text-center text-[13px] text-grey/70">
-          &copy; 2025 PT Aurora Polaris Digital &middot; Jakarta, Indonesia
+          &copy; 2026 PT Aurora Polaris Digital &middot; Jakarta, Indonesia
         </div>
       </Container>
     </footer>

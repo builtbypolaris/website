@@ -42,9 +42,9 @@ export function CtaSection() {
           <p className="font-sans font-light text-base text-purple-mist/80 max-w-[500px] mx-auto mb-4 leading-[1.8]">
             Start with a Business Health Check. 3 days. A clear written report. And finally, direction.
           </p>
-          <p className="font-sans text-[14px] text-gold tracking-widest uppercase mb-10">
-            Rp 2.5 &ndash; 5 juta
-          </p>
+          <span className="inline-block px-4 py-1.5 text-[13px] font-sans font-medium tracking-[2px] uppercase bg-gold/15 text-gold border border-gold/30 rounded-full mb-10">
+            GRATIS
+          </span>
         </MotionReveal>
 
         <MotionReveal delay={0.3}>
@@ -53,7 +53,7 @@ export function CtaSection() {
             href="mailto:builtbypolaris@gmail.com?subject=Business Health Check"
             className="!text-[15px] !py-4 !px-9"
           >
-            Book Your Business Health Check
+            Get Your Free Health Check
           </Button>
           <p className="mt-6 font-sans text-sm text-purple-soft/70">
             Or email us at{' '}

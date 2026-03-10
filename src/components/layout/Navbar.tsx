@@ -51,7 +51,7 @@ export function Navbar() {
         {/* CTA — right */}
         <div className="hidden md:block relative z-[1]">
           <Button to="/contact" className="!py-3 !px-6 !text-[13px]">
-            Get Your Free Diagnosis
+            Free Health Check
           </Button>
         </div>
 
@@ -89,7 +89,7 @@ export function Navbar() {
           )
         })}
         <Button to="/contact" className="mt-2">
-          Get Your Free Diagnosis
+          Free Health Check
         </Button>
       </div>
     </nav>
