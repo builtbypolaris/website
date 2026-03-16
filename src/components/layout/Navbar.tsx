@@ -51,7 +51,7 @@ export function Navbar() {
         {/* CTA — right */}
         <div className="hidden md:block relative z-[1]">
           <Button to="/contact" className="!py-3 !px-6 !text-[13px]">
-            Free Health Check
+            See what your business needs
           </Button>
         </div>
 

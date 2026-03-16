@@ -20,7 +20,7 @@ const pricingSections: PricingSection[] = [
   {
     title: 'Diagnostic',
     tiers: [
-      { name: 'Business Health Check', price: 'Gratis' },
+      { name: 'Business Health Check', price: 'FREE' },
     ],
   },
   {
@@ -127,7 +127,7 @@ export function PricingPage() {
                       {tier.name}
                     </h4>
                     <p className={`font-sans text-[13px] tracking-wider uppercase ${
-                      tier.price === 'Gratis' ? 'text-gold font-medium' : 'text-gold/80'
+                      tier.price === 'FREE' ? 'text-gold font-medium' : 'text-gold/80'
                     }`}>
                       {tier.price}
                     </p>

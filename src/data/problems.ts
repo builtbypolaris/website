@@ -5,7 +5,7 @@ export const problems: Problem[] = [
   {
     icon: ProblemIcon1,
     title: '\u201CWe hired a developer but nothing changed\u201D',
-    description: 'Built something, but it didn\u2019t solve the actual problem. The technology worked \u2014 it just wasn\u2019t the right technology for the real issue.',
+    description: 'Built something, but it didn\u2019t solve the actual problem. The technology worked, it just wasn\u2019t the right technology for the real issue.',
   },
   {
     icon: ProblemIcon2,

@@ -7,6 +7,7 @@ interface ButtonProps {
   variant?: Variant
   to?: string
   href?: string
+  onClick?: () => void
   children: React.ReactNode
   className?: string
 }
@@ -19,7 +20,7 @@ const variants: Record<Variant, string> = {
 
 const MotionLink = motion.create(Link)
 
-export function Button({ variant = 'primary', to, href, children, className = '' }: ButtonProps) {
+export function Button({ variant = 'primary', to, href, onClick, children, className = '' }: ButtonProps) {
   const base = `inline-block px-7 py-3.5 font-sans text-sm font-normal tracking-wide rounded-lg cursor-pointer transition-all duration-200 text-center ${variants[variant]} ${className}`
 
   if (href) {
@@ -53,6 +54,7 @@ export function Button({ variant = 'primary', to, href, children, className = ''
   return (
     <motion.button
       className={base}
+      onClick={onClick}
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 400, damping: 17 }}

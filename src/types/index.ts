@@ -11,11 +11,16 @@ export interface ServiceTier {
 
 export interface ServiceCategory {
   icon: React.ComponentType<{ className?: string }>
+  illustration: string
   title: string
   tagline: string
   description: string
+  features: string[]
   tiers: ServiceTier[]
   highlight?: string
+  ctaLabel: string
+  whatsappMessage: string
+  slug: string
   link: string
 }
 

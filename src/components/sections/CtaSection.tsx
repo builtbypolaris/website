@@ -1,6 +1,7 @@
 import { motion } from 'motion/react'
 import { Container } from '../ui/Container'
 import { Button } from '../ui/Button'
+import { WhatsAppButton } from '../ui/WhatsAppButton'
 import { CtaStar } from '../../assets/icons'
 import { MotionReveal } from '../ui/MotionReveal'
 
@@ -43,18 +44,21 @@ export function CtaSection() {
             Start with a Business Health Check. 3 days. A clear written report. And finally, direction.
           </p>
           <span className="inline-block px-4 py-1.5 text-[13px] font-sans font-medium tracking-[2px] uppercase bg-gold/15 text-gold border border-gold/30 rounded-full mb-10">
-            GRATIS
+            FREE
           </span>
         </MotionReveal>
 
         <MotionReveal delay={0.3}>
-          <Button
-            variant="white"
-            href="mailto:builtbypolaris@gmail.com?subject=Business Health Check"
-            className="!text-[15px] !py-4 !px-9"
-          >
-            Get Your Free Health Check
-          </Button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button
+              variant="white"
+              href="mailto:builtbypolaris@gmail.com?subject=Business Health Check"
+              className="!text-[15px] !py-4 !px-9"
+            >
+              Get Your Free Health Check
+            </Button>
+            <WhatsAppButton message="Hi Polaris! I'd like to discuss a project. Are you available?" />
+          </div>
           <p className="mt-6 font-sans text-sm text-purple-soft/70">
             Or email us at{' '}
             <a

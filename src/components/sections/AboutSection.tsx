@@ -28,32 +28,10 @@ export function AboutSection() {
           </h2>
         </MotionReveal>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
-          {/* Story - left column with padding-right 60px */}
-          <MotionReveal direction="left" className="lg:col-span-7 lg:pr-[60px]">
-            {/* Pull quote */}
-            <div className="relative pl-8 border-l-2 border-gold/40 mb-10">
-              <p className="font-serif text-[24px] md:text-[28px] text-white/90 leading-[1.4] font-light">
-                Too many Indonesian businesses were getting sold technology they didn&rsquo;t need.
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              <p className="font-sans font-light text-base text-grey-light leading-[1.8]">
-                Expensive websites that didn&rsquo;t drive revenue. Automation that automated the wrong things. Tools that created more confusion than clarity.
-              </p>
-              <p className="font-sans font-light text-base text-grey-light leading-[1.8]">
-                We&rsquo;re different: we start by listening, diagnose the real problem, then build what actually fixes it. We&rsquo;re all-female, Indonesia-based, and genuinely invested in your growth.
-              </p>
-              <p className="font-sans font-light text-base text-white/80 leading-[1.8]">
-                When you work with Polaris, you get a partner who cares about your outcome &mdash; not just the invoice.
-              </p>
-            </div>
-          </MotionReveal>
-
-          {/* Stats - right column */}
-          <MotionReveal direction="right" className="lg:col-span-5">
-            <StaggerContainer stagger={0.1} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          {/* Stats - dominant, full width */}
+          <MotionReveal direction="right" className="lg:col-span-12">
+            <StaggerContainer stagger={0.1} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {stats.map((stat, i) => (
                 <StaggerItem key={stat.title}>
                   <div className="group relative bg-card border border-border rounded-2xl p-5 h-full transition-all duration-500 hover:border-purple-core/50 hover:bg-card-hover card-glow">
