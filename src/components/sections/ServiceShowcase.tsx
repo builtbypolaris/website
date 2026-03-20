@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { Container } from '../ui/Container'
 import { MotionReveal } from '../ui/MotionReveal'
 import { WhatsAppButton } from '../ui/WhatsAppButton'
+import { DeviceFrame } from '../ui/DeviceFrame'
 import { ChevronDown } from '../../assets/icons'
 import type { ServiceCategory } from '../../types'
 
@@ -34,10 +35,10 @@ export function ServiceShowcase({ service, index }: ServiceShowcaseProps) {
       <Container>
         {/* Two-column row - illustration stretches to match content height */}
         <div className={`flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} gap-10 lg:gap-16 items-stretch`}>
-          {/* Illustration side - fills full height */}
+          {/* Photo side - fills full height */}
           <MotionReveal className="w-full lg:w-[45%] flex">
-            <div className="bg-deep/50 border border-gold/20 rounded-2xl flex items-center justify-center flex-1 p-6">
-              <img src={service.illustration} alt={service.title} className="w-full max-w-[320px] h-auto rounded-lg" />
+            <div className="bg-deep/50 border border-gold/20 rounded-2xl flex items-center justify-center flex-1 p-8">
+              <DeviceFrame src={service.illustration} alt={service.title} className="w-full max-w-[360px]" />
             </div>
           </MotionReveal>
 

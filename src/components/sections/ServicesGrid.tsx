@@ -4,6 +4,7 @@ import { SectionLabel } from '../ui/SectionLabel'
 import { MotionReveal } from '../ui/MotionReveal'
 import { StaggerContainer, StaggerItem } from '../ui/StaggerContainer'
 import { WhatsAppButton } from '../ui/WhatsAppButton'
+import { DeviceFrame } from '../ui/DeviceFrame'
 import { ArrowRight } from '../../assets/icons'
 import { serviceCategories } from '../../data/services'
 
@@ -37,9 +38,9 @@ export function ServicesGrid() {
               </div>
 
               <div className="flex flex-col md:flex-row items-stretch">
-                {/* Illustration side */}
+                {/* Photo side */}
                 <div className="md:w-[40%] bg-deep/50 flex items-center justify-center p-6">
-                  <img src={healthCheck.illustration} alt={healthCheck.title} className="w-full max-w-[240px] h-auto rounded-lg" />
+                  <DeviceFrame src={healthCheck.illustration} alt={healthCheck.title} className="w-full max-w-[280px]" />
                 </div>
 
                 {/* Content side */}
@@ -68,9 +69,9 @@ export function ServicesGrid() {
             <StaggerItem key={service.title}>
               <Link to={`/services#${service.slug}`} className="block h-full">
                 <div className="group relative bg-card border border-gold/30 rounded-2xl overflow-hidden h-full transition-all duration-500 hover:border-gold/60 hover:bg-card-hover card-glow flex flex-col">
-                  {/* Illustration area */}
+                  {/* Photo area */}
                   <div className="bg-deep/50 flex items-center justify-center p-6 pt-8">
-                    <img src={service.illustration} alt={service.title} className="w-full max-w-[240px] h-auto rounded-lg" />
+                    <DeviceFrame src={service.illustration} alt={service.title} className="w-full max-w-[260px]" />
                   </div>
 
                   {/* Content */}
