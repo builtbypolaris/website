@@ -6,11 +6,15 @@ export interface NavItem {
 export interface SubService {
   name: string
   description: string
+  image?: string
 }
 
 export interface ServiceCategory {
   icon: React.ComponentType<{ className?: string }>
   illustration: string
+  /** Multiple images for crossfade animation in phone mockup */
+  illustrations?: string[]
+  device: 'browser' | 'phone'
   title: string
   tagline: string
   description: string

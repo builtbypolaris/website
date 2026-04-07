@@ -4,7 +4,8 @@ import type { ServiceCategory } from '../types'
 export const serviceCategories: ServiceCategory[] = [
   {
     icon: WebDevIcon,
-    illustration: '/images/services/website-development.webp',
+    illustration: '/images/services/website-1.png',
+    device: 'browser',
     title: 'Website Development',
     tagline: 'Your digital storefront, built right.',
     description:
@@ -13,10 +14,12 @@ export const serviceCategories: ServiceCategory[] = [
       {
         name: 'Website Only',
         description: 'Development and deployment, hosted on Vercel. You bring your own domain or go without.',
+        image: '/images/services/website-1.png',
       },
       {
         name: 'Website + Domain',
         description: 'We handle everything including domain registration. Available TLDs: .com, .co.id, .id, .sch.id, .ai, .io, .dev, and more.',
+        image: '/images/services/website-2.png',
       },
     ],
     ctaLabel: 'Let\u2019s Talk',
@@ -26,7 +29,8 @@ export const serviceCategories: ServiceCategory[] = [
   },
   {
     icon: AppDevIcon,
-    illustration: '/images/services/website-development.webp',
+    illustration: '/images/services/content-creation.webp',
+    device: 'phone',
     title: 'Application Development',
     tagline: 'Custom applications built for your specific needs.',
     description:
@@ -40,11 +44,12 @@ export const serviceCategories: ServiceCategory[] = [
     ctaLabel: 'Let\u2019s Talk',
     whatsappMessage: 'Hi Polaris! I\u2019m interested in Application Development. Can we discuss my project?',
     slug: 'application-development',
-    showOnHome: true,
+    showOnHome: false,
   },
   {
     icon: SEOContentIcon,
-    illustration: '/images/services/content-creation.webp',
+    illustration: '/images/services/seo.jpeg',
+    device: 'browser',
     title: 'SEO & Content Creation',
     tagline: 'Your brand\u2019s visibility, powered by AI and guided by strategy.',
     description:
@@ -79,6 +84,7 @@ export const serviceCategories: ServiceCategory[] = [
   {
     icon: BusinessOpIcon,
     illustration: '/images/services/business-automation.webp',
+    device: 'browser',
     title: 'Business Operation',
     tagline: 'Your back-office, digitized.',
     description:
@@ -108,7 +114,9 @@ export const serviceCategories: ServiceCategory[] = [
   },
   {
     icon: OthersIcon,
-    illustration: '/images/services/custom-solutions.webp',
+    illustration: '/images/services/online-invitation-1.jpeg',
+    illustrations: ['/images/services/online-invitation-1.jpeg', '/images/services/online-invitation-2.jpeg'],
+    device: 'phone',
     title: 'Others & Custom Solutions',
     tagline: 'If you can describe the problem, we can build the solution.',
     description:
@@ -121,6 +129,7 @@ export const serviceCategories: ServiceCategory[] = [
       {
         name: 'Online Invitation',
         description: 'Digital invitations for weddings, events, or corporate gatherings. Beautifully designed, interactive, and shareable via link.',
+        image: '/images/services/online-invitation-1.jpeg',
       },
       {
         name: 'Slide / PowerPoint Creation',
@@ -134,10 +143,12 @@ export const serviceCategories: ServiceCategory[] = [
     ctaLabel: 'Let\u2019s Talk',
     whatsappMessage: 'Hi Polaris! I have a project idea I\u2019d like to discuss. Are you available?',
     slug: 'others',
+    showOnHome: true,
   },
   {
     icon: PackagesIcon,
-    illustration: '/images/services/business-automation.webp',
+    illustration: '/images/services/website-2.png',
+    device: 'browser',
     title: 'Packages',
     tagline: 'Bundled services at a better price.',
     description:
@@ -163,6 +174,5 @@ export const serviceCategories: ServiceCategory[] = [
     ctaLabel: 'Let\u2019s Talk',
     whatsappMessage: 'Hi Polaris! I\u2019m interested in your service packages. Which one do you recommend for my business?',
     slug: 'packages',
-    showOnHome: true,
   },
 ]
