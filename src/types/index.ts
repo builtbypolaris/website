@@ -3,10 +3,9 @@ export interface NavItem {
   to: string
 }
 
-export interface ServiceTier {
+export interface SubService {
   name: string
-  price: string
-  description?: string
+  description: string
 }
 
 export interface ServiceCategory {
@@ -15,13 +14,13 @@ export interface ServiceCategory {
   title: string
   tagline: string
   description: string
-  features: string[]
-  tiers: ServiceTier[]
+  subServices: SubService[]
   highlight?: string
   ctaLabel: string
   whatsappMessage: string
   slug: string
-  link: string
+  /** Whether to show on the home page grid */
+  showOnHome?: boolean
 }
 
 export interface Problem {

@@ -83,6 +83,10 @@
   transform: translateY(0);
 }
 
+/* ========== SCROLLBAR HIDDEN ========== */
+.scrollbar-hidden::-webkit-scrollbar { display: none; }
+.scrollbar-hidden { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* ========== CARD GLOW SHADOWS ========== */
 .card-glow {
   box-shadow: 0 4px 24px rgba(124, 92, 191, 0.12), 0 0 0 1px rgba(54, 47, 90, 0.5);
