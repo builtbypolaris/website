@@ -137,7 +137,7 @@ export function ServicesGrid() {
                 </button>
 
                 {current.device === 'laptop' ? (
-                  <div className="relative">
+                  <div className="relative overflow-hidden">
                     <div className="bg-[#1e1e22] rounded-t-xl pt-3 px-3 pb-3 shadow-[0_-2px_20px_rgba(0,0,0,0.3)]">
                       <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-[5px] h-[5px] rounded-full bg-[#2a2a2e] ring-1 ring-[#333]" />
                       <div className="rounded-[4px] overflow-hidden ring-1 ring-black/50">
@@ -146,12 +146,16 @@ export function ServicesGrid() {
                             <source src={current.video} type="video/mp4" />
                           </video>
                         ) : current.component === 'seo' ? (
-                          <div className="w-full aspect-[16/10] overflow-hidden">
-                            <SEODashboard key={active} />
+                          <div className="w-full aspect-[16/10] overflow-hidden relative">
+                            <div className="absolute inset-0 origin-top-left" style={{ width: '200%', height: '200%', transform: 'scale(0.5)' }}>
+                              <SEODashboard key={active} />
+                            </div>
                           </div>
                         ) : current.component === 'crm' ? (
-                          <div className="w-full aspect-[16/10] overflow-hidden">
-                            <CRMDashboard key={active} />
+                          <div className="w-full aspect-[16/10] overflow-hidden relative">
+                            <div className="absolute inset-0 origin-top-left" style={{ width: '200%', height: '200%', transform: 'scale(0.5)' }}>
+                              <CRMDashboard key={active} />
+                            </div>
                           </div>
                         ) : null}
                       </div>

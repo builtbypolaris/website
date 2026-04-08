@@ -6,7 +6,7 @@ interface LaptopMockupProps {
 
 export function BrowserMockup({ src, alt, className = '' }: LaptopMockupProps) {
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative overflow-hidden ${className}`}>
       {/* === SCREEN === */}
       <div className="relative">
         <div className="bg-[#1e1e22] rounded-t-xl pt-3 px-3 pb-3 shadow-[0_-2px_20px_rgba(0,0,0,0.3)]">

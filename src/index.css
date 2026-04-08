@@ -35,10 +35,16 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+
+  body {
+    overflow-x: hidden;
   }
 
   #root {
     width: 100%;
+    overflow-x: hidden;
   }
 
   body {

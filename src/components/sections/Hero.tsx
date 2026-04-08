@@ -19,10 +19,13 @@ export function Hero() {
       <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(201,169,110,0.05)_0%,transparent_70%)] pointer-events-none" />
 
       <ConstellationCanvas />
-      <StarMascot />
+      {/* Star mascot hidden on mobile so it doesn't overlap devices */}
+      <div className="hidden sm:block">
+        <StarMascot />
+      </div>
 
       <div className="relative z-[2] w-full max-w-[1200px] mx-auto px-4 sm:px-6 flex flex-col lg:flex-row items-center gap-8 lg:gap-6 py-8 lg:py-12">
-        {/* Left — Text */}
+        {/* Text */}
         <div className="w-full lg:w-[45%] text-center lg:text-left">
           <motion.div
             custom={0}
@@ -40,7 +43,7 @@ export function Hero() {
             initial="hidden"
             animate="visible"
             variants={cascade}
-            className="font-serif font-light text-[32px] sm:text-[40px] md:text-[48px] lg:text-[60px] text-white mb-4 sm:mb-6 -tracking-[1px] leading-[1.08]"
+            className="font-serif font-light text-[36px] sm:text-[40px] md:text-[48px] lg:text-[60px] text-white mb-4 sm:mb-6 -tracking-[1px] leading-[1.08]"
           >
             Your Business,<br />
             Finally Pointed<br />
@@ -71,15 +74,15 @@ export function Hero() {
           </motion.div>
         </div>
 
-        {/* Right — Devices */}
+        {/* Devices — stacked on mobile, side by side on desktop */}
         <motion.div
-          className="w-full lg:w-[55%] flex items-end justify-center gap-3 sm:gap-5 lg:gap-8"
+          className="w-full lg:w-[55%] flex flex-col sm:flex-row items-center sm:items-end justify-center gap-6 sm:gap-5 lg:gap-8"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
           {/* Laptop */}
-          <div className="flex-1 max-w-[320px] sm:max-w-[400px] lg:max-w-[500px]">
+          <div className="w-full sm:flex-1 max-w-[340px] sm:max-w-[400px] lg:max-w-[500px] overflow-hidden">
             <div className="relative">
               <div className="bg-[#1e1e22] rounded-t-lg sm:rounded-t-xl pt-2 sm:pt-3 px-2 sm:px-3 pb-2 sm:pb-3 shadow-[0_-2px_20px_rgba(0,0,0,0.3)]">
                 <div className="absolute top-[4px] sm:top-[6px] left-1/2 -translate-x-1/2 w-[4px] sm:w-[5px] h-[4px] sm:h-[5px] rounded-full bg-[#2a2a2e] ring-1 ring-[#333]" />
@@ -99,26 +102,26 @@ export function Hero() {
                 </div>
               </div>
             </div>
-            <p className="font-sans font-medium text-[11px] sm:text-[13px] text-gold uppercase tracking-[2px] mt-3 sm:mt-4">F&B Website</p>
-            <p className="font-sans font-light text-[10px] sm:text-[12px] text-grey-light mt-0.5">Website Development</p>
+            <p className="font-sans font-medium text-[11px] sm:text-[13px] text-gold uppercase tracking-[2px] mt-3 sm:mt-4 text-center sm:text-left">F&B Website</p>
+            <p className="font-sans font-light text-[10px] sm:text-[12px] text-grey-light mt-0.5 text-center sm:text-left">Website Development</p>
           </div>
 
           {/* Phone */}
           <div className="flex-shrink-0">
-            <div className="relative rounded-[1.8rem] sm:rounded-[2.5rem] bg-[#2c2c2e] p-[3px] sm:p-[5px] shadow-[0_30px_80px_rgba(0,0,0,0.5)] w-[110px] sm:w-[160px] md:w-[200px]">
-              <div className="absolute inset-0 rounded-[1.8rem] sm:rounded-[2.5rem] ring-1 ring-inset ring-white/[0.1] pointer-events-none" />
+            <div className="relative rounded-[2.2rem] sm:rounded-[2.5rem] bg-[#2c2c2e] p-[4px] sm:p-[5px] shadow-[0_30px_80px_rgba(0,0,0,0.5)] w-[160px] sm:w-[160px] md:w-[200px]">
+              <div className="absolute inset-0 rounded-[2.2rem] sm:rounded-[2.5rem] ring-1 ring-inset ring-white/[0.1] pointer-events-none" />
               <div className="absolute -left-[1.5px] sm:-left-[2px] top-[22%] w-[2px] sm:w-[3px] h-[16px] sm:h-[20px] bg-[#3a3a3c] rounded-l" />
               <div className="absolute -left-[1.5px] sm:-left-[2px] top-[33%] w-[2px] sm:w-[3px] h-[28px] sm:h-[34px] bg-[#3a3a3c] rounded-l" />
               <div className="absolute -right-[1.5px] sm:-right-[2px] top-[30%] w-[2px] sm:w-[3px] h-[32px] sm:h-[40px] bg-[#3a3a3c] rounded-r" />
 
-              <div className="relative rounded-[1.5rem] sm:rounded-[2.1rem] bg-black overflow-hidden ring-1 ring-black/80">
+              <div className="relative rounded-[1.8rem] sm:rounded-[2.1rem] bg-black overflow-hidden ring-1 ring-black/80">
                 <video muted playsInline autoPlay loop preload="auto" className="w-full aspect-[9/19.5] object-cover">
                   <source src="/videos/mak-gien-invitation.mp4" type="video/mp4" />
                 </video>
                 <div className="absolute bottom-[3px] sm:bottom-[5px] left-1/2 -translate-x-1/2 w-[50px] sm:w-[70px] h-[3px] bg-black/40 rounded-full z-20" />
               </div>
 
-              <div className="absolute inset-0 rounded-[1.8rem] sm:rounded-[2.5rem] bg-gradient-to-br from-white/[0.04] via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 rounded-[2.2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-white/[0.04] via-transparent to-transparent pointer-events-none" />
             </div>
             <p className="font-sans font-medium text-[11px] sm:text-[13px] text-gold uppercase tracking-[2px] mt-3 sm:mt-4 text-center">Digital Invitation</p>
             <p className="font-sans font-light text-[10px] sm:text-[12px] text-grey-light mt-0.5 text-center">Online Invitation</p>
