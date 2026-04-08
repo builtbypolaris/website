@@ -16,9 +16,9 @@ export function StarMascot() {
   const vw = useWindowWidth()
   const x = useMotionValue(-90)
 
-  // Fade out well before first button, then jump x to after second button, fade in
-  const hideStart = vw / 2 - 320   // fully invisible here (before first button)
-  const showStart = vw / 2 + 270   // reappear here (after second button)
+  // Fade out before the CTA buttons area (left ~45% of viewport)
+  const hideStart = vw * 0.08
+  const showStart = vw * 0.92
 
   const opacity = useTransform(
     x,
@@ -29,7 +29,6 @@ export function StarMascot() {
   useEffect(() => {
     const startX = -90
     const endX = vw + 90
-    // Visible distance (skipping the jump zone)
     const visibleDist = (hideStart - startX) + (endX - showStart)
     const duration = 20
     const t1 = (hideStart - startX) / visibleDist
@@ -65,34 +64,43 @@ export function StarMascot() {
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
+              <linearGradient id="star-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#c9a96e" />
+                <stop offset="50%" stopColor="#9b7ee0" />
+                <stop offset="100%" stopColor="#7c5cbf" />
+              </linearGradient>
+              <linearGradient id="star-glow-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="rgba(201,169,110,0.4)" />
+                <stop offset="100%" stopColor="rgba(124,92,191,0.4)" />
+              </linearGradient>
             </defs>
 
             {/* Shadow under feet */}
-            <ellipse cx="26" cy="55" rx="13" ry="2.5" fill="rgba(124,92,191,0.18)" />
+            <ellipse cx="26" cy="55" rx="13" ry="2.5" fill="rgba(201,169,110,0.15)" />
 
             {/* Glow aura */}
             <polygon
               points="26,2 31.9,11.9 43.1,14.4 35.5,23.1 36.6,34.6 26,30 15.4,34.6 16.5,23.1 8.9,14.4 20.1,11.9"
-              fill="rgba(124,92,191,0.4)"
+              fill="url(#star-glow-gradient)"
               filter="url(#mascot-glow)"
             />
 
-            {/* Star body */}
+            {/* Star body — gold to purple gradient */}
             <polygon
               points="26,2 31.9,11.9 43.1,14.4 35.5,23.1 36.6,34.6 26,30 15.4,34.6 16.5,23.1 8.9,14.4 20.1,11.9"
-              fill="#7C5CBF"
+              fill="url(#star-gradient)"
             />
 
             {/* Inner highlight sheen */}
             <polygon
               points="26,5.5 30.5,13.5 40,15.5 33.5,22 34.2,31 26,26.5 17.8,31 18.5,22 12,15.5 21.5,13.5"
-              fill="rgba(200,180,255,0.2)"
+              fill="rgba(255,235,200,0.18)"
             />
 
-            {/* Sparkle tip */}
+            {/* Sparkle tip — golden */}
             <motion.circle
               cx="26" cy="2" r="2"
-              fill="rgba(255,255,255,0.95)"
+              fill="rgba(255,225,150,0.95)"
               animate={{ opacity: [1, 0.2, 1], r: [2, 3, 2] }}
               transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
             />
@@ -113,9 +121,9 @@ export function StarMascot() {
               stroke="white" strokeWidth="1.6" fill="none" strokeLinecap="round"
             />
 
-            {/* Rosy cheeks */}
-            <circle cx="17" cy="22.5" r="3.2" fill="rgba(255,130,130,0.28)" />
-            <circle cx="35" cy="22.5" r="3.2" fill="rgba(255,130,130,0.28)" />
+            {/* Rosy cheeks — golden tint */}
+            <circle cx="17" cy="22.5" r="3.2" fill="rgba(201,169,110,0.25)" />
+            <circle cx="35" cy="22.5" r="3.2" fill="rgba(201,169,110,0.25)" />
 
             {/* Left leg */}
             <motion.g
@@ -123,8 +131,8 @@ export function StarMascot() {
               animate={{ rotate: [18, -18, 18] }}
               transition={{ duration: 0.52, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <rect x="17.5" y="33" width="7" height="13" rx="3.5" fill="#5a3d9e" />
-              <ellipse cx="21" cy="46.5" rx="5.5" ry="3" fill="#4a2f8e" />
+              <rect x="17.5" y="33" width="7" height="13" rx="3.5" fill="#8b6d2e" />
+              <ellipse cx="21" cy="46.5" rx="5.5" ry="3" fill="#7a5f28" />
             </motion.g>
 
             {/* Right leg */}
