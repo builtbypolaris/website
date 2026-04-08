@@ -1,7 +1,7 @@
 import { readdir, readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 
-const SITE_URL = 'https://builtbypolaris.com'
+const SITE_URL = 'https://www.builtbypolaris.com'
 const PUBLIC_DIR = join(import.meta.dirname, '..', 'public')
 const BLOG_DIR = join(PUBLIC_DIR, 'blog')
 
