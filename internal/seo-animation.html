@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1200px;
+    height: 750px;
+    background: #fff;
+    font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
+    overflow: hidden;
+  }
+
+  .container { padding: 24px 32px; }
+
+  /* Top bar */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .last-update { font-size: 13px; color: #5f6368; }
+
+  /* Metric cards */
+  .metrics {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .metric {
+    flex: 1;
+    padding: 16px 20px;
+    border-right: 1px solid #dadce0;
+    position: relative;
+  }
+  .metric:last-child { border-right: none; }
+  .metric.active-blue { background: #4285f4; color: white; }
+  .metric.active-purple { background: #7b1fa2; color: white; }
+  .metric .label {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    opacity: 0.9;
+  }
+  .metric .label .check {
+    width: 16px; height: 16px;
+    border: 2px solid currentColor;
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+  }
+  .metric.active-blue .label, .metric.active-purple .label { color: rgba(255,255,255,0.9); }
+  .metric .value {
+    font-size: 42px;
+    font-weight: 400;
+    letter-spacing: -1px;
+  }
+  .metric.active-blue .value, .metric.active-purple .value { color: white; }
+  .metric:not(.active-blue):not(.active-purple) .value { color: #202124; }
+  .metric:not(.active-blue):not(.active-purple) .label { color: #5f6368; }
+  .metric .help { font-size: 11px; opacity: 0.5; margin-top: 2px; }
+
+  .daily-btn {
+    padding: 6px 16px;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #3c4043;
+    background: white;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Info bar */
+  .info-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: #5f6368;
+  }
+  .info-icon {
+    width: 18px; height: 18px;
+    border: 2px solid #5f6368;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: bold; flex-shrink: 0;
+  }
+  .learn-more { color: #1a73e8; text-decoration: none; }
+
+  /* Chart */
+  .chart-area {
+    position: relative;
+    height: 340px;
+    margin-top: 8px;
+  }
+  .chart-labels-left {
+    position: absolute;
+    left: 0; top: 0; bottom: 40px;
+    width: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #5f6368;
+  }
+  .chart-labels-right {
+    position: absolute;
+    right: 0; top: 0; bottom: 40px;
+    width: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #5f6368;
+    text-align: right;
+  }
+  .chart-labels-left span { font-size: 11px; }
+  .y-label { font-size: 12px; color: #5f6368; font-weight: 500; }
+  .chart-canvas {
+    position: absolute;
+    left: 50px;
+    right: 50px;
+    top: 0;
+    bottom: 40px;
+  }
+  .chart-canvas svg { width: 100%; height: 100%; }
+
+  /* Grid lines */
+  .grid-line {
+    stroke: #e8eaed;
+    stroke-width: 1;
+  }
+
+  /* Lines */
+  .line-clicks {
+    fill: none;
+    stroke: #4285f4;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .line-impressions {
+    fill: none;
+    stroke: #7b1fa2;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* X axis dates */
+  .x-dates {
+    position: absolute;
+    left: 50px; right: 50px; bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #5f6368;
+    height: 30px;
+    align-items: flex-end;
+  }
+
+  /* Axis labels */
+  .axis-label-left {
+    position: absolute;
+    left: 0; top: -6px;
+    font-size: 12px;
+    color: #5f6368;
+  }
+  .axis-label-right {
+    position: absolute;
+    right: 0; top: -6px;
+    font-size: 12px;
+    color: #5f6368;
+  }
+
+  /* Animations */
+  @keyframes countUp { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes drawLine {
+    from { stroke-dashoffset: 2000; }
+    to { stroke-dashoffset: 0; }
+  }
+  .line-clicks {
+    stroke-dasharray: 2000;
+    animation: drawLine 3s ease-out forwards;
+    animation-delay: 0.5s;
+    stroke-dashoffset: 2000;
+  }
+  .line-impressions {
+    stroke-dasharray: 2000;
+    animation: drawLine 3s ease-out forwards;
+    animation-delay: 0.8s;
+    stroke-dashoffset: 2000;
+  }
+  .metric .value {
+    animation: countUp 0.6s ease-out forwards;
+  }
+  .metric:nth-child(1) .value { animation-delay: 0.1s; }
+  .metric:nth-child(2) .value { animation-delay: 0.25s; }
+  .metric:nth-child(3) .value { animation-delay: 0.4s; }
+  .metric:nth-child(4) .value { animation-delay: 0.55s; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="top-bar">
+    <div></div>
+    <div class="last-update">Last update: 3.5 hours ago</div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric active-blue">
+      <div class="label"><span class="check">✓</span> Total clicks</div>
+      <div class="value">957K</div>
+      <div class="help">ⓘ</div>
+    </div>
+    <div class="metric active-purple">
+      <div class="label"><span class="check">✓</span> Total impressions</div>
+      <div class="value">190M</div>
+      <div class="help">ⓘ</div>
+    </div>
+    <div class="metric">
+      <div class="label"><span class="check" style="border-color:#dadce0">  </span> Average CTR</div>
+      <div class="value">0.5%</div>
+      <div class="help">ⓘ</div>
+    </div>
+    <div class="metric">
+      <div class="label"><span class="check" style="border-color:#dadce0">  </span> Average position</div>
+      <div class="value">7.9</div>
+      <div class="help">ⓘ</div>
+    </div>
+    <div style="display:flex; align-items:center; padding: 0 16px;">
+      <div class="daily-btn">Daily ▾</div>
+    </div>
+  </div>
+
+  <div class="info-bar">
+    <div class="info-icon">i</div>
+    Chart totals and table results might be partial when filters are applied. <a class="learn-more" href="#">Learn more</a>
+  </div>
+
+  <div class="chart-area">
+    <div class="axis-label-left">Clicks</div>
+    <div class="axis-label-right">Impressions</div>
+
+    <div class="chart-labels-left">
+      <span>12K</span>
+      <span></span>
+      <span>8K</span>
+      <span></span>
+      <span>4K</span>
+      <span></span>
+      <span>0</span>
+    </div>
+
+    <div class="chart-labels-right">
+      <span>2.3M</span>
+      <span></span>
+      <span>1.5M</span>
+      <span></span>
+      <span>750K</span>
+      <span></span>
+      <span>0</span>
+    </div>
+
+    <div class="chart-canvas">
+      <svg viewBox="0 0 1000 260" preserveAspectRatio="none">
+        <!-- Grid lines -->
+        <line x1="0" y1="0" x2="1000" y2="0" class="grid-line"/>
+        <line x1="0" y1="43" x2="1000" y2="43" class="grid-line"/>
+        <line x1="0" y1="87" x2="1000" y2="87" class="grid-line"/>
+        <line x1="0" y1="130" x2="1000" y2="130" class="grid-line"/>
+        <line x1="0" y1="173" x2="1000" y2="173" class="grid-line"/>
+        <line x1="0" y1="217" x2="1000" y2="217" class="grid-line"/>
+        <line x1="0" y1="260" x2="1000" y2="260" class="grid-line"/>
+
+        <!-- Clicks line (blue) — starts low ~1K, grows to ~10K with fluctuation -->
+        <polyline class="line-clicks" points="
+          0,240 30,235 60,228 90,220 120,210 150,200 180,195 210,190
+          240,185 270,178 300,175 330,168 360,162 390,155 420,148 450,135
+          480,142 510,130 540,120 570,128 600,115 630,105 660,112
+          690,95 720,88 750,82 780,78 810,70 840,65 870,58
+          900,52 930,48 960,42 1000,38
+        "/>
+
+        <!-- Impressions line (purple) — starts low, grows steeper with more fluctuation -->
+        <polyline class="line-impressions" points="
+          0,248 30,245 60,240 90,238 120,232 150,228 180,222 210,218
+          240,210 270,205 300,198 330,190 360,185 390,178 420,170 450,158
+          480,165 510,152 540,140 570,148 600,132 630,118 660,128
+          690,108 720,98 750,92 780,85 810,75 840,68 870,55
+          900,48 930,42 960,35 1000,30
+        "/>
+      </svg>
+    </div>
+
+    <div class="x-dates">
+      <span>9/27/25</span>
+      <span>10/16/25</span>
+      <span>11/4/25</span>
+      <span>11/23/25</span>
+      <span>12/12/25</span>
+      <span>12/31/25</span>
+      <span>1/19/26</span>
+      <span>2/7/26</span>
+      <span>2/26/26</span>
+      <span>3/17/26</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>
