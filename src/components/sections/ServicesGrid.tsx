@@ -80,7 +80,7 @@ export function ServicesGrid() {
       <Container>
         <MotionReveal className="max-w-[600px] mb-10">
           <SectionLabel>What We Build</SectionLabel>
-          <h2 className="font-serif font-light text-[48px] text-white mb-5 leading-[1.15]">
+          <h2 className="font-serif font-light text-[32px] sm:text-[40px] md:text-[48px] text-white mb-5 leading-[1.15]">
             One partner.<br />
             <span className="text-purple-glow">Every solution.</span>
           </h2>
@@ -88,12 +88,12 @@ export function ServicesGrid() {
 
         {/* Tabs */}
         <MotionReveal className="mb-8">
-          <div className="flex items-center gap-1 border-b border-border/40">
+          <div className="flex overflow-x-auto border-b border-border/40 scrollbar-hidden">
             {showcases.map((s, i) => (
               <button
                 key={s.tab}
                 onClick={() => setActive(i)}
-                className={`relative px-4 py-3 font-sans text-[12px] tracking-[1.5px] uppercase transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                className={`relative px-3 sm:px-4 py-3 font-sans text-[11px] sm:text-[12px] tracking-[1px] sm:tracking-[1.5px] uppercase transition-colors duration-200 cursor-pointer whitespace-nowrap flex-shrink-0 ${
                   i === active ? 'text-white font-medium' : 'text-grey hover:text-white/80'
                 }`}
               >
@@ -125,15 +125,15 @@ export function ServicesGrid() {
                 {/* Arrows */}
                 <button
                   onClick={goPrev}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 z-10 w-10 h-10 rounded-full bg-card/80 border border-border/40 flex items-center justify-center text-grey hover:text-white hover:border-gold/40 transition-all duration-200 cursor-pointer backdrop-blur-sm"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-5 z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-card/80 border border-border/40 flex items-center justify-center text-grey hover:text-white hover:border-gold/40 transition-all duration-200 cursor-pointer backdrop-blur-sm"
                 >
-                  <svg viewBox="0 0 16 16" className="w-4 h-4 rotate-180" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg viewBox="0 0 16 16" className="w-3 h-3 sm:w-4 sm:h-4 rotate-180" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
                 <button
                   onClick={goNext}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 z-10 w-10 h-10 rounded-full bg-card/80 border border-border/40 flex items-center justify-center text-grey hover:text-white hover:border-gold/40 transition-all duration-200 cursor-pointer backdrop-blur-sm"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-5 z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-card/80 border border-border/40 flex items-center justify-center text-grey hover:text-white hover:border-gold/40 transition-all duration-200 cursor-pointer backdrop-blur-sm"
                 >
-                  <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg viewBox="0 0 16 16" className="w-3 h-3 sm:w-4 sm:h-4" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
 
                 {current.device === 'laptop' ? (
@@ -169,7 +169,7 @@ export function ServicesGrid() {
                   </div>
                 ) : (
                   <div className="flex justify-center">
-                    <div className="relative rounded-[3rem] bg-[#2c2c2e] p-[5px] shadow-[0_40px_120px_rgba(0,0,0,0.5)] w-[240px] md:w-[280px]">
+                    <div className="relative rounded-[2rem] sm:rounded-[3rem] bg-[#2c2c2e] p-[4px] sm:p-[5px] shadow-[0_40px_120px_rgba(0,0,0,0.5)] w-[180px] sm:w-[240px] md:w-[280px]">
                       <div className="absolute inset-0 rounded-[3rem] ring-1 ring-inset ring-white/[0.12] pointer-events-none" />
                       <div className="absolute -left-[2px] top-[22%] w-[3px] h-[22px] bg-[#3a3a3c] rounded-l" />
                       <div className="absolute -left-[2px] top-[33%] w-[3px] h-[40px] bg-[#3a3a3c] rounded-l" />
@@ -190,7 +190,7 @@ export function ServicesGrid() {
 
               {/* Text */}
               <div className="w-full lg:w-[38%]">
-                <h3 className="font-serif font-light text-[32px] text-white mb-3 leading-[1.2]">
+                <h3 className="font-serif font-light text-[24px] sm:text-[28px] md:text-[32px] text-white mb-3 leading-[1.2]">
                   {current.title}
                 </h3>
                 <p className="font-sans font-light text-base text-grey-light leading-[1.8] mb-6 max-w-[400px]">

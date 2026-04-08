@@ -15,7 +15,7 @@ export function Navbar() {
         scrolled ? 'bg-deep/[0.97]' : 'bg-deep/80'
       }`}
     >
-      <div className="relative max-w-[1100px] mx-auto px-10 flex items-center justify-between h-[88px]">
+      <div className="relative max-w-[1100px] mx-auto px-4 sm:px-6 md:px-10 flex items-center justify-between h-[88px]">
         {/* Logo — left */}
         <Link to="/" className="relative z-[1] block">
           <img

@@ -14,7 +14,7 @@ export function ProblemSection() {
       <Container>
         <MotionReveal className="max-w-[680px] mb-16">
           <SectionLabel>Why Polaris</SectionLabel>
-          <h2 className="font-serif font-light text-[48px] text-white mb-5 leading-[1.15]">
+          <h2 className="font-serif font-light text-[28px] sm:text-[36px] md:text-[48px] text-white mb-5 leading-[1.15]">
             Most businesses don&rsquo;t have a technology problem.
             <span className="block text-purple-glow">They have a clarity problem.</span>
           </h2>

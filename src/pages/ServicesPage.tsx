@@ -32,7 +32,7 @@ export function ServicesPage() {
         <Container className="relative z-[1]">
           <MotionReveal className="max-w-[700px]">
             <p className="font-sans font-light text-[13px] text-gold tracking-[4px] uppercase mb-6">Services</p>
-            <h1 className="font-serif font-light text-[48px] md:text-[72px] text-white leading-[1.1] mb-6">
+            <h1 className="font-serif font-light text-[32px] sm:text-[48px] md:text-[72px] text-white leading-[1.1] mb-6">
               Discover how we can<br />
               <span className="text-purple-glow">grow your business.</span>
             </h1>
@@ -111,7 +111,7 @@ export function ServicesPage() {
                     <div className="w-12 h-12 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center">
                       <activeCategory.icon className="w-6 h-6" />
                     </div>
-                    <h2 className="font-serif font-light text-[36px] text-white leading-[1.2]">
+                    <h2 className="font-serif font-light text-[28px] sm:text-[36px] text-white leading-[1.2]">
                       {activeCategory.title}
                     </h2>
                   </div>

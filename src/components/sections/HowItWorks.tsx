@@ -13,7 +13,7 @@ export function HowItWorks() {
       <Container>
         <MotionReveal className="mb-16 max-w-[600px]">
           <SectionLabel>How It Works</SectionLabel>
-          <h2 className="font-serif font-light text-[48px] text-white leading-[1.15]">
+          <h2 className="font-serif font-light text-[28px] sm:text-[36px] md:text-[48px] text-white leading-[1.15]">
             Three steps from confusion<br />
             <span className="text-gold">to clarity.</span>
           </h2>
