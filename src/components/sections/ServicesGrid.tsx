@@ -153,9 +153,7 @@ export function ServicesGrid() {
                           <div className="w-full aspect-[16/10] overflow-hidden">
                             <CRMDashboard key={active} />
                           </div>
-                        ) : (
-                          <img src={current.image} alt={current.title} className="w-full aspect-[16/10] object-contain bg-white block" />
-                        )}
+                        ) : null}}
                       </div>
                     </div>
                     <div className="h-[4px] bg-[#1e1e22] rounded-b-[2px]" />
@@ -177,12 +175,10 @@ export function ServicesGrid() {
                       <div className="absolute -left-[2px] top-[33%] w-[3px] h-[40px] bg-[#3a3a3c] rounded-l" />
                       <div className="absolute -right-[2px] top-[30%] w-[3px] h-[50px] bg-[#3a3a3c] rounded-r" />
                       <div className="relative rounded-[2.55rem] bg-black overflow-hidden ring-1 ring-black/80">
-                        {current.video ? (
+                        {current.video && (
                           <video key={current.video} muted playsInline autoPlay loop className="w-full aspect-[9/19.5] object-cover">
                             <source src={current.video} type="video/mp4" />
                           </video>
-                        ) : (
-                          <img src={current.image} alt={current.title} className="w-full aspect-[9/19.5] object-contain" />
                         )}
                         <div className="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[4px] bg-black/40 rounded-full z-20" />
                       </div>
