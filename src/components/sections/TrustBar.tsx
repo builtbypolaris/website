@@ -1,6 +1,8 @@
 import { motion } from 'motion/react'
+import { Link } from 'react-router-dom'
 import { Container } from '../ui/Container'
 import { StaggerContainer, StaggerItem } from '../ui/StaggerContainer'
+import { ArrowRight } from '../../assets/icons'
 
 const tags = ['E-Commerce', 'F&B', 'Healthcare', 'Education', 'Professional Services']
 
@@ -26,6 +28,14 @@ export function TrustBar() {
               </StaggerItem>
             ))}
           </StaggerContainer>
+          <div className="w-px h-4 bg-border hidden md:block" />
+          <Link
+            to="/services"
+            className="flex items-center gap-1.5 font-sans text-[13px] text-purple-glow hover:text-purple-bright transition-colors duration-200 tracking-wide flex-shrink-0 group/svc"
+          >
+            See all services
+            <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover/svc:translate-x-1" />
+          </Link>
         </div>
       </Container>
     </section>

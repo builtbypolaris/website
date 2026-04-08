@@ -56,8 +56,8 @@ export function Hero() {
             className="font-sans font-light text-[15px] text-grey-light max-w-[440px] mb-8 leading-[1.75]"
           >
             We&rsquo;re not another tech agency selling packages.
-            We diagnose what&rsquo;s really holding your business back &mdash;
-            then build exactly what fixes it.
+            We diagnose what&rsquo;s really holding your business back and
+            build exactly what fixes it.
           </motion.p>
 
           <motion.div
