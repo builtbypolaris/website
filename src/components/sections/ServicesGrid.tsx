@@ -6,6 +6,7 @@ import { SectionLabel } from '../ui/SectionLabel'
 import { MotionReveal } from '../ui/MotionReveal'
 import { WhatsAppButton } from '../ui/WhatsAppButton'
 import { ArrowRight } from '../../assets/icons'
+import { SEODashboard } from '../mockups/SEODashboard'
 
 const showcases = [
   {
@@ -20,7 +21,7 @@ const showcases = [
     tab: 'SEO & Content',
     title: 'SEO & Content Creation',
     tagline: 'Your brand\'s visibility, powered by AI and guided by strategy.',
-    image: '/images/services/seo.jpeg',
+    component: 'seo' as const,
     device: 'laptop' as const,
     slug: 'seo-content-creation',
   },
@@ -59,6 +60,17 @@ export function ServicesGrid() {
     const timeout = setTimeout(goNext, 8000)
     return () => clearTimeout(timeout)
   }, [active, goNext])
+
+  // Preload all videos on mount
+  useEffect(() => {
+    showcases.forEach((s) => {
+      if (s.video) {
+        const v = document.createElement('video')
+        v.preload = 'auto'
+        v.src = s.video
+      }
+    })
+  }, [])
 
   return (
     <section className="bg-surface py-[100px] relative section-divider-top overflow-hidden">
@@ -132,6 +144,10 @@ export function ServicesGrid() {
                           <video key={current.video} muted playsInline autoPlay loop className="w-full aspect-[16/10] object-cover bg-white block">
                             <source src={current.video} type="video/mp4" />
                           </video>
+                        ) : current.component === 'seo' ? (
+                          <div className="w-full aspect-[16/10] overflow-hidden">
+                            <SEODashboard key={active} />
+                          </div>
                         ) : (
                           <img src={current.image} alt={current.title} className="w-full aspect-[16/10] object-contain bg-white block" />
                         )}
