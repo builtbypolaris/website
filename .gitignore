@@ -5,3 +5,5 @@ dist
 .env
 .env.*
 .claude/
+public/blog/**/index.json
+public/sitemap.xml
