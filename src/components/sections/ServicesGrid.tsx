@@ -7,6 +7,7 @@ import { MotionReveal } from '../ui/MotionReveal'
 import { WhatsAppButton } from '../ui/WhatsAppButton'
 import { ArrowRight } from '../../assets/icons'
 import { SEODashboard } from '../mockups/SEODashboard'
+import { CRMDashboard } from '../mockups/CRMDashboard'
 
 const showcases = [
   {
@@ -29,7 +30,7 @@ const showcases = [
     tab: 'Business Operation',
     title: 'Business Operation',
     tagline: 'Your back-office, digitized. Run your business from one place.',
-    image: '/images/services/business-automation.webp',
+    component: 'crm' as const,
     device: 'laptop' as const,
     slug: 'business-operation',
   },
@@ -147,6 +148,10 @@ export function ServicesGrid() {
                         ) : current.component === 'seo' ? (
                           <div className="w-full aspect-[16/10] overflow-hidden">
                             <SEODashboard key={active} />
+                          </div>
+                        ) : current.component === 'crm' ? (
+                          <div className="w-full aspect-[16/10] overflow-hidden">
+                            <CRMDashboard key={active} />
                           </div>
                         ) : (
                           <img src={current.image} alt={current.title} className="w-full aspect-[16/10] object-contain bg-white block" />
