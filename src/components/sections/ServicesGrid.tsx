@@ -153,7 +153,7 @@ export function ServicesGrid() {
                           <div className="w-full aspect-[16/10] overflow-hidden">
                             <CRMDashboard key={active} />
                           </div>
-                        ) : null}}
+                        ) : null}
                       </div>
                     </div>
                     <div className="h-[4px] bg-[#1e1e22] rounded-b-[2px]" />
