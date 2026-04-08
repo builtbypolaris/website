@@ -43,7 +43,7 @@ export function Hero() {
             initial="hidden"
             animate="visible"
             variants={cascade}
-            className="font-serif font-light text-[36px] sm:text-[40px] md:text-[48px] lg:text-[60px] text-white mb-4 sm:mb-6 -tracking-[1px] leading-[1.08]"
+            className="font-serif font-light text-[42px] sm:text-[48px] md:text-[56px] lg:text-[68px] text-white mb-4 sm:mb-6 -tracking-[1px] leading-[1.08]"
           >
             Your Business,<br />
             Finally Pointed<br />
@@ -55,7 +55,7 @@ export function Hero() {
             initial="hidden"
             animate="visible"
             variants={cascade}
-            className="font-sans font-light text-[14px] sm:text-[15px] text-grey-light max-w-[440px] mx-auto lg:mx-0 mb-6 sm:mb-8 leading-[1.75]"
+            className="font-sans font-light text-[13px] sm:text-[14px] text-grey-light max-w-[440px] mx-auto lg:mx-0 mb-6 sm:mb-8 leading-[1.75]"
           >
             We&rsquo;re not another tech agency selling packages.
             We diagnose what&rsquo;s really holding your business back and
