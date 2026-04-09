@@ -19,7 +19,7 @@ export function Navbar() {
         {/* Logo — left */}
         <Link to="/" className="relative z-[1] block">
           <img
-            src="/logo-dark.png"
+            src="/images/logo/logo-dark.png"
             alt="Polaris — Your Business Compass"
             className="h-14 w-auto"
           />

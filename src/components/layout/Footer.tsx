@@ -11,7 +11,7 @@ export function Footer() {
           {/* Brand */}
           <div>
             <img
-              src="/logo-dark.png"
+              src="/images/logo/logo-dark.png"
               alt="Polaris"
               className="h-14 w-auto mb-5"
             />

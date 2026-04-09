@@ -5,6 +5,19 @@ import { MotionReveal } from '../components/ui/MotionReveal'
 import { ConstellationCanvas } from '../components/canvas/ConstellationCanvas'
 import { fetchBlogIndex, type BlogPostMeta } from '../data/blog'
 
+const CATEGORIES = [
+  'All',
+  'Websites',
+  'Apps',
+  'SEO',
+  'Content',
+  'Automation',
+  'AI',
+  'Strategy',
+] as const
+
+type Category = (typeof CATEGORIES)[number]
+
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -15,12 +28,20 @@ function formatDate(dateStr: string) {
 
 export function InsightsPage() {
   const [posts, setPosts] = useState<BlogPostMeta[]>([])
+  const [active, setActive] = useState<Category>('All')
 
   useEffect(() => {
     fetchBlogIndex('en').then(setPosts)
   }, [])
 
-  const [featured, ...rest] = posts
+  const filtered =
+    active === 'All'
+      ? posts
+      : posts.filter((p) =>
+          p.categories.some((c) => c.toLowerCase() === active.toLowerCase()),
+        )
+
+  const [featured, ...rest] = filtered
 
   return (
     <div className="pt-[88px]">
@@ -44,9 +65,36 @@ export function InsightsPage() {
         </Container>
       </section>
 
-      {/* Posts */}
+      {/* Category tabs + posts */}
       <section className="bg-deep py-[80px]">
         <Container>
+          {/* Tabs */}
+          <div className="flex items-center gap-2 mb-12 overflow-x-auto pb-2 scrollbar-hide">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActive(cat)}
+                className={`cursor-pointer font-sans text-[13px] tracking-[2px] uppercase whitespace-nowrap px-5 py-2.5 rounded-full border transition-all duration-200 ${
+                  active === cat
+                    ? 'bg-purple-core/20 border-purple-core/40 text-purple-bright'
+                    : 'bg-transparent border-white/[0.06] text-grey hover:border-white/[0.12] hover:text-grey-light'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Empty state */}
+          {filtered.length === 0 && (
+            <div className="text-center py-20">
+              <p className="font-sans text-grey text-base">
+                No posts in this category yet.
+              </p>
+            </div>
+          )}
+
+          {/* Featured post */}
           {featured && (
             <MotionReveal>
               <Link
@@ -54,38 +102,27 @@ export function InsightsPage() {
                 className="group block rounded-2xl border border-white/[0.04] overflow-hidden transition-all duration-300 hover:border-purple-core/30 hover:shadow-[0_0_60px_rgba(124,92,191,0.08)]"
               >
                 <div className="grid md:grid-cols-2">
-                  {/* Visual placeholder */}
+                  {/* Cover image */}
                   <div className="relative aspect-[16/10] md:aspect-auto bg-surface overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-core/20 via-surface to-card" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="relative">
-                        <div className="w-20 h-20 rounded-full bg-purple-core/10 border border-purple-core/20 flex items-center justify-center">
-                          <svg
-                            className="w-8 h-8 text-purple-bright"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={1.5}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
-                            />
-                          </svg>
-                        </div>
-                        <div className="absolute -top-3 -right-3 w-6 h-6 rounded-full bg-gold/20 blur-sm" />
-                        <div className="absolute -bottom-2 -left-4 w-8 h-8 rounded-full bg-purple-core/15 blur-md" />
-                      </div>
-                    </div>
-                    <div
-                      className="absolute inset-0 opacity-[0.03]"
-                      style={{
-                        backgroundImage:
-                          'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)',
-                        backgroundSize: '40px 40px',
-                      }}
-                    />
+                    {featured.coverImage ? (
+                      <img
+                        src={featured.coverImage}
+                        alt={featured.coverImageAlt || featured.title}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                    ) : (
+                      <>
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-core/20 via-surface to-card" />
+                        <div
+                          className="absolute inset-0 opacity-[0.03]"
+                          style={{
+                            backgroundImage:
+                              'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)',
+                            backgroundSize: '40px 40px',
+                          }}
+                        />
+                      </>
+                    )}
                   </div>
 
                   {/* Content */}
@@ -150,15 +187,25 @@ export function InsightsPage() {
                     className="group flex flex-col rounded-2xl border border-white/[0.04] overflow-hidden bg-card transition-all duration-300 hover:border-purple-core/30 hover:shadow-[0_0_40px_rgba(124,92,191,0.06)] hover:-translate-y-1"
                   >
                     <div className="relative aspect-[16/10] bg-surface overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-purple-core/15 via-surface to-card" />
-                      <div
-                        className="absolute inset-0 opacity-[0.03]"
-                        style={{
-                          backgroundImage:
-                            'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)',
-                          backgroundSize: '32px 32px',
-                        }}
-                      />
+                      {post.coverImage ? (
+                        <img
+                          src={post.coverImage}
+                          alt={post.coverImageAlt || post.title}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      ) : (
+                        <>
+                          <div className="absolute inset-0 bg-gradient-to-br from-purple-core/15 via-surface to-card" />
+                          <div
+                            className="absolute inset-0 opacity-[0.03]"
+                            style={{
+                              backgroundImage:
+                                'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)',
+                              backgroundSize: '32px 32px',
+                            }}
+                          />
+                        </>
+                      )}
                     </div>
 
                     <div className="p-6 flex flex-col flex-1">
