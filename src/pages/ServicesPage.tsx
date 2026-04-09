@@ -6,7 +6,6 @@ import { MotionReveal } from '../components/ui/MotionReveal'
 import { WhatsAppButton } from '../components/ui/WhatsAppButton'
 import { ConstellationCanvas } from '../components/canvas/ConstellationCanvas'
 import { ArrowRight } from '../assets/icons'
-import { LazyVideo } from '../components/ui/LazyVideo'
 import { serviceCategories } from '../data/services'
 import { BrowserMockup } from '../components/mockups'
 import { SEODashboard } from '../components/mockups/SEODashboard'
@@ -136,7 +135,9 @@ export function ServicesPage() {
                             <div className="absolute -left-[2px] top-[33%] w-[3px] h-[40px] bg-[#3a3a3c] rounded-l" />
                             <div className="absolute -right-[2px] top-[30%] w-[3px] h-[50px] bg-[#3a3a3c] rounded-r" />
                             <div className="relative rounded-[1.6rem] sm:rounded-[2.55rem] bg-black overflow-hidden ring-1 ring-black/80 h-full">
-                              <LazyVideo key={override.src} src={override.src} className="h-full aspect-[9/19.5] object-cover" />
+                              <video key={override.src} muted playsInline autoPlay loop className="h-full aspect-[9/19.5] object-cover">
+                                <source src={override.src} type="video/mp4" />
+                              </video>
                               <div className="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[4px] bg-black/40 rounded-full z-20" />
                             </div>
                             <div className="absolute inset-0 rounded-[2rem] sm:rounded-[3rem] bg-gradient-to-br from-white/[0.05] via-transparent to-transparent pointer-events-none" />
@@ -152,7 +153,9 @@ export function ServicesPage() {
                           <div className="bg-[#1e1e22] rounded-t-xl pt-3 px-3 pb-3 shadow-[0_-2px_20px_rgba(0,0,0,0.3)]">
                             <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-[5px] h-[5px] rounded-full bg-[#2a2a2e] ring-1 ring-[#333]" />
                             <div className="rounded-[4px] overflow-hidden ring-1 ring-black/50">
-                              <LazyVideo key={override.src} src={override.src} className="w-full aspect-[16/10] object-cover bg-white block" />
+                              <video key={override.src} muted playsInline autoPlay loop className="w-full aspect-[16/10] object-cover bg-white block">
+                                <source src={override.src} type="video/mp4" />
+                              </video>
                             </div>
                           </div>
                           <div className="h-[4px] bg-[#1e1e22] rounded-b-[2px]" />
