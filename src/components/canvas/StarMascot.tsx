@@ -99,8 +99,9 @@ export function StarMascot() {
 
             {/* Sparkle tip — golden */}
             <motion.circle
-              cx="26" cy="2" r="2"
+              cx="26" cy="2"
               fill="rgba(255,225,150,0.95)"
+              initial={{ opacity: 1, r: 2 }}
               animate={{ opacity: [1, 0.2, 1], r: [2, 3, 2] }}
               transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
             />
