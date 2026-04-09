@@ -27,7 +27,7 @@ export function WorkShowcase() {
                 <div className="bg-[#1e1e22] rounded-t-xl pt-3 px-3 pb-3 shadow-[0_-2px_20px_rgba(0,0,0,0.3)]">
                   <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-[5px] h-[5px] rounded-full bg-[#2a2a2e] ring-1 ring-[#333]" />
                   <div className="rounded-[4px] overflow-hidden ring-1 ring-black/50">
-                    <video muted playsInline autoPlay loop preload="none" className="w-full aspect-[16/10] object-cover bg-white block">
+                    <video muted playsInline autoPlay loop className="w-full aspect-[16/10] object-cover bg-white block">
                       <source src="/videos/stevia-cookies.mp4" type="video/mp4" />
                     </video>
                   </div>
@@ -64,7 +64,6 @@ export function WorkShowcase() {
                       playsInline
                       autoPlay
                       loop
-                      preload="none"
                       className="h-full aspect-[9/19.5] object-cover"
                     >
                       <source src="/videos/mak-gien-invitation.mp4" type="video/mp4" />

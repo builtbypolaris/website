@@ -62,12 +62,12 @@ export function ServicesGrid() {
     return () => clearTimeout(timeout)
   }, [active, goNext])
 
-  // Preload all videos on mount (metadata only to avoid downloading full files)
+  // Preload all videos on mount
   useEffect(() => {
     showcases.forEach((s) => {
       if (s.video) {
         const v = document.createElement('video')
-        v.preload = 'metadata'
+        v.preload = 'auto'
         v.src = s.video
       }
     })
