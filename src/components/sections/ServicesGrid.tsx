@@ -62,16 +62,15 @@ export function ServicesGrid() {
     return () => clearTimeout(timeout)
   }, [active, goNext])
 
-  // Preload video metadata on mount (metadata only to keep connections free)
+  // Preload next video only (avoid loading all videos at once)
   useEffect(() => {
-    showcases.forEach((s) => {
-      if (s.video) {
-        const v = document.createElement('video')
-        v.preload = 'metadata'
-        v.src = s.video
-      }
-    })
-  }, [])
+    const next = showcases[(active + 1) % showcases.length]
+    if (next.video) {
+      const v = document.createElement('video')
+      v.preload = 'metadata'
+      v.src = next.video
+    }
+  }, [active])
 
   return (
     <section className="bg-surface py-[100px] relative section-divider-top overflow-hidden">

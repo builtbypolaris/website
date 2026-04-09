@@ -27,17 +27,18 @@ function formatDate(dateStr: string) {
 }
 
 export function InsightsPage() {
-  const [posts, setPosts] = useState<BlogPostMeta[]>([])
+  const [posts, setPosts] = useState<BlogPostMeta[] | null>(null)
   const [active, setActive] = useState<Category>('All')
 
   useEffect(() => {
     fetchBlogIndex('en').then(setPosts)
   }, [])
 
+  const loaded = posts ?? []
   const filtered =
     active === 'All'
-      ? posts
-      : posts.filter((p) =>
+      ? loaded
+      : loaded.filter((p) =>
           p.categories.some((c) => c.toLowerCase() === active.toLowerCase()),
         )
 
@@ -85,8 +86,25 @@ export function InsightsPage() {
             ))}
           </div>
 
+          {/* Loading state */}
+          {posts === null && (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="rounded-2xl border border-white/[0.04] bg-card overflow-hidden animate-pulse">
+                  <div className="aspect-[16/10] bg-surface" />
+                  <div className="p-6 space-y-3">
+                    <div className="h-3 w-20 bg-surface rounded" />
+                    <div className="h-5 w-3/4 bg-surface rounded" />
+                    <div className="h-4 w-full bg-surface rounded" />
+                    <div className="h-4 w-2/3 bg-surface rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Empty state */}
-          {filtered.length === 0 && (
+          {posts !== null && filtered.length === 0 && (
             <div className="text-center py-20">
               <p className="font-sans text-grey text-base">
                 No posts in this category yet.
