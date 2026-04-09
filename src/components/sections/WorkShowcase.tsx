@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Container } from '../ui/Container'
 import { SectionLabel } from '../ui/SectionLabel'
 import { MotionReveal } from '../ui/MotionReveal'
+import { LazyVideo } from '../ui/LazyVideo'
 import { ArrowRight } from '../../assets/icons'
 
 export function WorkShowcase() {
@@ -27,9 +28,7 @@ export function WorkShowcase() {
                 <div className="bg-[#1e1e22] rounded-t-xl pt-3 px-3 pb-3 shadow-[0_-2px_20px_rgba(0,0,0,0.3)]">
                   <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-[5px] h-[5px] rounded-full bg-[#2a2a2e] ring-1 ring-[#333]" />
                   <div className="rounded-[4px] overflow-hidden ring-1 ring-black/50">
-                    <video muted playsInline autoPlay loop className="w-full aspect-[16/10] object-cover bg-white block">
-                      <source src="/videos/stevia-cookies.mp4" type="video/mp4" />
-                    </video>
+                    <LazyVideo src="/videos/stevia-cookies.mp4" className="w-full aspect-[16/10] object-cover bg-white block" />
                   </div>
                 </div>
                 <div className="h-[4px] bg-[#1e1e22] rounded-b-[2px]" />
@@ -59,15 +58,7 @@ export function WorkShowcase() {
                   <div className="absolute -right-[2px] top-[30%] w-[3px] h-[50px] bg-[#3a3a3c] rounded-r" />
 
                   <div className="relative rounded-[2.55rem] bg-black overflow-hidden ring-1 ring-black/80 h-full">
-                    <video
-                      muted
-                      playsInline
-                      autoPlay
-                      loop
-                      className="h-full aspect-[9/19.5] object-cover"
-                    >
-                      <source src="/videos/mak-gien-invitation.mp4" type="video/mp4" />
-                    </video>
+                    <LazyVideo src="/videos/mak-gien-invitation.mp4" className="h-full aspect-[9/19.5] object-cover" />
                     <div className="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[4px] bg-black/40 rounded-full z-20" />
                   </div>
 
