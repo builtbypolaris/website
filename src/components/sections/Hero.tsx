@@ -82,12 +82,12 @@ export function Hero() {
           transition={{ delay: 0.6, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
           {/* Laptop */}
-          <div className="w-full sm:flex-1 max-w-[340px] sm:max-w-[400px] lg:max-w-[500px] overflow-hidden">
+          <div className="w-full sm:flex-1 overflow-hidden">
             <div className="relative">
               <div className="bg-[#1e1e22] rounded-t-lg sm:rounded-t-xl pt-2 sm:pt-3 px-2 sm:px-3 pb-2 sm:pb-3 shadow-[0_-2px_20px_rgba(0,0,0,0.3)]">
                 <div className="absolute top-[4px] sm:top-[6px] left-1/2 -translate-x-1/2 w-[4px] sm:w-[5px] h-[4px] sm:h-[5px] rounded-full bg-[#2a2a2e] ring-1 ring-[#333]" />
                 <div className="rounded-[3px] sm:rounded-[4px] overflow-hidden ring-1 ring-black/50">
-                  <video muted playsInline autoPlay loop preload="auto" className="w-full aspect-[16/10] object-cover bg-white block">
+                  <video muted playsInline autoPlay loop preload="auto" className="w-[500px] h-[240px] sm:h-[280px] lg:h-[270px] object-cover bg-white block">
                     <source src="/videos/stevia-cookies.mp4" type="video/mp4" />
                   </video>
                 </div>
@@ -106,16 +106,16 @@ export function Hero() {
             <p className="font-sans font-light text-[10px] sm:text-[12px] text-grey-light mt-0.5 text-center sm:text-left">Website Development</p>
           </div>
 
-          {/* Phone */}
+          {/* Phone — height matched to laptop */}
           <div className="flex-shrink-0">
-            <div className="relative rounded-[2.2rem] sm:rounded-[2.5rem] bg-[#2c2c2e] p-[4px] sm:p-[5px] shadow-[0_30px_80px_rgba(0,0,0,0.5)] w-[160px] sm:w-[160px] md:w-[200px]">
+            <div className="relative rounded-[2.2rem] sm:rounded-[2.5rem] bg-[#2c2c2e] p-[4px] sm:p-[5px] shadow-[0_20px_60px_rgba(0,0,0,0.35)] h-[280px] sm:h-[280px] lg:h-[340px]">
               <div className="absolute inset-0 rounded-[2.2rem] sm:rounded-[2.5rem] ring-1 ring-inset ring-white/[0.1] pointer-events-none" />
               <div className="absolute -left-[1.5px] sm:-left-[2px] top-[22%] w-[2px] sm:w-[3px] h-[16px] sm:h-[20px] bg-[#3a3a3c] rounded-l" />
               <div className="absolute -left-[1.5px] sm:-left-[2px] top-[33%] w-[2px] sm:w-[3px] h-[28px] sm:h-[34px] bg-[#3a3a3c] rounded-l" />
               <div className="absolute -right-[1.5px] sm:-right-[2px] top-[30%] w-[2px] sm:w-[3px] h-[32px] sm:h-[40px] bg-[#3a3a3c] rounded-r" />
 
-              <div className="relative rounded-[1.8rem] sm:rounded-[2.1rem] bg-black overflow-hidden ring-1 ring-black/80">
-                <video muted playsInline autoPlay loop preload="auto" className="w-full aspect-[9/19.5] object-cover">
+              <div className="relative rounded-[1.8rem] sm:rounded-[2.1rem] bg-black overflow-hidden ring-1 ring-black/80 h-full">
+                <video muted playsInline autoPlay loop preload="auto" className="h-full aspect-[9/19.5] object-cover">
                   <source src="/videos/mak-gien-invitation.mp4" type="video/mp4" />
                 </video>
                 <div className="absolute bottom-[3px] sm:bottom-[5px] left-1/2 -translate-x-1/2 w-[50px] sm:w-[70px] h-[3px] bg-black/40 rounded-full z-20" />

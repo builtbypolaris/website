@@ -147,13 +147,13 @@ export function ServicesGrid() {
                           </video>
                         ) : current.component === 'seo' ? (
                           <div className="w-full aspect-[16/10] overflow-hidden relative">
-                            <div className="absolute inset-0 origin-top-left" style={{ width: '200%', height: '200%', transform: 'scale(0.5)' }}>
+                            <div className="absolute inset-0 origin-top-left w-[200%] h-[200%] scale-50 lg:w-[140%] lg:h-[140%] lg:scale-[0.714]">
                               <SEODashboard key={active} />
                             </div>
                           </div>
                         ) : current.component === 'crm' ? (
                           <div className="w-full aspect-[16/10] overflow-hidden relative">
-                            <div className="absolute inset-0 origin-top-left" style={{ width: '200%', height: '200%', transform: 'scale(0.5)' }}>
+                            <div className="absolute inset-0 origin-top-left w-[200%] h-[200%] scale-50 lg:w-[140%] lg:h-[140%] lg:scale-[0.714]">
                               <CRMDashboard key={active} />
                             </div>
                           </div>
@@ -173,20 +173,20 @@ export function ServicesGrid() {
                   </div>
                 ) : (
                   <div className="flex justify-center">
-                    <div className="relative rounded-[2rem] sm:rounded-[3rem] bg-[#2c2c2e] p-[4px] sm:p-[5px] shadow-[0_40px_120px_rgba(0,0,0,0.5)] w-[180px] sm:w-[240px] md:w-[280px]">
-                      <div className="absolute inset-0 rounded-[3rem] ring-1 ring-inset ring-white/[0.12] pointer-events-none" />
+                    <div className="relative rounded-[2rem] sm:rounded-[3rem] bg-[#2c2c2e] p-[4px] sm:p-[5px] shadow-[0_20px_60px_rgba(0,0,0,0.35)] h-[350px] sm:h-[400px] md:h-[460px]">
+                      <div className="absolute inset-0 rounded-[2rem] sm:rounded-[3rem] ring-1 ring-inset ring-white/[0.12] pointer-events-none" />
                       <div className="absolute -left-[2px] top-[22%] w-[3px] h-[22px] bg-[#3a3a3c] rounded-l" />
                       <div className="absolute -left-[2px] top-[33%] w-[3px] h-[40px] bg-[#3a3a3c] rounded-l" />
                       <div className="absolute -right-[2px] top-[30%] w-[3px] h-[50px] bg-[#3a3a3c] rounded-r" />
-                      <div className="relative rounded-[2.55rem] bg-black overflow-hidden ring-1 ring-black/80">
+                      <div className="relative rounded-[1.6rem] sm:rounded-[2.55rem] bg-black overflow-hidden ring-1 ring-black/80 h-full">
                         {current.video && (
-                          <video key={current.video} muted playsInline autoPlay loop className="w-full aspect-[9/19.5] object-cover">
+                          <video key={current.video} muted playsInline autoPlay loop className="h-full aspect-[9/19.5] object-cover">
                             <source src={current.video} type="video/mp4" />
                           </video>
                         )}
                         <div className="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[4px] bg-black/40 rounded-full z-20" />
                       </div>
-                      <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-br from-white/[0.05] via-transparent to-transparent pointer-events-none" />
+                      <div className="absolute inset-0 rounded-[2rem] sm:rounded-[3rem] bg-gradient-to-br from-white/[0.05] via-transparent to-transparent pointer-events-none" />
                     </div>
                   </div>
                 )}

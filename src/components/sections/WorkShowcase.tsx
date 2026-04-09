@@ -49,22 +49,22 @@ export function WorkShowcase() {
               </div>
             </div>
 
-            {/* Phone — invitation video */}
-            <div className="w-full lg:w-[38%] flex justify-center">
+            {/* Phone — invitation video, height matched to laptop */}
+            <div className="flex justify-center">
               <div>
-                <div className="relative rounded-[3rem] bg-[#2c2c2e] p-[5px] shadow-[0_40px_120px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06)] w-[220px] md:w-[260px]">
+                <div className="relative rounded-[3rem] bg-[#2c2c2e] p-[5px] shadow-[0_20px_60px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,255,255,0.06)] h-[350px] md:h-[500px]">
                   <div className="absolute inset-0 rounded-[3rem] ring-1 ring-inset ring-white/[0.12] pointer-events-none" />
                   <div className="absolute -left-[2px] top-[22%] w-[3px] h-[22px] bg-[#3a3a3c] rounded-l" />
                   <div className="absolute -left-[2px] top-[33%] w-[3px] h-[40px] bg-[#3a3a3c] rounded-l" />
                   <div className="absolute -right-[2px] top-[30%] w-[3px] h-[50px] bg-[#3a3a3c] rounded-r" />
 
-                  <div className="relative rounded-[2.55rem] bg-black overflow-hidden ring-1 ring-black/80">
+                  <div className="relative rounded-[2.55rem] bg-black overflow-hidden ring-1 ring-black/80 h-full">
                     <video
                       muted
                       playsInline
                       autoPlay
                       loop
-                      className="w-full aspect-[9/19.5] object-cover"
+                      className="h-full aspect-[9/19.5] object-cover"
                     >
                       <source src="/videos/mak-gien-invitation.mp4" type="video/mp4" />
                     </video>
