@@ -46,8 +46,8 @@
         "answer": "Significantly. Pages loading in 2.4 seconds see roughly 1.9% conversion rates, while pages at 4.2 seconds drop below 1%. Amazon found that just 100 milliseconds of extra latency cost them about 1% in sales. Even small speed gains compound into real revenue."
       },
       {
-        "question": "Can a CDN improve website loading speed for Indonesian businesses?",
-        "answer": "Absolutely. A CDN caches your site's files on servers closer to your visitors. If your hosting is in Singapore or the US but most of your visitors are in Jakarta, a CDN with Indonesian edge servers can cut load times substantially by reducing the physical distance data has to travel."
+        "question": "Can a CDN improve website loading speed for my business?",
+        "answer": "Absolutely. A CDN caches your site's files on servers closer to your visitors. If your hosting is in one region but most of your visitors are elsewhere, a CDN with nearby edge servers can cut load times substantially by reducing the physical distance data has to travel."
       }
     ],
     "supportLink": null
@@ -127,9 +127,9 @@ Test your caching by loading your site twice and comparing the waterfall charts.
 
 ### Use a content delivery network
 
-A CDN caches copies of your site's files on servers distributed around the world. When someone in Jakarta visits your site hosted in the US, they get files from a nearby server instead of waiting for data to cross the Pacific.
+A CDN caches copies of your site's files on servers distributed around the world. When someone far from your hosting server visits your site, they get files from a nearby server instead of waiting for data to travel across continents.
 
-For Indonesian businesses with local audiences, this matters a lot. A CDN with edge servers in Southeast Asia can cut load times dramatically for your actual visitors. <a href="https://www.cloudflare.com/" target="_blank" rel="noopener noreferrer">Cloudflare</a> offers a solid free tier that handles this well for most small to mid-size sites.
+For businesses with a regional audience, this matters a lot. A CDN with edge servers near your customers can cut load times dramatically for your actual visitors. <a href="https://www.cloudflare.com/" target="_blank" rel="noopener noreferrer">Cloudflare</a> offers a solid free tier that handles this well for most small to mid-size sites.
 
 ## Code-level fixes that improve loading speed
 
@@ -186,5 +186,5 @@ A: Google PageSpeed Insights is the go-to free tool since it uses real Chrome us
 **Q: How much does website loading speed affect conversion rates?**
 A: Significantly. Pages loading in 2.4 seconds see roughly 1.9% conversion rates, while pages at 4.2 seconds drop below 1%. Amazon found that just 100 milliseconds of extra latency cost them about 1% in sales. Even small speed gains compound into real revenue.
 
-**Q: Can a CDN improve website loading speed for Indonesian businesses?**
-A: Absolutely. A CDN caches your site's files on servers closer to your visitors. If your hosting is in Singapore or the US but most of your visitors are in Jakarta, a CDN with Indonesian edge servers can cut load times substantially by reducing the physical distance data has to travel.
+**Q: Can a CDN improve website loading speed for my business?**
+A: Absolutely. A CDN caches your site's files on servers closer to your visitors. If your hosting is in one region but most of your visitors are elsewhere, a CDN with nearby edge servers can cut load times substantially by reducing the physical distance data has to travel.

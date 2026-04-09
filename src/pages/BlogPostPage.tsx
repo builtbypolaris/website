@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { Container } from '../components/ui/Container'
 import { MotionReveal } from '../components/ui/MotionReveal'
-import { fetchBlogPost, type BlogPost, type BlogFaqItem } from '../data/blog'
+import { fetchBlogPost, fetchBlogIndex, type BlogPost, type BlogPostMeta, type BlogFaqItem } from '../data/blog'
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('en-GB', {
@@ -352,11 +352,31 @@ function FaqSection({ faqs, heading }: { faqs: BlogFaqItem[]; heading: string })
 export function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>()
   const [post, setPost] = useState<BlogPost | null | undefined>(undefined)
+  const [related, setRelated] = useState<BlogPostMeta[]>([])
 
   useEffect(() => {
     if (!slug) return
     fetchBlogPost(slug, 'en').then((p) => setPost(p))
   }, [slug])
+
+  useEffect(() => {
+    if (!post) return
+    fetchBlogIndex('en').then((all) => {
+      const sameCat = all.filter(
+        (p) =>
+          p.slug !== post.slug &&
+          p.categories.some((c) => post.categories.includes(c)),
+      )
+      if (sameCat.length >= 3) {
+        setRelated(sameCat.slice(0, 3))
+      } else {
+        const others = all.filter(
+          (p) => p.slug !== post.slug && !sameCat.includes(p),
+        )
+        setRelated([...sameCat, ...others].slice(0, 3))
+      }
+    })
+  }, [post])
 
   // Loading
   if (post === undefined) {
@@ -471,19 +491,66 @@ export function BlogPostPage() {
         </div>
       </section>
 
-      {/* Back link */}
-      <section className="bg-deep pb-[80px]">
-        <Container>
-          <div className="max-w-[760px] mx-auto border-t border-white/[0.06] pt-10">
-            <Link
-              to="/insights"
-              className="inline-flex items-center gap-2 font-sans text-sm text-purple-bright hover:text-purple-glow transition-colors"
-            >
-              &larr; All articles
-            </Link>
-          </div>
-        </Container>
-      </section>
+      {/* Related posts */}
+      {related.length > 0 && (
+        <section className="bg-deep pb-[80px]">
+          <Container>
+            <div className="border-t border-white/[0.06] pt-12">
+              <h2 className="font-serif font-light text-[28px] text-white mb-8">
+                Related articles
+              </h2>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {related.map((r) => (
+                  <Link
+                    key={r.slug}
+                    to={`/insights/${r.slug}`}
+                    className="group flex flex-col rounded-2xl border border-white/[0.04] overflow-hidden bg-card transition-all duration-300 hover:border-purple-core/30 hover:shadow-[0_0_40px_rgba(124,92,191,0.06)] hover:-translate-y-1"
+                  >
+                    <div className="relative aspect-[16/10] bg-surface overflow-hidden">
+                      {r.coverImage ? (
+                        <img
+                          src={r.coverImage}
+                          alt={r.coverImageAlt || r.title}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-core/15 via-surface to-card" />
+                      )}
+                    </div>
+                    <div className="p-6 flex flex-col flex-1">
+                      <div className="flex items-center gap-3 mb-4">
+                        {r.categories.map((cat) => (
+                          <span
+                            key={cat}
+                            className="font-sans text-[10px] font-normal tracking-[3px] uppercase text-purple-bright bg-purple-core/10 px-2.5 py-0.5 rounded-full"
+                          >
+                            {cat}
+                          </span>
+                        ))}
+                      </div>
+                      <h3 className="font-serif font-light text-[20px] text-white leading-[1.35] mb-3 group-hover:text-purple-glow transition-colors duration-300">
+                        {r.title}
+                      </h3>
+                      <p className="font-sans font-light text-[14px] text-grey-light leading-[1.7] line-clamp-2 flex-1">
+                        {r.excerpt}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-10">
+                <Link
+                  to="/insights"
+                  className="inline-flex items-center gap-2 font-sans text-sm text-purple-bright hover:text-purple-glow transition-colors"
+                >
+                  &larr; All articles
+                </Link>
+              </div>
+            </div>
+          </Container>
+        </section>
+      )}
     </div>
   )
 }

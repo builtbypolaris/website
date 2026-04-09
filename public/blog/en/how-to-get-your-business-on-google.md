@@ -57,7 +57,7 @@
 
 If someone searches for what you sell and you don't show up on Google, you're invisible to them. It's that straightforward. The good news is that learning how to get your business on Google isn't complicated, and it won't cost you anything.
 
-Google offers a free tool called <a href="https://business.google.com/us/business-profile/" target="_blank" rel="noopener noreferrer">Google Business Profile</a> (formerly Google My Business) that lets any legitimate business appear on Google Search and Google Maps. Whether you run a restaurant in Jakarta, a plumbing service in Bandung, or an online consultancy, this is the single most important step you can take for local visibility.
+Google offers a free tool called <a href="https://business.google.com/us/business-profile/" target="_blank" rel="noopener noreferrer">Google Business Profile</a> (formerly Google My Business) that lets any legitimate business appear on Google Search and Google Maps. Whether you run a restaurant, a plumbing service, or an online consultancy, this is the single most important step you can take for local visibility.
 
 This guide walks you through the entire process, from creating your profile to getting verified and optimizing for more customers.
 
@@ -85,7 +85,7 @@ Head to <a href="https://business.google.com/us/business-profile/" target="_blan
 
 Click "Add your business to Google" and enter your business name. Google will search for existing listings. If your business already has one (customers or Google may have created it), you'll see the option to claim it. If not, you'll create a new profile from scratch.
 
-Choose a business category that best describes what you do. This is important because it determines which searches your business appears in. Be specific: "Indonesian restaurant" is better than just "restaurant."
+Choose a business category that best describes what you do. This is important because it determines which searches your business appears in. Be specific: "Thai restaurant" is better than just "restaurant."
 
 ### Step 3: Add your location
 
@@ -180,7 +180,7 @@ Setting up a Google Business Profile is the first step, but it's just one piece 
 
 A lot of businesses come to us after setting up their Google profile but still not seeing results. Usually the issue isn't the profile itself, it's everything around it. A slow website that Google can't crawl properly, missing local keywords, no structured data, or a disconnect between what the profile says and what the website shows.
 
-We help businesses in Jakarta and across Indonesia get the technical foundations right so that their Google Business Profile, their website, and their content all work together. Not just listed, but actually found.
+We help businesses get the technical foundations right so that their Google Business Profile, their website, and their content all work together. Not just listed, but actually found.
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/shared/polaris-homepage.png" alt="Polaris homepage showing diagnostic-first approach to website building" />
 

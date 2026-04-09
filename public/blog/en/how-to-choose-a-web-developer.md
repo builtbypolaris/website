@@ -156,7 +156,7 @@ Most businesses that come to us think they need a new website. Sometimes they do
 
 Our process begins with understanding your business goals, your current digital setup, and where the gaps are. Only then do we recommend a path forward, whether that's a new build, a targeted fix, or something else entirely. You own everything we build, you get full access to all accounts, and we don't disappear after launch.
 
-We're based in Jakarta, so we understand the local market. But we work with businesses across Indonesia and beyond. If you're trying to choose the right web developer and want a straight answer about what your business actually needs, <a href="https://wa.me/6281946494333" target="_blank" rel="noopener noreferrer">reach out to us</a>.
+If you're trying to choose the right web developer and want a straight answer about what your business actually needs, <a href="https://wa.me/6281946494333" target="_blank" rel="noopener noreferrer">reach out to us</a>.
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/shared/polaris-homepage.png" alt="Polaris homepage showing diagnostic-first approach to website building" />
 

@@ -163,7 +163,7 @@ These are the errors that keep showing up, and they're all avoidable.
 
 **Ignoring your profile after setup.** Google rewards active profiles. If you set it up and never touch it again, you'll gradually lose visibility. Post updates, add new photos, respond to reviews, and keep your hours current. Treat it like a living page, not a one-time task.
 
-**Stuffing keywords into your business name.** Your business name field should contain your actual business name, nothing more. Adding "Best Pizza in Jakarta" to your business name when that's not your registered name violates Google's guidelines and can get your profile suspended.
+**Stuffing keywords into your business name.** Your business name field should contain your actual business name, nothing more. Adding "Best Pizza in Town" to your business name when that's not your registered name violates Google's guidelines and can get your profile suspended.
 
 ## How Polaris helps you get your business found online
 
@@ -171,7 +171,7 @@ Setting up a Google Business Profile is one piece of the puzzle. But if your web
 
 At <a href="https://www.builtbypolaris.com" target="_blank" rel="noopener noreferrer">Polaris</a>, we start with a diagnostic. Before recommending anything, we look at your full online presence: your website, your search visibility, your local listings, and how they all connect. Sometimes the answer is a new website. Sometimes it's fixing what you already have. We figure out which one before you spend money on the wrong thing.
 
-We're a Jakarta-based digital consultancy that works with businesses across Indonesia. Whether you need help getting your Google Business Profile optimized, fixing your website's technical SEO, or building a site that actually converts visitors, we can help you figure out the right next step.
+We're a diagnostic-first digital consultancy. Whether you need help getting your Google Business Profile optimized, fixing your website's technical SEO, or building a site that actually converts visitors, we can help you figure out the right next step.
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/shared/polaris-homepage.png" alt="Polaris homepage showing diagnostic-first approach to website building" />
 

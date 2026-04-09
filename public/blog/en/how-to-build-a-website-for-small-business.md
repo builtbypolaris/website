@@ -194,7 +194,7 @@ At <a href="https://www.builtbypolaris.com" target="_blank" rel="noopener norefe
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/shared/polaris-homepage.png" alt="Polaris homepage showing diagnostic-first approach to website building" />
 
-We handle everything from domain setup and design to content, SEO, and ongoing maintenance. Our clients are mostly small and medium businesses in Jakarta and across Indonesia, but we work with teams anywhere. If you're stuck deciding between platforms, unsure what pages you need, or just want someone to handle the whole thing properly, <a href="https://wa.me/6281946494333" target="_blank" rel="noopener noreferrer">reach out to us</a>. We'll start with a conversation, not a sales pitch.
+We handle everything from domain setup and design to content, SEO, and ongoing maintenance. If you're stuck deciding between platforms, unsure what pages you need, or just want someone to handle the whole thing properly, <a href="https://wa.me/6281946494333" target="_blank" rel="noopener noreferrer">reach out to us</a>. We'll start with a conversation, not a sales pitch.
 
 ## Frequently asked questions
 
