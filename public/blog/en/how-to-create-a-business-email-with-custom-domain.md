@@ -98,7 +98,7 @@ Beyond personal addresses, your business needs role-based email addresses. These
 - **noreply@** for automated messages, newsletters, and system notifications.
 - **notifications@** for app or service alerts.
 
-Here's the good news: most of these don't need to be separate paid accounts. They can be aliases (sometimes called group addresses) that forward incoming messages to one or more real inboxes. Google Workspace, Microsoft 365, and Zoho Mail all support this at no extra cost.
+Here's the good news: most of these don't need to be separate paid accounts. They can be <a href="https://support.google.com/a/answer/33327" target="_blank" rel="noopener noreferrer">aliases (sometimes called group addresses)</a> that forward incoming messages to one or more real inboxes. Google Workspace, Microsoft 365, and Zoho Mail all support this at no extra cost.
 
 For example, sales@ might forward to both your personal address and your sales manager's address. Support@ might route to a shared mailbox that three people can monitor. You're creating the appearance of a structured organization without paying for a dozen accounts.
 
@@ -122,7 +122,7 @@ When choosing, consider what your team already uses. If everyone lives in Google
 
 Creating a business email with a custom domain is a branding decision as much as a technical one. A few choices here will affect how people perceive your emails before they even read the content.
 
-**Your domain name matters.** If your business is "Bright Path Consulting," your domain should be brightpathconsulting.com or brightpath.com, not brightpath-consulting-llc.com. Shorter is better. Hyphens look messy. If the .com is taken, consider .co or a relevant country TLD before adding extra words to the domain name.
+**Your domain name matters.** If your business is "Bright Path Consulting," your domain should be brightpathconsulting.com or brightpath.com, not brightpath-consulting-llc.com. Shorter is better. Hyphens look messy. If the .com is taken, <a href="/insights/how-to-choose-a-domain-name-for-your-business">our guide on choosing a domain name</a> covers the alternatives worth considering.
 
 **Email signatures are part of the brand.** Once you've created your business email, build a consistent signature template for everyone on the team. Include the person's name, title, phone number, and website. Keep the design simple. Avoid images in signatures when possible since they often display as attachments in some email clients.
 
@@ -148,7 +148,7 @@ After helping businesses set up their email systems, we've seen the same mistake
 
 Creating business email the right way involves more than most people realize: choosing the right domain, structuring your addresses, picking the right provider, and making sure everything integrates with your website and other tools. That's where we come in.
 
-At <a href="https://www.builtbypolaris.com" target="_blank" rel="noopener noreferrer">Polaris</a>, our Website + Domain packages include domain registration, email configuration, and the planning that sits underneath it all. We'll help you decide on address formats, set up role-based aliases, and make sure your email authentication (SPF, DKIM, DMARC) is properly configured so your messages actually land in inboxes.
+At <a href="https://www.builtbypolaris.com" target="_blank" rel="noopener noreferrer">Polaris</a>, our Website + Domain packages include domain registration, email configuration, and the planning that sits underneath it all. We'll help you decide on address formats, set up role-based aliases, and make sure your email authentication (<a href="https://datatracker.ietf.org/doc/html/rfc7208" target="_blank" rel="noopener noreferrer">SPF</a>, <a href="https://datatracker.ietf.org/doc/html/rfc6376" target="_blank" rel="noopener noreferrer">DKIM</a>, <a href="https://dmarc.org" target="_blank" rel="noopener noreferrer">DMARC</a>) is properly configured so your messages actually land in inboxes.
 
 We start every engagement with a free Business Health Check, which covers your full digital setup, not just email. If your domain, email, website, and CRM aren't working together, we'll show you exactly what needs to change.
 
@@ -159,7 +159,7 @@ Ready to get your business email sorted properly? <a href="https://wa.me/6281946
 ## Frequently asked questions
 
 **Q: How do I create a business email with a custom domain for free?**
-A: You can create a business email with a custom domain for free using Cloudflare Email Routing paired with a personal Gmail account. Cloudflare forwards emails sent to your custom domain address to your Gmail inbox, and you can configure Gmail to send replies from your custom address. It works, but you won't get features like shared mailboxes or admin controls.
+A: You can create a business email with a custom domain for free using <a href="https://www.cloudflare.com/products/email-routing/" target="_blank" rel="noopener noreferrer">Cloudflare Email Routing</a> paired with a personal Gmail account. Cloudflare forwards emails sent to your custom domain address to your Gmail inbox, and you can configure Gmail to send replies from your custom address. It works, but you won't get features like shared mailboxes or admin controls.
 
 **Q: What's the best email format to use when I create a business email with custom domain?**
 A: For most small to mid-sized businesses, first.last@yourdomain.com is the best format. It's professional, scalable, and avoids confusion when multiple people share the same first name. If your team is under five people, firstname@ works fine too.

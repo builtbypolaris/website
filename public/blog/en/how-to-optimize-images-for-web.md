@@ -65,9 +65,9 @@ Here's how to optimize images for web properly, so your pages load fast without 
 
 Before getting into the how, it's worth understanding the stakes. A 1-second delay in page load time costs roughly 7% in conversions, 11% fewer page views, and a 16% decrease in customer satisfaction. When load time increases from 1 to 5 seconds, bounce rates jump by 90%.
 
-Images play a central role in those numbers because they're often the heaviest resource on any given page. They also directly affect Largest Contentful Paint (LCP), one of Google's three Core Web Vitals. LCP measures how quickly the largest visible element loads, and that element is frequently an image. Only 67% of websites currently achieve a "good" LCP score, and unoptimized images are a major reason for the rest.
+Images play a central role in those numbers because they're often the heaviest resource on any given page. They also directly affect <a href="https://web.dev/articles/lcp" target="_blank" rel="noopener noreferrer">Largest Contentful Paint (LCP)</a>, one of Google's three <a href="https://web.dev/articles/vitals" target="_blank" rel="noopener noreferrer">Core Web Vitals</a>. LCP measures how quickly the largest visible element loads, and that element is frequently an image. Only 67% of websites currently achieve a "good" LCP score, and unoptimized images are a major reason for the rest.
 
-When you optimize images for web, you're not just trimming file sizes. You're improving your search rankings, keeping visitors engaged, and protecting your conversion rate.
+When you optimize images for web, you're not just trimming file sizes. You're improving your search rankings, keeping visitors engaged, and protecting your conversion rate. (For broader speed wins, see our <a href="/insights/how-to-improve-website-loading-speed">guide to improving website loading speed</a>.)
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/how-to-optimize-images-for-web/illustration-0.svg" alt="Chart showing how image file size affects page load time and bounce rates" />
 
@@ -81,11 +81,11 @@ JPEG has been the web's workhorse for decades. It handles photographs well and s
 
 ### WebP: the modern standard
 
-WebP produces files 25-34% smaller than JPEG at equivalent visual quality. Lossless WebP images are 26% smaller than PNGs. With over 97% browser support, there's almost no reason not to use it. WebP handles both photographs and graphics with transparency, making it a versatile replacement for both JPEG and PNG in most situations.
+<a href="https://developers.google.com/speed/webp" target="_blank" rel="noopener noreferrer">WebP</a> produces files 25-34% smaller than JPEG at equivalent visual quality. Lossless WebP images are 26% smaller than PNGs. With <a href="https://caniuse.com/webp" target="_blank" rel="noopener noreferrer">over 97% browser support</a>, there's almost no reason not to use it. WebP handles both photographs and graphics with transparency, making it a versatile replacement for both JPEG and PNG in most situations.
 
 ### AVIF: the next generation
 
-AVIF takes compression further, producing files roughly 50% smaller than JPEG and 20-25% smaller than WebP at similar quality. The trade-off is that AVIF encodes 5-10x slower than WebP and decodes about 2x slower. Browser support sits at 93.8%, which is excellent but not quite universal. For static assets that you compress once and serve many times, AVIF's slower encoding is a non-issue.
+<a href="https://aomediacodec.github.io/av1-avif/" target="_blank" rel="noopener noreferrer">AVIF</a> takes compression further, producing files roughly 50% smaller than JPEG and 20-25% smaller than WebP at similar quality. The trade-off is that AVIF encodes 5-10x slower than WebP and decodes about 2x slower. <a href="https://caniuse.com/avif" target="_blank" rel="noopener noreferrer">Browser support sits at 93.8%</a>, which is excellent but not quite universal. For static assets that you compress once and serve many times, AVIF's slower encoding is a non-issue.
 
 ### PNG: when you need it
 
@@ -124,7 +124,7 @@ Determine the maximum display size for each image on your site and resize accord
 
 ### Use responsive image markup
 
-HTML gives you built-in tools for serving different image sizes to different screens:
+HTML gives you <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#responsive_images" target="_blank" rel="noopener noreferrer">built-in tools for serving different image sizes</a> to different screens:
 
 ```html
 <img
@@ -145,11 +145,11 @@ The `srcset` attribute tells the browser what sizes are available. The `sizes` a
 
 ### Always specify width and height
 
-Including `width` and `height` attributes lets the browser reserve the right amount of space before the image loads. Without them, your layout shifts as images pop in, which hurts your Cumulative Layout Shift (CLS) score. This is an easy fix that costs nothing.
+Including `width` and `height` attributes lets the browser reserve the right amount of space before the image loads. Without them, your layout shifts as images pop in, which hurts your <a href="https://web.dev/articles/cls" target="_blank" rel="noopener noreferrer">Cumulative Layout Shift (CLS)</a> score. This is an easy fix that costs nothing.
 
 ## Lazy load strategically
 
-Lazy loading delays image downloads until they're about to enter the viewport. It's built into browsers with a single attribute:
+<a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#loading" target="_blank" rel="noopener noreferrer">Lazy loading</a> delays image downloads until they're about to enter the viewport. It's built into browsers with a single attribute:
 
 ```html
 <img src="photo.webp" alt="Description" loading="lazy" />
@@ -171,7 +171,7 @@ This tells the browser to start fetching the image immediately, before it even p
 
 A content delivery network caches your images on servers distributed around the world. When a visitor requests an image, it's served from the nearest server rather than your origin. This reduces latency and speeds up delivery, especially for visitors far from your hosting location.
 
-Modern image CDNs go further than simple caching. Services like Cloudinary, Imgix, and Cloudflare Images can automatically:
+Modern image CDNs go further than simple caching. Services like <a href="https://cloudinary.com" target="_blank" rel="noopener noreferrer">Cloudinary</a>, <a href="https://imgix.com" target="_blank" rel="noopener noreferrer">Imgix</a>, and <a href="https://www.cloudflare.com/products/cloudflare-images/" target="_blank" rel="noopener noreferrer">Cloudflare Images</a> can automatically:
 
 - Convert images to WebP or AVIF based on browser support
 - Resize images on the fly based on request parameters
@@ -187,9 +187,9 @@ If you're running a site with hundreds or thousands of images, an image CDN can 
 
 At <a href="https://www.builtbypolaris.com" target="_blank" rel="noopener noreferrer">Polaris</a>, image optimization isn't an afterthought. It's built into every site we deliver.
 
-We build on Vercel, which automatically serves images in WebP or AVIF format based on browser support, resizes them for each device, and caches them at the edge. That means every image on your site is optimized from day one without any manual work on your end.
+We build on <a href="https://vercel.com/docs/image-optimization" target="_blank" rel="noopener noreferrer">Vercel's image optimization platform</a>, which automatically serves images in WebP or AVIF format based on browser support, resizes them for each device, and caches them at the edge. That means every image on your site is optimized from day one without any manual work on your end.
 
-Our process starts with a Business Health Check, where we evaluate your current site's performance, including image weight and Core Web Vitals scores. From there, we build your new site with proper responsive images, correct lazy loading strategy, and format optimization baked into the architecture.
+Our process starts with a Business Health Check, where we evaluate your current site's performance, including image weight and Core Web Vitals scores. From there, we build your new site with proper responsive images, correct lazy loading strategy, and format optimization baked into the architecture. Image optimization is also a key step when you <a href="/insights/how-to-make-your-website-mobile-friendly">make your website mobile friendly</a>.
 
 If your site is sluggish and you're not sure where to start, <a href="https://wa.me/6281946494333" target="_blank" rel="noopener noreferrer">reach out to us</a>. We'll diagnose the problem and show you exactly what's slowing things down.
 

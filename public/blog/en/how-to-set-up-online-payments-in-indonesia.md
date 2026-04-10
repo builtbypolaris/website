@@ -67,9 +67,9 @@ Before you choose a gateway, you need to understand how people in Indonesia actu
 
 **QRIS (QR code payments).** Launched by Bank Indonesia, <a href="https://www.bi.go.id/en/fungsi-utama/sistem-pembayaran/ritel/kanal-layanan/qris/default.aspx" target="_blank" rel="noopener noreferrer">QRIS</a> is a unified QR standard that works across all major e-wallets and mobile banking apps. Customers scan one QR code using GoPay, OVO, DANA, ShopeePay, LinkAja, or their bank's app. QRIS processed over 6 billion transactions in the first half of 2025 alone, and it now reaches more than 60 million users. For merchants, the transaction fee sits at just 0.7%, making it the cheapest digital payment method available.
 
-**Virtual accounts (bank transfers).** Bank transfers remain one of the most trusted payment methods in Indonesia. Virtual accounts simplify this by generating a unique account number for each transaction, so payments are confirmed automatically. Most major banks are supported, including BCA, BNI, BRI, Mandiri, and Permata.
+**Virtual accounts (bank transfers).** Bank transfers remain one of the most trusted payment methods in Indonesia. Virtual accounts simplify this by generating a unique account number for each transaction, so payments are confirmed automatically. Most major banks are supported, including <a href="https://www.bca.co.id" target="_blank" rel="noopener noreferrer">BCA</a>, BNI, BRI, Mandiri, and Permata.
 
-**E-wallets.** GoPay, OVO, DANA, and ShopeePay dominate. While QRIS covers these wallets through QR scanning, some gateways also offer direct e-wallet integrations with features like one-click payments and recurring billing.
+**E-wallets.** <a href="https://www.gopay.co.id" target="_blank" rel="noopener noreferrer">GoPay</a>, <a href="https://www.ovo.id" target="_blank" rel="noopener noreferrer">OVO</a>, <a href="https://www.dana.id" target="_blank" rel="noopener noreferrer">DANA</a>, and ShopeePay dominate. While QRIS covers these wallets through QR scanning, some gateways also offer direct e-wallet integrations with features like one-click payments and recurring billing.
 
 **Credit and debit cards.** Visa, Mastercard, and JCB are accepted. Credit card penetration in Indonesia is lower than in many markets, but it's still important for higher-value purchases and customers with international cards.
 
@@ -85,7 +85,7 @@ Four payment gateways handle the bulk of online transactions in Indonesia. Here'
 
 <a href="https://midtrans.com/en" target="_blank" rel="noopener noreferrer">Midtrans</a> (part of GoTo Financial) is one of the most widely used gateways in Indonesia, supporting over 25 payment methods. There are no setup fees, no monthly fees, and no integration fees. You only pay per successful transaction: roughly Rp 4,000 per virtual account transaction, 2.9% plus Rp 2,000 to 2,500 for credit cards, 0.7% for QRIS, and starting from 1.5% for e-wallets.
 
-Midtrans offers plugins for WooCommerce, Shopify, Magento, PrestaShop, and OpenCart. It also has a Snap checkout that provides a ready-made payment popup you can embed without building your own UI. For custom builds, their Core API gives full control over the payment flow.
+Midtrans offers plugins for <a href="https://woocommerce.com" target="_blank" rel="noopener noreferrer">WooCommerce</a>, <a href="https://www.shopify.com" target="_blank" rel="noopener noreferrer">Shopify</a>, <a href="https://magento.com" target="_blank" rel="noopener noreferrer">Magento</a>, PrestaShop, and OpenCart. It also has a Snap checkout that provides a ready-made payment popup you can embed without building your own UI. For custom builds, their Core API gives full control over the payment flow.
 
 ### Xendit
 
@@ -109,9 +109,9 @@ Stripe supports virtual accounts and some local methods, but settlement times (2
 
 Here's the practical process to get payments running on your website in Indonesia.
 
-**Step 1: Get your business documents ready.** You'll need a valid NIB (Nomor Induk Berusaha) from the OSS (Online Single Submission) system, your company's NPWP (tax ID), and a business bank account. Individual sellers can register on some platforms, but a proper business entity unlocks full features and higher transaction limits.
+**Step 1: Get your business documents ready.** You'll need a valid NIB (Nomor Induk Berusaha) from the <a href="https://oss.go.id" target="_blank" rel="noopener noreferrer">OSS (Online Single Submission) system</a>, your company's NPWP (tax ID), and a business bank account. Individual sellers can register on some platforms, but a proper business entity unlocks full features and higher transaction limits.
 
-**Step 2: Choose your payment gateway.** Pick based on what matters most to you. If you want the widest local payment coverage and use a platform like WooCommerce, Midtrans is a solid default. If you need recurring billing or disbursements, go with Xendit. If you want the simplest setup without any coding, DOKU's dashboard-based approach works well.
+**Step 2: Choose your payment gateway.** Pick based on what matters most to you. If you want the widest local payment coverage and use a platform like WooCommerce, Midtrans is a solid default. If you need recurring billing or disbursements, go with Xendit. If you want the simplest setup without any coding, DOKU's dashboard-based approach works well. If you're still working out which platform to build on, check our guide on <a href="/insights/how-to-build-a-website-for-small-business">how to build a website for small business</a> first.
 
 **Step 3: Register and verify your account.** Sign up on your chosen gateway's website. You'll submit your business documents, bank account details, and information about your business model. Verification typically takes 1 to 3 business days.
 
@@ -146,13 +146,13 @@ One recent development worth noting: QRIS Tap launched in March 2025, enabling N
 
 When you set up online payments in Indonesia, security isn't optional. Here's what you need to know.
 
-**PCI DSS compliance.** Any business that handles credit card data needs to comply with PCI DSS (Payment Card Industry Data Security Standard). The good news: if you use a hosted checkout or payment popup from your gateway, the gateway handles PCI compliance for you. You only need to worry about PCI if you're building a fully custom card input form, which most businesses shouldn't do.
+**PCI DSS compliance.** Any business that handles credit card data needs to comply with <a href="https://www.pcisecuritystandards.org" target="_blank" rel="noopener noreferrer">PCI DSS (Payment Card Industry Data Security Standard)</a>. The good news: if you use a hosted checkout or payment popup from your gateway, the gateway handles PCI compliance for you. You only need to worry about PCI if you're building a fully custom card input form, which most businesses shouldn't do.
 
-**3D Secure.** This is the extra verification step (usually an OTP sent to the customer's phone) during card payments. All major Indonesian gateways support 3D Secure, and it's strongly recommended. It shifts fraud liability from you to the card issuer and significantly reduces chargebacks.
+**3D Secure.** This is the <a href="https://www.emvco.com/emv-technologies/3d-secure/" target="_blank" rel="noopener noreferrer">extra verification step</a> (usually an OTP sent to the customer's phone) during card payments. All major Indonesian gateways support 3D Secure, and it's strongly recommended. It shifts fraud liability from you to the card issuer and significantly reduces chargebacks.
 
 **Data protection.** Indonesia's data protection law (UU PDP, enacted in 2022) requires businesses to handle personal data responsibly. Make sure your privacy policy covers payment data, and don't store sensitive card information on your own servers. Let the gateway handle that.
 
-**Bank Indonesia regulations.** Payment gateways operating in Indonesia must hold licenses from Bank Indonesia. When you use a licensed gateway like Midtrans, Xendit, or DOKU, you're covered. Don't try to process payments through unlicensed providers or informal channels.
+**Bank Indonesia regulations.** Payment gateways operating in Indonesia must hold licenses from <a href="https://www.bi.go.id/en/default.aspx" target="_blank" rel="noopener noreferrer">Bank Indonesia</a>. When you use a licensed gateway like Midtrans, Xendit, or DOKU, you're covered. Don't try to process payments through unlicensed providers or informal channels.
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/how-to-set-up-online-payments-in-indonesia/illustration-2.svg" alt="Security checklist for online payments in Indonesia showing PCI DSS, 3D Secure, data protection, and Bank Indonesia licensing" />
 
@@ -160,7 +160,7 @@ When you set up online payments in Indonesia, security isn't optional. Here's wh
 
 Setting up online payments is one piece of running a business online. Getting the checkout flow right, making sure it works smoothly on mobile, and integrating it with your website's design and inventory system takes real work.
 
-At <a href="https://www.builtbypolaris.com" target="_blank" rel="noopener noreferrer">Polaris</a>, we build websites with payment integrations baked in from the start. Our process begins with a Business Health Check to understand what your business actually needs, then we handle the full website development including ecommerce integration with the right payment gateway for your situation.
+At <a href="https://www.builtbypolaris.com" target="_blank" rel="noopener noreferrer">Polaris</a>, we build websites with payment integrations baked in from the start. Our process begins with a Business Health Check to understand what your business actually needs, then we handle the full website development including ecommerce integration with the right payment gateway for your situation. A working checkout means very little if your site can't <a href="/insights/how-to-get-more-leads-from-your-website">drive enough qualified traffic to it</a> in the first place, which is why we look at the whole funnel.
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/shared/polaris-homepage.png" alt="Polaris homepage showing diagnostic-first approach to website building" />
 

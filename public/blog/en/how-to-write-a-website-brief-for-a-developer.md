@@ -63,7 +63,7 @@ The problem usually isn't the developer. It's the brief.
 
 A website brief is the single document that shapes your entire project. When it's vague, your developer fills in the blanks with assumptions. When it's clear, you get accurate timelines, realistic budgets, and a final product that actually solves your problem.
 
-Here's how to write a website brief for a developer that does the job properly.
+Here's how to write a website brief for a developer that does the job properly. If you're still in the early stages and haven't picked anyone yet, our guide on <a href="/insights/how-to-choose-a-web-developer">how to choose a web developer</a> walks through what to look for.
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/how-to-write-a-website-brief-for-a-developer/illustration-0.svg" alt="Website brief template showing six key sections: business overview, problem to solve, target audience, goals and metrics, features and structure, budget and timeline" />
 
@@ -112,10 +112,10 @@ Define what a successful website looks like in measurable terms. "More traffic" 
 
 - Generating a specific number of leads per month
 - Reducing bounce rate below a target percentage
-- Improving page load time to under 2 seconds
+- Improving page load time to under 2 seconds (the <a href="https://web.dev/articles/vitals" target="_blank" rel="noopener noreferrer">Core Web Vitals threshold</a> Google uses for ranking)
 - Ranking on page one for specific search terms
 
-These metrics give your developer something concrete to optimize for.
+These metrics give your developer something concrete to optimize for. If you don't have current numbers, set up <a href="/insights/how-to-track-website-visitors-with-google-analytics">Google Analytics</a> first so you have a real baseline before the project starts.
 
 ### Site structure and features
 
@@ -124,21 +124,21 @@ List the pages you need and any specific functionality. For each feature, descri
 Common features to specify:
 
 - Contact forms and where they should submit data
-- E-commerce functionality and payment processing
+- E-commerce functionality and payment processing (most platforms integrate with <a href="https://stripe.com" target="_blank" rel="noopener noreferrer">Stripe</a>, <a href="https://www.midtrans.com" target="_blank" rel="noopener noreferrer">Midtrans</a>, or <a href="https://www.xendit.co" target="_blank" rel="noopener noreferrer">Xendit</a>)
 - Blog or content management needs
-- Integrations with CRM, email marketing, or analytics tools
+- Integrations with CRM, email marketing, or analytics tools (e.g., <a href="https://www.hubspot.com" target="_blank" rel="noopener noreferrer">HubSpot</a> or <a href="https://mailchimp.com" target="_blank" rel="noopener noreferrer">Mailchimp</a>)
 - User accounts or gated content
 - Multi-language support
 
 ### Design direction
 
-Share 3-5 websites you like and explain what specifically appeals to you. "I like this site" isn't helpful. "I like how this site uses whitespace to make the content feel less overwhelming" gives your developer something to work with.
+Share 3-5 websites you like and explain what specifically appeals to you. "I like this site" isn't helpful. "I like how this site uses whitespace to make the content feel less overwhelming" gives your developer something to work with. Tools like <a href="https://www.figma.com" target="_blank" rel="noopener noreferrer">Figma</a> or even a shared Google Doc with screenshots work fine for this.
 
-If you have brand guidelines, attach them. If you don't, at minimum provide your logo, brand colors, and any fonts you use in other materials.
+If you have brand guidelines, attach them. If you don't, at minimum provide your logo, brand colors, and any fonts you use in other materials (free options like <a href="https://fonts.google.com" target="_blank" rel="noopener noreferrer">Google Fonts</a> work for most businesses).
 
 ### Content plan
 
-Content delays kill web projects. Be upfront about where your content stands. Are you providing final copy, or does it need to be written? Do you have professional photography, or will you need stock images?
+Content delays kill web projects. Be upfront about where your content stands. Are you providing final copy, or does it need to be written? Do you have professional photography, or will you need stock images from sites like <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer">Unsplash</a> or <a href="https://www.pexels.com" target="_blank" rel="noopener noreferrer">Pexels</a>?
 
 Your developer needs to know who's responsible for content and when it will be ready. Most timeline overruns trace back to content that wasn't prepared on time.
 
@@ -206,7 +206,7 @@ At <a href="https://www.builtbypolaris.com" target="_blank" rel="noopener norefe
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/shared/polaris-homepage.png" alt="Polaris homepage showing diagnostic-first approach to website building" />
 
-We build on Vercel for speed and reliability, handle SEO and content creation in-house, and work with you through a process that's transparent from day one.
+We build on <a href="https://vercel.com" target="_blank" rel="noopener noreferrer">Vercel</a> for speed and reliability, handle SEO and content creation in-house, and work with you through a process that's transparent from day one.
 
 If you've got a brief ready (or need help writing one), <a href="https://wa.me/6281946494333" target="_blank" rel="noopener noreferrer">reach out to us</a>. We'll tell you honestly whether a new website is even the right move.
 

@@ -55,7 +55,7 @@
 }
 ---
 
-Mobile devices now account for roughly 63% of all web traffic worldwide. If your website doesn't work well on a phone, you're giving the majority of your visitors a frustrating experience and giving Google a reason to rank you lower.
+Mobile devices now account for <a href="https://www.statista.com/statistics/277125/share-of-website-traffic-generated-by-mobile-devices/" target="_blank" rel="noopener noreferrer">roughly 63% of all web traffic worldwide</a>. If your website doesn't work well on a phone, you're giving the majority of your visitors a frustrating experience and giving Google a reason to rank you lower.
 
 The good news: making your website mobile friendly isn't some mysterious technical project. It's a series of concrete steps, most of which you can check off in a weekend. This guide walks you through what actually matters, what to test, and how to fix the most common problems.
 
@@ -76,11 +76,11 @@ Responsive design is the technical backbone of a mobile friendly website. It mea
 Here's what responsive design requires in practice:
 
 - **A viewport meta tag.** This line of HTML tells the browser to match the page width to the device width. Without it, mobile browsers render your site at desktop width and shrink everything down. The tag looks like this: `<meta name="viewport" content="width=device-width, initial-scale=1">`.
-- **Flexible layouts.** Use CSS Grid, Flexbox, or percentage-based widths instead of fixed pixel widths. A container set to `width: 800px` will force horizontal scrolling on any phone. A container set to `max-width: 100%` won't.
-- **Media queries.** These CSS rules let you apply different styles at different screen sizes. For example, you might stack a two-column layout into a single column below 768px.
+- **Flexible layouts.** Use <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout" target="_blank" rel="noopener noreferrer">CSS Grid</a>, <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout" target="_blank" rel="noopener noreferrer">Flexbox</a>, or percentage-based widths instead of fixed pixel widths. A container set to `width: 800px` will force horizontal scrolling on any phone. A container set to `max-width: 100%` won't.
+- **<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_media_queries" target="_blank" rel="noopener noreferrer">Media queries</a>.** These CSS rules let you apply different styles at different screen sizes. For example, you might stack a two-column layout into a single column below 768px.
 - **Fluid images.** Set images to `max-width: 100%` so they scale down to fit their container rather than overflowing the screen.
 
-If you're using a modern website builder like Squarespace, Webflow, or WordPress with a recent theme, responsive design is mostly handled for you. But "mostly" isn't "completely." You still need to test every page on a real phone to catch layout issues, overlapping elements, or text that's too small to read.
+If you're using a modern website builder like <a href="https://www.squarespace.com" target="_blank" rel="noopener noreferrer">Squarespace</a>, <a href="https://webflow.com" target="_blank" rel="noopener noreferrer">Webflow</a>, or <a href="https://wordpress.org" target="_blank" rel="noopener noreferrer">WordPress</a> with a recent theme, responsive design is mostly handled for you. But "mostly" isn't "completely." You still need to test every page on a real phone to catch layout issues, overlapping elements, or text that's too small to read.
 
 ## Optimize your page speed for mobile
 
@@ -96,10 +96,10 @@ INP is the metric most sites struggle with. As of 2026, roughly 43% of websites 
 
 Here are the most effective fixes for mobile speed:
 
-- **Compress and resize images.** A 4MB hero image that looks fine on desktop will take forever to load on a phone. Use modern formats like WebP or AVIF, and serve appropriately sized images using the `srcset` attribute.
+- **<a href="/insights/how-to-optimize-images-for-web">Compress and resize images</a>.** A 4MB hero image that looks fine on desktop will take forever to load on a phone. Use modern formats like WebP or AVIF, and serve appropriately sized images using the `srcset` attribute.
 - **Minimize JavaScript.** Heavy JavaScript bundles are the primary cause of slow INP scores. Audit your scripts, remove what you don't need, and defer what you do.
 - **Enable caching.** Browser caching stores assets locally so returning visitors don't have to download everything again.
-- **Use a CDN.** A content delivery network serves your files from servers closer to your visitors, reducing load times.
+- **Use a CDN.** A content delivery network serves your files from servers closer to your visitors, reducing load times. Our <a href="/insights/how-to-improve-website-loading-speed">guide to website loading speed</a> covers this in more depth.
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/how-to-make-your-website-mobile-friendly/illustration-2.svg" alt="Dashboard showing Core Web Vitals metrics with LCP, INP, and CLS scores on a mobile device" />
 
@@ -109,18 +109,18 @@ Designing for touch is fundamentally different from designing for mouse and keyb
 
 Here's what to get right:
 
-- **Tap targets need to be at least 48x48 pixels.** That's Google's recommended minimum. Buttons, links, and form fields all need enough space around them that someone with average-sized fingers can tap accurately on the first try.
+- **<a href="https://developers.google.com/search/docs/appearance/mobile-friendly" target="_blank" rel="noopener noreferrer">Tap targets need to be at least 48x48 pixels</a>.** That's Google's recommended minimum. Buttons, links, and form fields all need enough space around them that someone with average-sized fingers can tap accurately on the first try.
 - **Keep enough space between interactive elements.** If your navigation links are stacked with only a few pixels between them, people will constantly tap the wrong one.
 - **Simplify your navigation.** A mega menu with 40 links works on desktop because people can hover and scan. On mobile, it's overwhelming. Use a hamburger menu with clear categories, and keep your primary navigation to five or six items at most.
 - **Make forms as short as possible.** Every additional field on a mobile form increases the chance someone gives up. Ask for only what you absolutely need, use the right input types (email, tel, number) so the correct keyboard appears, and enable autofill.
-- **Avoid pop-ups that cover the screen.** Google has penalized intrusive interstitials on mobile since 2017. If you must use a pop-up, make sure the close button is easy to tap and the pop-up doesn't cover the main content.
+- **Avoid pop-ups that cover the screen.** Google has penalized <a href="https://developers.google.com/search/blog/2016/08/helping-users-easily-access-content-on" target="_blank" rel="noopener noreferrer">intrusive interstitials on mobile</a> since 2017. If you must use a pop-up, make sure the close button is easy to tap and the pop-up doesn't cover the main content.
 
 ## Test your site with the right tools
 
 You can't fix what you can't measure. These tools will tell you exactly where your mobile experience falls short:
 
 - **<a href="https://pagespeed.web.dev/" target="_blank" rel="noopener noreferrer">PageSpeed Insights</a>:** Enter any URL and get a detailed breakdown of Core Web Vitals, performance scores, and specific recommendations for improvement. It tests both mobile and desktop.
-- **Chrome DevTools device mode:** Press F12 in Chrome, click the device toggle icon, and preview your site at various screen sizes. It's not a perfect substitute for a real phone, but it catches most layout issues quickly.
+- **<a href="https://developer.chrome.com/docs/devtools/device-mode" target="_blank" rel="noopener noreferrer">Chrome DevTools device mode</a>:** Press F12 in Chrome, click the device toggle icon, and preview your site at various screen sizes. It's not a perfect substitute for a real phone, but it catches most layout issues quickly.
 - **<a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer">Google Search Console</a>:** The "Mobile Usability" report flags pages with specific problems like text too small to read, clickable elements too close together, or content wider than the screen.
 - **Real device testing.** Tools and emulators are useful, but nothing replaces loading your site on an actual phone. Test on both iOS and Android, and try at least two different browsers (Safari and Chrome cover the vast majority of mobile users).
 
@@ -143,7 +143,7 @@ Even sites built with responsive templates can have mobile problems. Here are th
 
 At <a href="https://www.builtbypolaris.com" target="_blank" rel="noopener noreferrer">Polaris</a>, every website we build is mobile-first by default. We don't design for desktop and then squeeze it onto a phone. We start with the smallest screen and scale up, which means mobile performance and usability are baked in from the start.
 
-We build on Vercel, which gives every site automatic CDN distribution, edge caching, and optimized asset delivery. The result is consistently fast load times on mobile, even on slower connections. And because we run a Business Health Check before any project begins, we understand how your customers are actually finding and using your site, so we can prioritize what matters most for your specific audience.
+We build on <a href="https://vercel.com" target="_blank" rel="noopener noreferrer">Vercel</a>, which gives every site automatic CDN distribution, edge caching, and optimized asset delivery. The result is consistently fast load times on mobile, even on slower connections. And because we run a Business Health Check before any project begins, we understand how your customers are actually finding and using your site, so we can prioritize what matters most for your specific audience.
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/shared/polaris-homepage.png" alt="Polaris homepage showing diagnostic-first approach to website building" />
 

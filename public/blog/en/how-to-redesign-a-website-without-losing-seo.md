@@ -67,13 +67,13 @@ The single most important step in redesigning a website without losing SEO happe
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/how-to-redesign-a-website-without-losing-seo/illustration-1.svg" alt="SEO audit dashboard showing organic traffic chart, top performing pages, and baseline metrics before a website redesign" />
 
-Open Google Search Console and Google Analytics and export the following:
+Open <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer">Google Search Console</a> and <a href="/insights/how-to-track-website-visitors-with-google-analytics">Google Analytics</a> and export the following:
 
 - **Every indexed URL** on your current site. This becomes your master list for redirect mapping later.
 - **Top-performing pages** ranked by organic traffic. These are the pages you absolutely cannot afford to break.
 - **Keyword rankings** for your most important search terms. Screenshot or export these so you have a baseline to compare against.
-- **Backlink profile**. Use a tool like Ahrefs or Search Console's links report to see which pages have external links pointing to them. Those links carry SEO value that needs to transfer to your new site.
-- **Core Web Vitals** and page speed scores. Record your current performance so you can measure whether the redesign actually improves things.
+- **Backlink profile**. Use a tool like <a href="https://ahrefs.com" target="_blank" rel="noopener noreferrer">Ahrefs</a> or Search Console's links report to see which pages have external links pointing to them. Those links carry SEO value that needs to transfer to your new site.
+- **<a href="https://web.dev/articles/vitals" target="_blank" rel="noopener noreferrer">Core Web Vitals</a>** and page speed scores. Record your current performance so you can measure whether the redesign actually improves things.
 
 This audit isn't optional. <a href="https://searchengineland.com/guide/site-redesign-seo-checklist" target="_blank" rel="noopener noreferrer">According to Search Engine Land</a>, the most successful site migrations are 70% planning and 30% execution. Skipping the audit is the number one reason redesigns tank rankings.
 
@@ -89,11 +89,11 @@ Here's how to handle it:
 
 **Create a redirect map.** Take your full list of current URLs (from the audit) and map each one to its corresponding new URL. This is a simple spreadsheet with two columns: old URL on the left, new URL on the right.
 
-**Use 301 redirects, not 302s.** A 301 tells search engines the move is permanent and to transfer ranking signals to the new URL. A 302 says the move is temporary, which means Google may keep trying to index the old URL and won't pass full link equity.
+**Use <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/301" target="_blank" rel="noopener noreferrer">301 redirects</a>, not 302s.** A 301 tells search engines the move is permanent and to transfer ranking signals to the new URL. A 302 says the move is temporary, which means Google may keep trying to index the old URL and won't pass full link equity.
 
 **Avoid redirect chains.** If URL A redirects to URL B, and URL B redirects to URL C, you have a chain. Each hop in the chain dilutes SEO value and slows down page loads. Every old URL should point directly to its final destination.
 
-**Don't redirect everything to your homepage.** This is a common shortcut that looks clean but destroys SEO value. If your old services page redirected to your homepage instead of your new services page, Google treats that as a soft 404. The ranking signals from your old page effectively disappear.
+**Don't redirect everything to your homepage.** This is a common shortcut that looks clean but destroys SEO value. If your old services page redirected to your homepage instead of your new services page, <a href="https://developers.google.com/search/docs/crawling-indexing/301-redirects" target="_blank" rel="noopener noreferrer">Google treats that as a soft 404</a>. The ranking signals from your old page effectively disappear. (If you're moving CMS or hosting at the same time, our guide on <a href="/insights/how-to-migrate-your-website-to-a-new-platform">website platform migration</a> covers the additional considerations.)
 
 If your URL structure isn't changing (same paths, same slugs), you're in a much safer position. But verify this carefully. Redesigns often change URL structures accidentally, for example when switching from `/services/web-design.html` to `/services/web-design` or restructuring content into different folders.
 
@@ -109,7 +109,7 @@ A new design doesn't mean new SEO fundamentals. The metadata and content structu
 
 **Internal linking.** Your internal link structure helps search engines understand how your pages relate to each other. Map out your current internal links and make sure the new site maintains the same (or better) linking patterns. Broken internal links after a redesign are extremely common and easy to miss.
 
-**Structured data.** If your current site uses schema markup (for FAQs, products, reviews, etc.), make sure that markup transfers to the new site. Losing structured data means losing rich snippets in search results, which can significantly impact click-through rates.
+**Structured data.** If your current site uses <a href="https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data" target="_blank" rel="noopener noreferrer">schema markup</a> (for FAQs, products, reviews, etc.), make sure that markup transfers to the new site. Losing structured data means losing rich snippets in search results, which can significantly impact click-through rates.
 
 One common mistake is hiring a copywriter to rewrite all your page content during the redesign. New copy can be great, but if the rewritten content drops the keywords your pages currently rank for, you'll lose those rankings. <a href="https://www.practicebuilders.com/blog/prevent-organic-traffic-drop-after-website-redesign/" target="_blank" rel="noopener noreferrer">Any content changes should be keyword-aware</a>, meaning you verify that target keywords still appear naturally in the updated text.
 
@@ -117,11 +117,11 @@ One common mistake is hiring a copywriter to rewrite all your page content durin
 
 Beyond content and redirects, there's a list of technical items that need to be right before your redesigned site goes live. Missing any of these can cause indexing problems that take weeks to fix.
 
-**Robots.txt.** Check that your new site's robots.txt file isn't accidentally blocking search engine crawlers. This happens more often than you'd think. Staging sites typically block crawlers with `Disallow: /` in robots.txt. If that rule carries over to production, Google won't index a single page.
+**Robots.txt.** Check that your new site's <a href="https://developers.google.com/search/docs/crawling-indexing/robots/intro" target="_blank" rel="noopener noreferrer">robots.txt file</a> isn't accidentally blocking search engine crawlers. This happens more often than you'd think. Staging sites typically block crawlers with `Disallow: /` in robots.txt. If that rule carries over to production, Google won't index a single page.
 
-**XML sitemap.** Generate a new sitemap that includes all pages on your redesigned site. Submit it through Google Search Console immediately after launch. This helps Google discover and index your new URLs faster.
+**XML sitemap.** Generate a new <a href="https://www.sitemaps.org/protocol.html" target="_blank" rel="noopener noreferrer">sitemap</a> that includes all pages on your redesigned site. Submit it through Google Search Console immediately after launch. This helps Google discover and index your new URLs faster.
 
-**Canonical tags.** Make sure every page has a self-referencing canonical tag pointing to its own URL. Without canonical tags, you risk duplicate content issues, especially if your site is accessible at both www and non-www versions or with and without trailing slashes.
+**Canonical tags.** Make sure every page has a <a href="https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls" target="_blank" rel="noopener noreferrer">self-referencing canonical tag</a> pointing to its own URL. Without canonical tags, you risk duplicate content issues, especially if your site is accessible at both www and non-www versions or with and without trailing slashes.
 
 **HTTPS.** If your old site was on HTTP and you're moving to HTTPS during the redesign (which you should), that's technically a URL change for every page. You'll need redirects from the HTTP versions to HTTPS versions in addition to any URL structure changes.
 

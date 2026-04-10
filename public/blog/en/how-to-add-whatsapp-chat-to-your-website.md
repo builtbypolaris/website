@@ -63,7 +63,7 @@ The good news: this isn't complicated. You don't need a developer for the basic 
 
 Before diving into the how, it's worth asking whether this is actually useful for your business. The short answer: if your customers already message you on WhatsApp, putting it on your site just makes the path shorter.
 
-Live chat tools like Intercom or Drift work well for SaaS companies with support teams sitting at desktops all day. But for service businesses, consultancies, shops, and freelancers, those tools create a problem. Someone sends a message through your website chat, and if you don't reply within two minutes, they're gone. You're now paying for a tool that mostly collects missed messages.
+Live chat tools like <a href="https://www.intercom.com" target="_blank" rel="noopener noreferrer">Intercom</a> or <a href="https://www.drift.com" target="_blank" rel="noopener noreferrer">Drift</a> work well for SaaS companies with support teams sitting at desktops all day. But for service businesses, consultancies, shops, and freelancers, those tools create a problem. Someone sends a message through your website chat, and if you don't reply within two minutes, they're gone. You're now paying for a tool that mostly collects missed messages.
 
 WhatsApp is different because the conversation lives on the customer's phone. They send a message, put their phone away, and check back later. You reply when you can. There's no "visitor has left the chat" moment. The conversation thread stays open indefinitely, which means your response time matters less than your response quality.
 
@@ -71,7 +71,7 @@ There are a few other practical advantages:
 
 - **No login friction.** Visitors don't need to type their email or create an account. They already have WhatsApp open.
 - **Rich media support.** Customers can send photos of what they need (a broken part, a reference design, a location screenshot) without you building a file upload form.
-- **Mobile-first by default.** Over half of web traffic is mobile. A WhatsApp button on a phone opens the app directly. That's faster than any contact form.
+- **Mobile-first by default.** Over half of web traffic is mobile. A WhatsApp button on a phone opens the app directly. That's faster than any contact form, but only if your <a href="/insights/how-to-make-your-website-mobile-friendly">site is properly mobile-friendly</a> in the first place.
 
 The real question isn't whether to add it. It's which integration method fits your situation.
 
@@ -83,7 +83,7 @@ There's no single "right" method. Each approach trades simplicity for control. H
 
 ### 1. Click-to-chat links (the five-minute option)
 
-WhatsApp provides an official link format that opens a chat with your number, no contact saving required. The format is:
+<a href="https://faq.whatsapp.com/5913398998672934" target="_blank" rel="noopener noreferrer">WhatsApp provides an official link format</a> that opens a chat with your number, no contact saving required. The format is:
 
 `https://wa.me/yourphonenumber`
 
@@ -111,7 +111,7 @@ A floating widget adds a small WhatsApp icon (usually in the bottom-right corner
 
 You have two paths here:
 
-**Third-party widget tools** like Elfsight, GetButton, or Chaty give you a visual editor to customize the widget's appearance, set business hours, add a welcome message, and generate a code snippet. You paste that snippet into your site's HTML (usually before the closing `</body>` tag), and the widget appears.
+**Third-party widget tools** like <a href="https://elfsight.com/whatsapp-chat-widget/" target="_blank" rel="noopener noreferrer">Elfsight</a>, <a href="https://getbutton.io" target="_blank" rel="noopener noreferrer">GetButton</a>, or <a href="https://chaty.app" target="_blank" rel="noopener noreferrer">Chaty</a> give you a visual editor to customize the widget's appearance, set business hours, add a welcome message, and generate a code snippet. You paste that snippet into your site's HTML (usually before the closing `</body>` tag), and the widget appears.
 
 **WordPress plugins** like Starter Templates WhatsApp Chat or Joinchat do the same thing but integrate directly with WordPress. Install, configure your number, and activate.
 
@@ -121,9 +121,9 @@ You have two paths here:
 
 ### 3. WhatsApp Business API (the scalable option)
 
-If you need automated responses, chatbots, multi-agent support, or CRM integration, you'll need the WhatsApp Business API. This is Meta's official platform for businesses that handle high message volumes.
+If you need automated responses, chatbots, multi-agent support, or CRM integration, you'll need the <a href="https://business.whatsapp.com/products/business-platform" target="_blank" rel="noopener noreferrer">WhatsApp Business API</a>. This is Meta's official platform for businesses that handle high message volumes.
 
-The Cloud API (which is now the standard, as Meta discontinued the on-premise option) runs entirely on Meta's servers. You access it through a Business Solution Provider (BSP) like Twilio, MessageBird, or Wati, or directly through Meta's Business Manager.
+The Cloud API (which is now the standard, as Meta discontinued the on-premise option) runs entirely on Meta's servers. You access it through a Business Solution Provider (BSP) like <a href="https://www.twilio.com/whatsapp" target="_blank" rel="noopener noreferrer">Twilio</a>, <a href="https://messagebird.com" target="_blank" rel="noopener noreferrer">MessageBird</a>, or <a href="https://www.wati.io" target="_blank" rel="noopener noreferrer">Wati</a>, or directly through Meta's Business Manager.
 
 With the API, you can:
 
@@ -141,7 +141,7 @@ With the API, you can:
 
 Let's walk through the most common setup: a floating WhatsApp button that works on any website. This uses a lightweight approach that doesn't depend on third-party services.
 
-**Step 1: Get your WhatsApp Business number ready.** Download WhatsApp Business (it's free) and set up your business profile with your name, description, address, and business hours. This is what visitors see when they open a chat with you.
+**Step 1: Get your WhatsApp Business number ready.** Download <a href="https://business.whatsapp.com" target="_blank" rel="noopener noreferrer">WhatsApp Business</a> (it's free) and set up your business profile with your name, description, address, and business hours. This is what visitors see when they open a chat with you.
 
 **Step 2: Build your chat link.** Format your number in international style and create your wa.me link. Test it by opening the link on your phone. It should open WhatsApp with a new conversation to your business number.
 
@@ -174,7 +174,7 @@ Adding the button is easy. Getting the experience right takes a bit more thought
 
 **Loading heavy third-party scripts when a link would do.** If you're a solo business owner who just wants to receive messages, you don't need a widget that loads 200 KB of JavaScript. A styled link does the same job with zero performance cost.
 
-**Not tracking clicks.** Even a basic onclick event that fires a Google Analytics event gives you data on how many visitors actually use the WhatsApp button. Without tracking, you're guessing whether the integration is working.
+**Not tracking clicks.** Even a basic onclick event that fires a <a href="/insights/how-to-track-website-visitors-with-google-analytics">Google Analytics event</a> gives you data on how many visitors actually use the WhatsApp button. Without tracking, you're guessing whether the integration is working.
 
 ## Polaris builds websites with WhatsApp chat built in
 

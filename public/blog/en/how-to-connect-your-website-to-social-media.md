@@ -101,7 +101,7 @@ Here's what the code looks like in your page's head section:
 <meta property="og:url" content="https://yoursite.com/page" />
 ```
 
-If you're on WordPress, the Yoast SEO plugin handles this automatically and lets you customize the title, description, and image for each page. Squarespace and Wix generate basic OG tags from your page content, but you'll get better results by customizing them.
+If you're on WordPress, the <a href="https://yoast.com" target="_blank" rel="noopener noreferrer">Yoast SEO plugin</a> handles this automatically and lets you customize the title, description, and image for each page. Squarespace and Wix generate basic OG tags from your page content, but you'll get better results by customizing them. (Picking the right image size matters here, so it's worth combining this with our <a href="/insights/how-to-optimize-images-for-web">image optimization guide</a>.)
 
 ### Testing your OG tags
 
@@ -212,9 +212,9 @@ Not every social post needs to drive traffic. But some of your posts should give
 
 ### Use UTM parameters to track what works
 
-When you share links on social media, add UTM parameters so you can see exactly which posts drive traffic in your analytics. A link like `yoursite.com/blog-post?utm_source=instagram&utm_medium=social&utm_campaign=spring2026` tells you precisely where that visitor came from.
+When you share links on social media, add <a href="https://support.google.com/analytics/answer/10917952" target="_blank" rel="noopener noreferrer">UTM parameters</a> so you can see exactly which posts drive traffic in your analytics. A link like `yoursite.com/blog-post?utm_source=instagram&utm_medium=social&utm_campaign=spring2026` tells you precisely where that visitor came from.
 
-Without UTM tracking, you'll see "social" as a traffic source in your analytics but won't know which posts or platforms are actually performing.
+Without UTM tracking, you'll see "social" as a traffic source in your analytics but won't know which posts or platforms are actually performing. Our guide on <a href="/insights/how-to-track-website-visitors-with-google-analytics">tracking visitors with Google Analytics</a> covers how to set this up properly.
 
 ## Polaris can help you connect your website to social media
 

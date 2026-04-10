@@ -83,7 +83,7 @@ Your goal determines everything about the page's structure:
 
 ### How to pick the right goal
 
-Match the goal to your traffic source. Cold traffic from ads needs a softer ask (free resource, consultation). Warm traffic from your email list can handle a direct pitch. Trying to sell a $5,000 service to someone who just clicked a Facebook ad for the first time rarely works.
+Match the goal to your traffic source. Cold traffic from ads needs a softer ask (free resource, consultation). Warm traffic from your email list can handle a direct pitch. Trying to sell a $5,000 service to someone who just clicked a <a href="https://www.facebook.com/business/ads" target="_blank" rel="noopener noreferrer">Facebook ad</a> for the first time rarely works. If your bigger problem is just <a href="/insights/how-to-get-more-leads-from-your-website">getting leads from your website</a> in the first place, that's a different conversation.
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/how-to-create-a-landing-page-that-converts/illustration-0.svg" alt="Three types of landing pages compared: lead capture, direct sale, and signup" />
 
@@ -153,11 +153,11 @@ You can do everything right and still tank your conversion rate with a few easil
 
 **Weak or generic CTAs.** "Submit" and "Click here" tell the visitor nothing. Use action words that describe the outcome: "Get my free guide," "Book my consultation," "Start building."
 
-**Slow load times.** Conversion rates drop by <a href="https://www.cloudflare.com/learning/performance/more/website-performance-conversion-rates/" target="_blank" rel="noopener noreferrer">an average of 4.42% for each additional second</a> of load time. Compress your images, minimize scripts, and test your page speed before launching.
+**Slow load times.** Conversion rates drop by <a href="https://www.cloudflare.com/learning/performance/more/website-performance-conversion-rates/" target="_blank" rel="noopener noreferrer">an average of 4.42% for each additional second</a> of load time. <a href="/insights/how-to-optimize-images-for-web">Compress your images</a>, minimize scripts, and test your page speed with <a href="https://pagespeed.web.dev/" target="_blank" rel="noopener noreferrer">PageSpeed Insights</a> before launching.
 
-**Ignoring mobile.** Over half of web traffic comes from phones. If your landing page isn't mobile-optimized (large tap targets, readable text without zooming, fast load on cellular), you're throwing away conversions.
+**Ignoring mobile.** Over half of web traffic comes from phones. If your landing page isn't <a href="/insights/how-to-make-your-website-mobile-friendly">mobile-optimized</a> (large tap targets, readable text without zooming, fast load on cellular), you're throwing away conversions. Google's <a href="https://web.dev/articles/responsive-web-design-basics" target="_blank" rel="noopener noreferrer">responsive design guide</a> covers the basics.
 
-**Asking for too much information.** Every extra form field reduces completions. If you only need an email address, don't ask for phone number, company size, and job title. You can always collect more information later.
+**Asking for too much information.** Every extra form field reduces completions. <a href="https://www.nngroup.com/articles/web-form-design/" target="_blank" rel="noopener noreferrer">Nielsen Norman Group research</a> shows that shorter forms convert significantly better. If you only need an email address, don't ask for phone number, company size, and job title. You can always collect more information later.
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/how-to-create-a-landing-page-that-converts/illustration-2.svg" alt="Common landing page mistakes: cluttered vs focused design" />
 
@@ -167,7 +167,7 @@ Most businesses come to us after they've already tried building a landing page o
 
 At <a href="https://www.builtbypolaris.com" target="_blank" rel="noopener noreferrer">Polaris</a>, we don't start with design. We start with a diagnostic. Our free Business Health Check identifies what's actually stopping your website from converting, whether that's unclear messaging, poor page structure, slow performance, or targeting the wrong audience entirely.
 
-From there, we build landing pages on modern infrastructure (Vercel) that load fast, look sharp on every device, and are structured specifically around your conversion goal. Every site we build comes with analytics baked in so you can see exactly what's working.
+From there, we build landing pages on modern infrastructure (<a href="https://vercel.com" target="_blank" rel="noopener noreferrer">Vercel</a>) that load fast, look sharp on every device, and are structured specifically around your conversion goal. Every site we build comes with analytics baked in so you can see exactly what's working.
 
 We also handle the full picture: SEO so people find your page, content strategy so your messaging resonates, and ongoing optimization so your conversion rates improve over time.
 
@@ -184,7 +184,7 @@ A: The median landing page conversion rate is around 6.6% across industries. A g
 A: Stick to one primary CTA repeated throughout the page. Multiple different CTAs split attention and confuse visitors. You can place the same button in several spots (hero, mid-page, bottom), but they should all lead to the same action.
 
 **Q: Do I need a separate tool to create a landing page that converts?**
-A: Not necessarily. Dedicated builders like Unbounce or Leadpages offer drag-and-drop convenience and A/B testing, but a well-built custom page on your existing website works just as well, sometimes better, since it avoids the template look.
+A: Not necessarily. Dedicated builders like <a href="https://unbounce.com" target="_blank" rel="noopener noreferrer">Unbounce</a> or <a href="https://www.leadpages.com" target="_blank" rel="noopener noreferrer">Leadpages</a> offer drag-and-drop convenience and A/B testing, but a well-built custom page on your existing website works just as well, sometimes better, since it avoids the template look.
 
 **Q: How long should a landing page that converts be?**
 A: It depends on your offer. Simple lead magnets (ebook, checklist) work well with short pages. Higher-commitment offers (paid products, consultations) need longer pages with more social proof and objection handling. Test both and let the data decide.

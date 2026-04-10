@@ -199,10 +199,10 @@ export function InsightsPage() {
           {rest.length > 0 && (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
               {rest.map((post, i) => (
-                <MotionReveal key={post.slug} delay={i * 0.08}>
+                <MotionReveal key={post.slug} delay={i * 0.08} className="h-full">
                   <Link
                     to={`/insights/${post.slug}`}
-                    className="group flex flex-col rounded-2xl border border-white/[0.04] overflow-hidden bg-card transition-all duration-300 hover:border-purple-core/30 hover:shadow-[0_0_40px_rgba(124,92,191,0.06)] hover:-translate-y-1"
+                    className="group flex flex-col h-full rounded-2xl border border-white/[0.04] overflow-hidden bg-card transition-all duration-300 hover:border-purple-core/30 hover:shadow-[0_0_40px_rgba(124,92,191,0.06)] hover:-translate-y-1"
                   >
                     <div className="relative aspect-[16/10] bg-surface overflow-hidden">
                       {post.coverImage ? (

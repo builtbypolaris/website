@@ -85,7 +85,7 @@ A successful migration follows a predictable sequence. Skipping steps is how thi
 
 Start by documenting everything you have. This sounds tedious, but it's the single most important step. You need a complete inventory of:
 
-- Every URL on your site (use a crawler like Screaming Frog or Sitebulb)
+- Every URL on your site (use a crawler like <a href="https://www.screamingfrog.co.uk/seo-spider/" target="_blank" rel="noopener noreferrer">Screaming Frog</a> or <a href="https://sitebulb.com" target="_blank" rel="noopener noreferrer">Sitebulb</a>)
 - Your top-performing pages by traffic and conversions
 - All metadata: title tags, meta descriptions, header tags
 - Internal and external links
@@ -100,25 +100,25 @@ Before you touch anything, create a full backup of your site. That means your da
 
 ### 3. Set up a staging environment
 
-Build your new site on a staging server, not on your live domain. This gives you a safe space to configure the new platform, import content, and test without affecting your existing site. Make sure your staging environment is blocked from search engines (via robots.txt or password protection) so Google doesn't start indexing an unfinished site.
+Build your new site on a staging server, not on your live domain. This gives you a safe space to configure the new platform, import content, and test without affecting your existing site. Make sure your staging environment is blocked from search engines (via <a href="https://developers.google.com/search/docs/crawling-indexing/robots/intro" target="_blank" rel="noopener noreferrer">robots.txt</a> or password protection) so Google doesn't start indexing an unfinished site.
 
 ### 4. Map your URL structure
 
 This is where most migrations go wrong. If your URL structure changes (and it usually does when you switch platforms), you need a redirect map. That's a spreadsheet matching every old URL to its corresponding new URL.
 
-Use 301 redirects, not 302s. A 301 tells search engines the move is permanent and passes the SEO value from the old page to the new one. A 302 signals a temporary move and doesn't transfer ranking power.
+Use <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/301" target="_blank" rel="noopener noreferrer">301 redirects</a>, not 302s. A 301 tells search engines the move is permanent and passes the SEO value from the old page to the new one. A 302 signals a temporary move and doesn't transfer ranking power.
 
-Don't redirect everything to your homepage. This is a common shortcut that Google treats as a soft 404. Each old URL should point to its closest equivalent on the new site.
+Don't redirect everything to your homepage. This is a common shortcut that <a href="https://developers.google.com/search/docs/crawling-indexing/301-redirects" target="_blank" rel="noopener noreferrer">Google treats as a soft 404</a>. Each old URL should point to its closest equivalent on the new site. If you're worried about preserving search visibility through the move, our guide to <a href="/insights/how-to-redesign-a-website-without-losing-seo">redesigning a website without losing SEO</a> covers the redirect playbook in more detail.
 
 ### 5. Migrate your content
 
 Move your content to the new platform, either through built-in migration tools, export/import plugins, or manual transfer. As you migrate, check that:
 
 - Text content transferred without formatting issues
-- Images and media files are loading from the correct paths
+- Images and media files are loading from the correct paths (and that you've taken the chance to <a href="/insights/how-to-optimize-images-for-web">optimize them properly for the web</a>)
 - Internal links point to the new URL structure
 - Meta titles and descriptions carried over correctly
-- Structured data (schema markup) is intact
+- Structured data (<a href="https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data" target="_blank" rel="noopener noreferrer">schema markup</a>) is intact
 
 ### 6. Test before you go live
 
@@ -126,7 +126,7 @@ On staging, go through every page. Click every link. Submit every form. Test on 
 
 ### 7. Launch and monitor
 
-When you're confident the staging site is solid, point your domain to the new server. Submit your updated sitemap to Google Search Console. Then watch your analytics closely for the next 30 to 90 days.
+When you're confident the staging site is solid, point your domain to the new server. Submit your updated sitemap to <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer">Google Search Console</a>. Then watch your analytics closely for the next 30 to 90 days.
 
 ## The SEO risks of migrating your website to a new platform
 
@@ -140,7 +140,7 @@ Here's what can go wrong and how to prevent it:
 
 **Changed content and structure.** If you rewrite page content, change headings, or restructure your site architecture during the migration, Google may need to re-evaluate your pages from scratch. Try to keep your highest-performing pages as close to their original content as possible during the initial migration. You can always optimize later.
 
-**Slow page speed on the new platform.** If your new platform is slower than the old one, your Core Web Vitals will suffer, and that affects rankings. Test performance before you launch.
+**Slow page speed on the new platform.** If your new platform is slower than the old one, your <a href="https://web.dev/articles/vitals" target="_blank" rel="noopener noreferrer">Core Web Vitals</a> will suffer, and that affects rankings. Test performance with <a href="https://pagespeed.web.dev/" target="_blank" rel="noopener noreferrer">PageSpeed Insights</a> before you launch.
 
 **Lost structured data.** Schema markup, Open Graph tags, and other structured data often don't transfer automatically. If your old site had FAQ schema, product schema, or review markup, you'll need to recreate it on the new platform.
 
@@ -166,7 +166,7 @@ At <a href="https://www.builtbypolaris.com" target="_blank" rel="noopener norefe
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/shared/polaris-homepage.png" alt="Polaris homepage showing diagnostic-first approach to website building" />
 
-Our team builds on Vercel, which means your migrated site will be fast, secure, and straightforward to maintain. We handle the full process: site audit, content migration, redirect mapping, SEO preservation, and post-launch monitoring.
+Our team builds on <a href="https://vercel.com" target="_blank" rel="noopener noreferrer">Vercel</a>, which means your migrated site will be fast, secure, and straightforward to maintain. We handle the full process: site audit, content migration, redirect mapping, SEO preservation, and post-launch monitoring.
 
 If you're considering a platform switch and want to avoid the common pitfalls, <a href="https://wa.me/6281946494333" target="_blank" rel="noopener noreferrer">reach out to us</a>. We'll start with a diagnostic, not a sales pitch.
 

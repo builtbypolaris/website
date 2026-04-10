@@ -504,7 +504,7 @@ export function BlogPostPage() {
                   <Link
                     key={r.slug}
                     to={`/insights/${r.slug}`}
-                    className="group flex flex-col rounded-2xl border border-white/[0.04] overflow-hidden bg-card transition-all duration-300 hover:border-purple-core/30 hover:shadow-[0_0_40px_rgba(124,92,191,0.06)] hover:-translate-y-1"
+                    className="group flex flex-col h-full rounded-2xl border border-white/[0.04] overflow-hidden bg-card transition-all duration-300 hover:border-purple-core/30 hover:shadow-[0_0_40px_rgba(124,92,191,0.06)] hover:-translate-y-1"
                   >
                     <div className="relative aspect-[16/10] bg-surface overflow-hidden">
                       {r.coverImage ? (

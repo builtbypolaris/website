@@ -88,7 +88,7 @@ You don't need to automate everything at once. Start with these five high-impact
 
 ### Lead capture and follow-up
 
-When someone fills out a form on your website, what happens next? If the answer is "I check my email and respond when I get a chance," you're losing leads. <a href="https://keap.com/resources/25-things-every-small-business-should-automate" target="_blank" rel="noopener noreferrer">Waiting more than 30 minutes to contact a lead decreases your odds of qualifying them by 21 times</a> compared to responding within 5 minutes.
+When someone fills out a form on your website, what happens next? If the answer is "I check my email and respond when I get a chance," you're losing leads. <a href="https://keap.com/resources/25-things-every-small-business-should-automate" target="_blank" rel="noopener noreferrer">Waiting more than 30 minutes to contact a lead decreases your odds of qualifying them by 21 times</a> compared to responding within 5 minutes. For more on the front of the funnel, see our guide on <a href="/insights/how-to-get-more-leads-from-your-website">how to get more leads from your website</a>.
 
 Set up an automated welcome email that goes out instantly when someone submits a form. Then trigger a follow-up sequence over the next few days. Tools like <a href="https://www.hubspot.com/products/crm" target="_blank" rel="noopener noreferrer">HubSpot CRM</a> (free tier available) or <a href="https://mailchimp.com" target="_blank" rel="noopener noreferrer">Mailchimp</a> make this straightforward.
 
@@ -136,7 +136,7 @@ Automation can backfire if you rush it. Here's how to do it right.
 
 **Test with real scenarios.** Don't just test the "happy path." What happens when a customer submits a form with a weird email format? When an invoice is for $0? When someone books an appointment and then cancels? Test the edge cases.
 
-**Monitor for the first few weeks.** Set up notifications so you know when automations run (and when they fail). Most tools have built-in error alerts. Check them.
+**Monitor for the first few weeks.** Set up notifications so you know when automations run (and when they fail). Most tools have built-in error alerts. Check them. Pair automation monitoring with proper website tracking using <a href="/insights/how-to-track-website-visitors-with-google-analytics">Google Analytics</a> so you have a full picture of what's happening end to end.
 
 **Keep humans in the loop for high-stakes processes.** Automation should handle the repetitive parts, not the decisions. A good rule: automate the data collection and preparation, let a person make the final call.
 

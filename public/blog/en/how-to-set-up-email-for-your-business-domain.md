@@ -57,7 +57,7 @@
 
 If you're still using a free Gmail or Yahoo address for your business, you're sending a signal you might not intend. When a potential client gets an email from you@gmail.com instead of you@yourbusiness.com, it raises a question about how serious the operation is. Fair or not, that's how people read it.
 
-Setting up email on your own domain isn't complicated or expensive. It takes about 30 minutes and costs as little as $1 per user per month. Here's how to set up email for your business domain, step by step.
+Setting up email on your own domain isn't complicated or expensive. It takes about 30 minutes and costs as little as $1 per user per month. Here's how to set up email for your business domain, step by step. (If you're earlier in the process and still picking a name, see our guide on <a href="/insights/how-to-choose-a-domain-name-for-your-business">how to choose a domain name for your business</a>.)
 
 ## Why a business domain email matters
 
@@ -129,9 +129,9 @@ For Google Workspace, the MX records look something like:
 
 This is the step most people skip, and it's the one that matters most for deliverability. Set up three DNS records:
 
-- **SPF** (Sender Policy Framework): tells receiving servers which servers are allowed to send email for your domain
-- **DKIM** (DomainKeys Identified Mail): adds a digital signature to verify emails haven't been tampered with
-- **DMARC** (Domain-based Message Authentication): tells receiving servers what to do with emails that fail SPF/DKIM checks
+- **<a href="https://datatracker.ietf.org/doc/html/rfc7208" target="_blank" rel="noopener noreferrer">SPF</a>** (Sender Policy Framework): tells receiving servers which servers are allowed to send email for your domain
+- **<a href="https://datatracker.ietf.org/doc/html/rfc6376" target="_blank" rel="noopener noreferrer">DKIM</a>** (DomainKeys Identified Mail): adds a digital signature to verify emails haven't been tampered with
+- **<a href="https://dmarc.org" target="_blank" rel="noopener noreferrer">DMARC</a>** (Domain-based Message Authentication): tells receiving servers what to do with emails that fail SPF/DKIM checks
 
 Your email provider will give you the exact records to add. It takes 5 minutes and dramatically improves your email deliverability.
 
@@ -149,7 +149,7 @@ Add email addresses for your team. Most providers let you create group aliases t
 
 **Creating too many shared inboxes.** It's tempting to create info@, support@, sales@, contact@, and hello@ all at once. Start with what you actually need and add more later.
 
-**Forgetting about mobile.** Set up your business email on your phone too. Google Workspace works natively with the Gmail app, and Microsoft 365 with the Outlook app.
+**Forgetting about mobile.** Set up your business email on your phone too. Google Workspace works natively with the <a href="https://www.google.com/gmail/about/" target="_blank" rel="noopener noreferrer">Gmail app</a>, and Microsoft 365 with the <a href="https://www.microsoft.com/en-us/microsoft-365/outlook-mobile-for-android-and-ios" target="_blank" rel="noopener noreferrer">Outlook app</a>. While you're thinking about how the email connects to the rest of your stack, our guide on <a href="/insights/how-to-create-a-business-email-with-custom-domain">creating business email with a custom domain</a> covers naming conventions and team structure.
 
 ## How Polaris helps you set up email for your business domain
 

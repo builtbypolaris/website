@@ -59,7 +59,7 @@ You're getting traffic. People find your website through search, social media, o
 
 This is the most common frustration we hear from business owners. The website looks fine. It has all the right information. But it's not converting visitors into leads. The average website converts at just <a href="https://firstpagesage.com/reports/b2b-conversion-rates-by-industry-fc/" target="_blank" rel="noopener noreferrer">2-3% across industries</a>, which means 97 out of 100 visitors leave without reaching out.
 
-The good news: you don't need a complete redesign to fix this. Small, targeted changes to your site's structure, messaging, and technical performance can make a significant difference. Here's how to get more leads from your website, broken down into the areas that matter most.
+The good news: you don't need a complete redesign to fix this. Small, targeted changes to your site's structure, messaging, and technical performance can make a significant difference. Here's how to get more leads from your website, broken down into the areas that matter most. (For a deeper dive on the highest-converting page type, see our guide on <a href="/insights/how-to-create-a-landing-page-that-converts">how to create a landing page that converts</a>.)
 
 ## Make your value proposition impossible to miss
 
@@ -147,7 +147,7 @@ Your website shouldn't just wait for visitors to arrive. It should actively pull
 
 Blog posts, guides, and FAQ pages serve two purposes. First, they bring in organic traffic from people searching for solutions to problems you solve. Second, they pre-qualify those visitors by giving them enough information to know whether you're the right fit.
 
-The most effective content for lead generation isn't thought leadership or company news. It's practical, problem-solving content that directly relates to your services. If you're a web developer, a post about "how to improve website loading speed" attracts exactly the kind of person who might hire you.
+The most effective content for lead generation isn't thought leadership or company news. It's practical, problem-solving content that directly relates to your services. If you're a web developer, a post about <a href="/insights/how-to-improve-website-loading-speed">how to improve website loading speed</a> attracts exactly the kind of person who might hire you.
 
 Each piece of content should include a relevant CTA. If someone reads an article about improving their website speed, offer them a free speed audit. Match the offer to the content so it feels like a natural next step, not a sales pitch.
 

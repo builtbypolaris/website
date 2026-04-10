@@ -58,7 +58,7 @@ You installed Google Analytics months ago. The tracking code is on every page. B
 
 Sound familiar? You're not alone. Most business owners have analytics installed but never configured properly. The result is a pile of data that doesn't tell you anything useful.
 
-This guide walks you through how to track website visitors with Google Analytics the right way. Not just installing a snippet, but setting up the metrics, events, and reports that actually help you make better decisions about your website.
+This guide walks you through how to track website visitors with <a href="https://marketingplatform.google.com/about/analytics/" target="_blank" rel="noopener noreferrer">Google Analytics</a> the right way. Not just installing a snippet, but setting up the metrics, events, and reports that actually help you make better decisions about your website.
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/how-to-track-website-visitors-with-google-analytics/illustration-1.svg" alt="Flow diagram showing how GA4 tracking works from website to reports" />
 
@@ -73,10 +73,10 @@ Before you can track anything, you need a working GA4 property connected to your
 **Step 3: Install the tracking code.** You have three options here:
 
 - **Direct code install.** Paste the Google tag snippet right after the opening `<head>` tag on every page. This works for any website, but it means touching code every time you want to change something.
-- **Google Tag Manager (GTM).** Install the GTM container on your site, then add your GA4 Measurement ID inside GTM. This is the most flexible option because you can add, edit, or remove tags without touching your website code again.
-- **CMS plugin.** If you're on WordPress, Wix, or Shopify, there are built-in integrations or plugins that let you paste your Measurement ID into a settings field. No code editing needed.
+- **<a href="https://tagmanager.google.com" target="_blank" rel="noopener noreferrer">Google Tag Manager</a> (GTM).** Install the GTM container on your site, then add your GA4 Measurement ID inside GTM. This is the most flexible option because you can add, edit, or remove tags without touching your website code again.
+- **CMS plugin.** If you're on <a href="https://wordpress.org" target="_blank" rel="noopener noreferrer">WordPress</a>, <a href="https://www.wix.com" target="_blank" rel="noopener noreferrer">Wix</a>, or <a href="https://www.shopify.com" target="_blank" rel="noopener noreferrer">Shopify</a>, there are built-in integrations or plugins that let you paste your Measurement ID into a settings field. No code editing needed.
 
-**Step 4: Verify it works.** Open your website in a browser, then go to the Realtime report in GA4. You should see yourself as an active user within a few minutes. For a deeper check, go to Admin and open DebugView, which shows every event firing in real time.
+**Step 4: Verify it works.** Open your website in a browser, then go to the Realtime report in GA4. You should see yourself as an active user within a few minutes. For a deeper check, go to Admin and open <a href="https://support.google.com/analytics/answer/7201382" target="_blank" rel="noopener noreferrer">DebugView</a>, which shows every event firing in real time.
 
 ## The metrics that actually matter
 
@@ -84,7 +84,7 @@ GA4 collects a lot of data out of the box. The challenge is knowing which number
 
 **Active users.** This is GA4's primary user metric. It counts people who had an engaged session or triggered certain events. It's a more honest number than raw pageviews because it filters out bots and bounced visits.
 
-**Sessions and engagement rate.** A session starts when someone opens your site and ends after 30 minutes of inactivity. Engagement rate tells you what percentage of sessions included meaningful interaction, like scrolling, clicking, or staying for more than 10 seconds. If your engagement rate is below 50%, your landing pages probably aren't matching what visitors expect.
+**Sessions and engagement rate.** A session starts when someone opens your site and ends after 30 minutes of inactivity. <a href="https://support.google.com/analytics/answer/12195621" target="_blank" rel="noopener noreferrer">Engagement rate</a> tells you what percentage of sessions included meaningful interaction, like scrolling, clicking, or staying for more than 10 seconds. If your engagement rate is below 50%, your <a href="/insights/how-to-create-a-landing-page-that-converts">landing pages probably aren't matching what visitors expect</a>.
 
 **Average engagement time.** This replaced the old "average session duration" from Universal Analytics. It only counts time when your page is in the foreground and active, so it's more accurate. Two minutes or higher is a solid benchmark for content pages.
 
@@ -100,7 +100,7 @@ GA4 is built on events. Every interaction, from a page view to a button click, i
 
 **Automatically collected events.** GA4 tracks these without any setup: page_view, session_start, first_visit, scroll (at 90% depth), click (outbound links), and file_download. These give you a baseline, but they won't tell you about the interactions that matter most to your business.
 
-**Recommended events.** Google has a list of predefined event names for common actions. If you run an e-commerce site, events like purchase, add_to_cart, and begin_checkout follow a standard format that unlocks built-in reports. For lead generation sites, generate_lead and sign_up are the ones to use. Stick to Google's naming conventions when possible because custom reports and integrations work better with them.
+**<a href="https://support.google.com/analytics/answer/9267735" target="_blank" rel="noopener noreferrer">Recommended events</a>.** Google has a list of predefined event names for common actions. If you run an e-commerce site, events like purchase, add_to_cart, and begin_checkout follow a standard format that unlocks built-in reports. For lead generation sites, generate_lead and sign_up are the ones to use. Stick to Google's naming conventions when possible because custom reports and integrations work better with them.
 
 **Custom events.** When the recommended events don't cover what you need, create your own. For example, you might want to track when someone clicks a "Request a quote" button, watches a video past the halfway mark, or opens a pricing accordion.
 
@@ -139,9 +139,9 @@ Even with GA4 installed correctly, there are a few mistakes that quietly corrupt
 
 **Too many key events.** When everything is a conversion, nothing is. If you've marked 20 events as key events, your conversion data becomes meaningless. Audit your key events quarterly and remove the ones that don't represent real business outcomes.
 
-**Not connecting Google Search Console.** GA4 alone doesn't show you which search queries bring people to your site. Link your Search Console property under Admin to get query-level data alongside your analytics. This is essential for understanding how people find you through organic search.
+**Not connecting Google Search Console.** GA4 alone doesn't show you which search queries bring people to your site. Link your <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer">Search Console</a> property under Admin to get query-level data alongside your analytics. This is essential for <a href="/insights/how-to-get-your-business-on-google">understanding how people find you through organic search</a>.
 
-**Skipping consent configuration.** Privacy regulations require you to get user consent before tracking in many regions. GA4 supports consent mode, which adjusts tracking behavior based on user preferences. Skipping this doesn't just create legal risk; it can also mean Google restricts your data processing.
+**Skipping consent configuration.** Privacy regulations require you to get user consent before tracking in many regions. GA4 supports <a href="https://developers.google.com/tag-platform/security/guides/consent" target="_blank" rel="noopener noreferrer">consent mode</a>, which adjusts tracking behavior based on user preferences. Skipping this doesn't just create legal risk; it can also mean Google restricts your data processing.
 
 ## How Polaris builds websites with analytics baked in
 

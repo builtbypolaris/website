@@ -57,7 +57,7 @@
 
 Your domain name is the first impression most customers will have of your business online. It's what they type into their browser, what shows up in search results, and what they tell friends when recommending you. Get it right and it works quietly in the background for years. Get it wrong and you'll be explaining how to spell it on every phone call.
 
-If you're trying to figure out how to choose a domain name for your business, the good news is that it's not complicated. But there are real trade-offs between cost, availability, and long-term branding that are worth thinking through before you commit.
+If you're trying to figure out how to choose a domain name for your business, the good news is that it's not complicated. But there are real trade-offs between cost, availability, and long-term branding that are worth thinking through before you commit. Your domain is also tied directly to your <a href="/insights/how-to-set-up-email-for-your-business-domain">business email setup</a>, so picking the right one early saves headaches later.
 
 This guide covers what actually matters when picking a domain, which TLD extensions are worth considering, and how to avoid the mistakes that make businesses rebrand six months in.
 
@@ -100,13 +100,13 @@ Here's a practical breakdown of the most relevant options:
 
 Over 62% of funded startups still use .com, and for good reason. It's the extension people type by reflex. If someone hears your brand name, they'll try the .com first. For consumer-facing businesses, .com is still the safest bet.
 
-Standard .com registration costs $9 to $15/year through registrars like Cloudflare or Porkbun. Premium .com names on the aftermarket can run $5,000 to $50,000 or more.
+Standard .com registration costs $9 to $15/year through registrars like <a href="https://www.cloudflare.com/products/registrar/" target="_blank" rel="noopener noreferrer">Cloudflare Registrar</a> or <a href="https://porkbun.com" target="_blank" rel="noopener noreferrer">Porkbun</a>. Premium .com names on the aftermarket can run $5,000 to $50,000 or more.
 
 ### .io and .dev: strong for tech and SaaS
 
 If your audience is developers or tech-savvy professionals, .io and .dev carry real credibility. With over 1.1 million registrations, .io has become the standard for developer tools and B2B SaaS products.
 
-.dev is managed by Google and enforces HTTPS by default, which signals security from day one. Expect to pay $30 to $50/year for .io and around $15 to $20/year for .dev.
+<a href="https://get.dev" target="_blank" rel="noopener noreferrer">.dev</a> is managed by Google and enforces HTTPS by default via the <a href="https://hstspreload.org/" target="_blank" rel="noopener noreferrer">HSTS preload list</a>, which signals security from day one. Expect to pay $30 to $50/year for .io and around $15 to $20/year for .dev.
 
 ### .ai: the AI era TLD
 
@@ -126,18 +126,18 @@ One of the biggest surprises for first-time domain buyers is the gap between pro
 
 Here's what to watch for:
 
-- **Renewal price increases.** Many registrars advertise .com domains at $1 to $3 for the first year, then charge $15 to $23/year on renewal. According to ICANN, more than 70% of registrar revenue comes from renewals and add-ons, not first-year sales.
-- **WHOIS privacy fees.** Some registrars charge $10 to $15/year for WHOIS privacy protection. Others (Cloudflare, Porkbun, Namecheap, Spaceship) include it free. Never pay for privacy protection in 2026.
+- **Renewal price increases.** Many registrars advertise .com domains at $1 to $3 for the first year, then charge $15 to $23/year on renewal. According to <a href="https://www.icann.org/" target="_blank" rel="noopener noreferrer">ICANN</a>, more than 70% of registrar revenue comes from renewals and add-ons, not first-year sales.
+- **WHOIS privacy fees.** Some registrars charge $10 to $15/year for <a href="https://www.icann.org/resources/pages/whois-2018-01-17-en" target="_blank" rel="noopener noreferrer">WHOIS</a> privacy protection. Others (Cloudflare, Porkbun, Namecheap, Spaceship) include it free. Never pay for privacy protection in 2026.
 - **Premium domain markups.** Short, dictionary-word domains often carry premium pricing even if they haven't been registered before. A registrar might show a domain as "available" at $2,000/year instead of $12/year.
 
 The best approach is to calculate the 5-year cost of ownership before committing. A .ai domain at $100/year costs $500 over five years. That same budget could get you a solid .com on the aftermarket that you'd own for $12/year going forward.
 
 **Best-value registrars in 2026:**
 
-- **Cloudflare Registrar**: at-cost pricing with zero markup ($10.46/year for .com), but you need to use their DNS
-- **Porkbun**: consistently low prices with free WHOIS privacy and a clean interface
-- **Spaceship**: $8.88 first year, $9.80 renewal for .com, strong value across the board
-- **Namecheap**: competitive pricing with a large TLD selection and free privacy
+- **<a href="https://www.cloudflare.com/products/registrar/" target="_blank" rel="noopener noreferrer">Cloudflare Registrar</a>**: at-cost pricing with zero markup ($10.46/year for .com), but you need to use their DNS
+- **<a href="https://porkbun.com" target="_blank" rel="noopener noreferrer">Porkbun</a>**: consistently low prices with free WHOIS privacy and a clean interface
+- **<a href="https://www.spaceship.com" target="_blank" rel="noopener noreferrer">Spaceship</a>**: $8.88 first year, $9.80 renewal for .com, strong value across the board
+- **<a href="https://www.namecheap.com" target="_blank" rel="noopener noreferrer">Namecheap</a>**: competitive pricing with a large TLD selection and free privacy
 
 ## Protect your domain investment
 
@@ -147,9 +147,9 @@ Once you've chosen a domain name for your business, take a few extra steps to pr
 
 **Grab the common variations.** If you register yourbrand.com, also grab yourbrand.co and any country-code TLD relevant to your market. Redirect them all to your primary domain. This prevents competitors or squatters from registering confusingly similar names.
 
-**Enable auto-renewal and domain lock.** Most registrars offer both features. Auto-renewal prevents accidental expiration. Domain lock prevents unauthorized transfers. Both should be on by default.
+**Enable auto-renewal and domain lock.** Most registrars offer both features. Auto-renewal prevents accidental expiration. <a href="https://www.icann.org/resources/pages/registrar-lock-2017-10-04-en" target="_blank" rel="noopener noreferrer">Domain lock</a> prevents unauthorized transfers. Both should be on by default.
 
-**Use a dedicated email for your registrar account.** Don't tie your domain management to a personal Gmail that might get compromised. Use a business email, enable two-factor authentication, and keep your recovery information current.
+**Use a dedicated email for your registrar account.** Don't tie your domain management to a personal Gmail that might get compromised. Set up a <a href="/insights/how-to-create-a-business-email-with-custom-domain">proper business email</a>, enable two-factor authentication, and keep your recovery information current.
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/how-to-choose-a-domain-name-for-your-business/illustration-3.svg" alt="Security checklist for domain protection with shield icons and checkmarks" />
 
