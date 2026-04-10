@@ -5,6 +5,7 @@ import { Container } from '../ui/Container'
 import { SectionLabel } from '../ui/SectionLabel'
 import { MotionReveal } from '../ui/MotionReveal'
 import { WhatsAppButton } from '../ui/WhatsAppButton'
+import { VideoWithPoster } from '../ui/VideoWithPoster'
 import { ArrowRight } from '../../assets/icons'
 import { SEODashboard } from '../mockups/SEODashboard'
 import { CRMDashboard } from '../mockups/CRMDashboard'
@@ -141,9 +142,7 @@ export function ServicesGrid() {
                       <div className="absolute top-[6px] left-1/2 -translate-x-1/2 w-[5px] h-[5px] rounded-full bg-[#2a2a2e] ring-1 ring-[#333]" />
                       <div className="rounded-[4px] overflow-hidden ring-1 ring-black/50">
                         {current.video ? (
-                          <video key={current.video} muted playsInline autoPlay loop className="w-full aspect-[16/10] object-cover bg-white block">
-                            <source src={current.video} type="video/mp4" />
-                          </video>
+                          <VideoWithPoster src={current.video} className="w-full aspect-[16/10] object-cover block" />
                         ) : current.component === 'seo' ? (
                           <div className="w-full aspect-[16/10] overflow-hidden relative">
                             <div className="absolute inset-0 origin-top-left w-[200%] h-[200%] scale-50 lg:w-[140%] lg:h-[140%] lg:scale-[0.714]">
@@ -179,9 +178,7 @@ export function ServicesGrid() {
                       <div className="absolute -right-[2px] top-[30%] w-[3px] h-[50px] bg-[#3a3a3c] rounded-r" />
                       <div className="relative rounded-[1.6rem] sm:rounded-[2.55rem] bg-black overflow-hidden ring-1 ring-black/80 h-full">
                         {current.video && (
-                          <video key={current.video} muted playsInline autoPlay loop className="h-full aspect-[9/19.5] object-cover">
-                            <source src={current.video} type="video/mp4" />
-                          </video>
+                          <VideoWithPoster src={current.video} className="h-full aspect-[9/19.5] object-cover" />
                         )}
                         <div className="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[4px] bg-black/40 rounded-full z-20" />
                       </div>

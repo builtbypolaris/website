@@ -1,5 +1,6 @@
 import { motion } from 'motion/react'
 import { Button } from '../ui/Button'
+import { VideoWithPoster } from '../ui/VideoWithPoster'
 import { ConstellationCanvas } from '../canvas/ConstellationCanvas'
 import { StarMascot } from '../canvas/StarMascot'
 
@@ -13,7 +14,6 @@ const cascade = {
 }
 
 export function Hero() {
-
   return (
     <section className="min-h-screen relative bg-void overflow-hidden pt-[88px] flex items-center">
       <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(124,92,191,0.10)_0%,transparent_60%)] pointer-events-none" />
@@ -88,9 +88,10 @@ export function Hero() {
               <div className="bg-[#1e1e22] rounded-t-lg sm:rounded-t-xl pt-2 sm:pt-3 px-2 sm:px-3 pb-2 sm:pb-3 shadow-[0_-2px_20px_rgba(0,0,0,0.3)]">
                 <div className="absolute top-[4px] sm:top-[6px] left-1/2 -translate-x-1/2 w-[4px] sm:w-[5px] h-[4px] sm:h-[5px] rounded-full bg-[#2a2a2e] ring-1 ring-[#333]" />
                 <div className="rounded-[3px] sm:rounded-[4px] overflow-hidden ring-1 ring-black/50">
-                  <video muted playsInline autoPlay loop preload="auto" poster="/images/posters/stevia-cookies.jpg" className="w-[500px] h-[240px] sm:h-[280px] lg:h-[270px] object-cover block">
-                    <source src="/videos/stevia-cookies.mp4" type="video/mp4" />
-                  </video>
+                  <VideoWithPoster
+                    src="/videos/stevia-cookies.mp4"
+                    className="w-[500px] h-[240px] sm:h-[280px] lg:h-[270px] object-cover block"
+                  />
                 </div>
               </div>
               <div className="h-[3px] sm:h-[4px] bg-[#1e1e22] rounded-b-[2px]" />
@@ -116,9 +117,10 @@ export function Hero() {
               <div className="absolute -right-[1.5px] sm:-right-[2px] top-[30%] w-[2px] sm:w-[3px] h-[32px] sm:h-[40px] bg-[#3a3a3c] rounded-r" />
 
               <div className="relative rounded-[1.8rem] sm:rounded-[2.1rem] bg-black overflow-hidden ring-1 ring-black/80 h-full">
-                <video muted playsInline autoPlay loop preload="auto" poster="/images/posters/mak-gien-invitation.jpg" className="h-full aspect-[9/19.5] object-cover">
-                  <source src="/videos/mak-gien-invitation.mp4" type="video/mp4" />
-                </video>
+                <VideoWithPoster
+                  src="/videos/mak-gien-invitation.mp4"
+                  className="h-full aspect-[9/19.5] object-cover"
+                />
                 <div className="absolute bottom-[3px] sm:bottom-[5px] left-1/2 -translate-x-1/2 w-[50px] sm:w-[70px] h-[3px] bg-black/40 rounded-full z-20" />
               </div>
 
