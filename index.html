@@ -3,8 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!--
+      Default head tags. These are the values served before React mounts.
+      Once the SPA is hydrated, useDocumentHead / usePageHead override most
+      of these per-page (title, description, canonical, hreflang, og:*).
+
+      The values here are the English homepage defaults so first-paint and
+      no-JS crawlers see something sensible.
+    -->
     <title>Polaris — Your Business Compass | PT Aurora Polaris Digital</title>
     <meta name="description" content="Polaris is Indonesia's diagnostic-first IT consultancy. We find the real problem before building the solution. Web, AI, data, automation — one trusted partner." />
+
+    <!-- Canonical (overridden per route by usePageHead) -->
+    <link rel="canonical" href="https://www.builtbypolaris.com/" />
+
+    <!-- Hreflang alternates for the homepage (overridden per route) -->
+    <link rel="alternate" hreflang="en" href="https://www.builtbypolaris.com/" />
+    <link rel="alternate" hreflang="id" href="https://www.builtbypolaris.com/id" />
+    <link rel="alternate" hreflang="x-default" href="https://www.builtbypolaris.com/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Polaris" />
+    <meta property="og:title" content="Polaris — Your Business Compass | PT Aurora Polaris Digital" />
+    <meta property="og:description" content="Polaris is Indonesia's diagnostic-first IT consultancy. We find the real problem before building the solution. Web, AI, data, automation — one trusted partner." />
+    <meta property="og:url" content="https://www.builtbypolaris.com/" />
+    <meta property="og:image" content="https://www.builtbypolaris.com/images/logo/logo-dark.png" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="id_ID" />
+
+    <!-- Twitter card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Polaris — Your Business Compass" />
+    <meta name="twitter:description" content="Indonesia's diagnostic-first IT consultancy. We find the real problem before building the solution." />
+    <meta name="twitter:image" content="https://www.builtbypolaris.com/images/logo/logo-dark.png" />
+
     <link rel="icon" type="image/svg+xml" href="/images/logo/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

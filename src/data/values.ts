@@ -1,24 +1,18 @@
+import { useMemo } from 'react'
 import type { Value } from '../types'
+import { useT } from '../i18n'
 
-export const values: Value[] = [
-  {
-    number: '01',
-    word: 'Clarity',
-    description: 'We give you direction when everything feels unclear. You always know where you\u2019re headed and why.',
-  },
-  {
-    number: '02',
-    word: 'Integrity',
-    description: 'We tell you the truth, even when it\u2019s hard. No sugarcoating, no hidden agendas, no jargon.',
-  },
-  {
-    number: '03',
-    word: 'Precision',
-    description: 'Every solution is built to fit exactly what you need, not a template, not a guess. Exactly right.',
-  },
-  {
-    number: '04',
-    word: 'Growth',
-    description: 'We\u2019re not here to just fix today\u2019s problem. We\u2019re here to make sure you\u2019re genuinely better for it.',
-  },
-]
+/**
+ * Numbers (`01`, `02`, ...) are visual constants — only the word and
+ * description are translated. Use `useValues()` to get the merged array.
+ */
+export function useValues(): Value[] {
+  const t = useT()
+  return useMemo(() => {
+    return t.valuesGrid.values.map((value, i) => ({
+      number: String(i + 1).padStart(2, '0'),
+      word: value.word,
+      description: value.description,
+    }))
+  }, [t.valuesGrid.values])
+}

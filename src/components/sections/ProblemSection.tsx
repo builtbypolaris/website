@@ -2,9 +2,12 @@ import { Container } from '../ui/Container'
 import { SectionLabel } from '../ui/SectionLabel'
 import { MotionReveal } from '../ui/MotionReveal'
 import { StaggerContainer, StaggerItem } from '../ui/StaggerContainer'
-import { problems } from '../../data/problems'
+import { useProblems } from '../../data/problems'
+import { useT } from '../../i18n'
 
 export function ProblemSection() {
+  const t = useT()
+  const problems = useProblems()
   return (
     <section className="bg-deep py-[100px] relative section-divider-top">
       {/* Atmospheric glow */}
@@ -13,13 +16,13 @@ export function ProblemSection() {
 
       <Container>
         <MotionReveal className="max-w-[680px] mb-16">
-          <SectionLabel>Why Polaris</SectionLabel>
+          <SectionLabel>{t.problemSection.sectionLabel}</SectionLabel>
           <h2 className="font-serif font-light text-[28px] sm:text-[36px] md:text-[48px] text-white mb-5 leading-[1.15]">
-            Most businesses don&rsquo;t have a technology problem.
-            <span className="block text-purple-glow">They have a clarity problem.</span>
+            {t.problemSection.titleLine1}
+            <span className="block text-purple-glow">{t.problemSection.titleLine2}</span>
           </h2>
           <p className="font-sans font-light text-base text-grey-light leading-[1.8] max-w-[560px]">
-            They jump to solutions before defining the question. We start with diagnosis, not a sales pitch.
+            {t.problemSection.subtitle}
           </p>
         </MotionReveal>
 

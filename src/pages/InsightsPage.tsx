@@ -4,7 +4,11 @@ import { Container } from '../components/ui/Container'
 import { MotionReveal } from '../components/ui/MotionReveal'
 import { ConstellationCanvas } from '../components/canvas/ConstellationCanvas'
 import { fetchBlogIndex, type BlogPostMeta } from '../data/blog'
+import { useT, useLocale, buildLocalePath } from '../i18n'
+import { usePageHead } from '../hooks/usePageHead'
 
+// Category keys are stable (must match what's stored in blog frontmatter).
+// Their display labels are pulled from the active locale via t.insights.categories.
 const CATEGORIES = [
   'All',
   'Websites',
@@ -18,21 +22,27 @@ const CATEGORIES = [
 
 type Category = (typeof CATEGORIES)[number]
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-}
-
 export function InsightsPage() {
+  const t = useT()
+  const locale = useLocale()
+  usePageHead({
+    title: t.meta.insights.title,
+    description: t.meta.insights.description,
+  })
   const [posts, setPosts] = useState<BlogPostMeta[] | null>(null)
   const [active, setActive] = useState<Category>('All')
 
+  function formatDate(dateStr: string) {
+    return new Date(dateStr).toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  }
+
   useEffect(() => {
-    fetchBlogIndex('en').then(setPosts)
-  }, [])
+    fetchBlogIndex(locale).then(setPosts)
+  }, [locale])
 
   const loaded = posts ?? []
   const filtered =
@@ -53,14 +63,13 @@ export function InsightsPage() {
         <Container className="relative z-[1]">
           <MotionReveal className="text-center max-w-[640px] mx-auto">
             <p className="font-sans font-light text-[13px] text-gold tracking-[4px] uppercase mb-6">
-              Blog
+              {t.insights.eyebrow}
             </p>
             <h1 className="font-serif font-light text-[64px] md:text-[72px] text-white leading-[1.1] mb-6">
-              Insights
+              {t.insights.title}
             </h1>
             <p className="font-sans font-light text-base text-grey-light leading-[1.8]">
-              Tips, guides, and honest thinking on strategy, technology, and
-              building a digital presence that actually works.
+              {t.insights.subtitle}
             </p>
           </MotionReveal>
         </Container>
@@ -81,7 +90,7 @@ export function InsightsPage() {
                     : 'bg-transparent border-white/[0.06] text-grey hover:border-white/[0.12] hover:text-grey-light'
                 }`}
               >
-                {cat}
+                {t.insights.categories[cat]}
               </button>
             ))}
           </div>
@@ -107,7 +116,7 @@ export function InsightsPage() {
           {posts !== null && filtered.length === 0 && (
             <div className="text-center py-20">
               <p className="font-sans text-grey text-base">
-                No posts in this category yet.
+                {t.insights.emptyState}
               </p>
             </div>
           )}
@@ -116,7 +125,7 @@ export function InsightsPage() {
           {featured && (
             <MotionReveal>
               <Link
-                to={`/insights/${featured.slug}`}
+                to={`${buildLocalePath('/insights', locale)}/${featured.slug}`}
                 className="group block rounded-2xl border border-white/[0.04] overflow-hidden transition-all duration-300 hover:border-purple-core/30 hover:shadow-[0_0_60px_rgba(124,92,191,0.08)]"
               >
                 <div className="grid md:grid-cols-2">
@@ -181,12 +190,12 @@ export function InsightsPage() {
                           </span>
                           <span className="w-1 h-1 rounded-full bg-grey/40" />
                           <span className="font-sans text-[13px] text-grey">
-                            {featured.readTime} min read
+                            {featured.readTime} {t.insights.minRead}
                           </span>
                         </div>
                       </div>
                       <span className="font-sans text-sm text-purple-bright group-hover:translate-x-1 transition-transform duration-300">
-                        Read &rarr;
+                        {t.insights.read}
                       </span>
                     </div>
                   </div>
@@ -201,7 +210,7 @@ export function InsightsPage() {
               {rest.map((post, i) => (
                 <MotionReveal key={post.slug} delay={i * 0.08} className="h-full">
                   <Link
-                    to={`/insights/${post.slug}`}
+                    to={`${buildLocalePath('/insights', locale)}/${post.slug}`}
                     className="group flex flex-col h-full rounded-2xl border border-white/[0.04] overflow-hidden bg-card transition-all duration-300 hover:border-purple-core/30 hover:shadow-[0_0_40px_rgba(124,92,191,0.06)] hover:-translate-y-1"
                   >
                     <div className="relative aspect-[16/10] bg-surface overflow-hidden">
@@ -261,7 +270,7 @@ export function InsightsPage() {
                         </span>
                         <span className="w-1 h-1 rounded-full bg-grey/40" />
                         <span className="font-sans text-[12px] text-grey">
-                          {post.readTime} min read
+                          {post.readTime} {t.insights.minRead}
                         </span>
                       </div>
                     </div>

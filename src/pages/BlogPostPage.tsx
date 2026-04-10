@@ -3,13 +3,17 @@ import { useParams, Link, Navigate } from 'react-router-dom'
 import { Container } from '../components/ui/Container'
 import { MotionReveal } from '../components/ui/MotionReveal'
 import { fetchBlogPost, fetchBlogIndex, type BlogPost, type BlogPostMeta, type BlogFaqItem } from '../data/blog'
+import { useT, useLocale, buildLocalePath } from '../i18n'
+import { usePageHead } from '../hooks/usePageHead'
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+function useFormatDate() {
+  const locale = useLocale()
+  return (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
 }
 
 const GRADIENT_URLS = [
@@ -223,6 +227,7 @@ function stripFaqFromContent(md: string) {
 
 /** Table of contents sidebar */
 function TableOfContents({ headings }: { headings: { level: 2 | 3; text: string; id: string }[] }) {
+  const t = useT()
   const [activeId, setActiveId] = useState('')
 
   useEffect(() => {
@@ -257,7 +262,7 @@ function TableOfContents({ headings }: { headings: { level: 2 | 3; text: string;
 
   return (
     <nav className="sticky top-[120px]">
-      <p className="font-sans text-[11px] text-grey tracking-[2px] uppercase mb-5">On this page</p>
+      <p className="font-sans text-[11px] text-grey tracking-[2px] uppercase mb-5">{t.blogPost.onThisPage}</p>
       <ul className="border-l border-white/[0.08]">
         {headings.map((h, i) => {
           let parentH2 = ''
@@ -351,17 +356,29 @@ function FaqSection({ faqs, heading }: { faqs: BlogFaqItem[]; heading: string })
 
 export function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>()
+  const t = useT()
+  const locale = useLocale()
+  const formatDate = useFormatDate()
   const [post, setPost] = useState<BlogPost | null | undefined>(undefined)
   const [related, setRelated] = useState<BlogPostMeta[]>([])
 
+  // Set head tags from the post's own SEO metadata. While the post is
+  // loading or missing, fall back to the generic insights page meta so the
+  // tab title doesn't flash blank or stay stuck on the previous page.
+  usePageHead({
+    title: post?.seo?.title || post?.title || t.meta.insights.title,
+    description: post?.seo?.description || post?.excerpt || t.meta.insights.description,
+    image: post?.seo?.image || post?.coverImage,
+  })
+
   useEffect(() => {
     if (!slug) return
-    fetchBlogPost(slug, 'en').then((p) => setPost(p))
-  }, [slug])
+    fetchBlogPost(slug, locale).then((p) => setPost(p))
+  }, [slug, locale])
 
   useEffect(() => {
     if (!post) return
-    fetchBlogIndex('en').then((all) => {
+    fetchBlogIndex(locale).then((all) => {
       const sameCat = all.filter(
         (p) =>
           p.slug !== post.slug &&
@@ -376,7 +393,7 @@ export function BlogPostPage() {
         setRelated([...sameCat, ...others].slice(0, 3))
       }
     })
-  }, [post])
+  }, [post, locale])
 
   // Loading
   if (post === undefined) {
@@ -385,7 +402,7 @@ export function BlogPostPage() {
 
   // Not found
   if (post === null) {
-    return <Navigate to="/insights" replace />
+    return <Navigate to={buildLocalePath('/insights', locale)} replace />
   }
 
   const cleanContent = stripFaqFromContent(post.content)
@@ -403,10 +420,10 @@ export function BlogPostPage() {
         <Container>
           <MotionReveal className="max-w-[760px] mx-auto xl:mx-0 xl:ml-[calc((100%-760px)/2+220px+40px)] xl:ml-auto xl:mr-auto">
             <Link
-              to="/insights"
+              to={buildLocalePath('/insights', locale)}
               className="inline-flex items-center gap-2 font-sans text-[13px] text-grey hover:text-purple-bright transition-colors mb-10"
             >
-              &larr; Back to Insights
+              {t.blogPost.backToInsights}
             </Link>
 
             <div className="flex items-center gap-3 mb-6 flex-wrap">
@@ -420,7 +437,7 @@ export function BlogPostPage() {
               </span>
               <span className="w-1 h-1 rounded-full bg-grey/40" />
               <span className="font-sans text-[13px] text-grey">
-                {post.readTime} min read
+                {post.readTime} {t.blogPost.minRead}
               </span>
             </div>
 
@@ -497,13 +514,13 @@ export function BlogPostPage() {
           <Container>
             <div className="border-t border-white/[0.06] pt-12">
               <h2 className="font-serif font-light text-[28px] text-white mb-8">
-                Related articles
+                {t.blogPost.relatedArticles}
               </h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {related.map((r) => (
                   <Link
                     key={r.slug}
-                    to={`/insights/${r.slug}`}
+                    to={`${buildLocalePath('/insights', locale)}/${r.slug}`}
                     className="group flex flex-col h-full rounded-2xl border border-white/[0.04] overflow-hidden bg-card transition-all duration-300 hover:border-purple-core/30 hover:shadow-[0_0_40px_rgba(124,92,191,0.06)] hover:-translate-y-1"
                   >
                     <div className="relative aspect-[16/10] bg-surface overflow-hidden">
@@ -541,10 +558,10 @@ export function BlogPostPage() {
 
               <div className="mt-10">
                 <Link
-                  to="/insights"
+                  to={buildLocalePath('/insights', locale)}
                   className="inline-flex items-center gap-2 font-sans text-sm text-purple-bright hover:text-purple-glow transition-colors"
                 >
-                  &larr; All articles
+                  {t.blogPost.allArticles}
                 </Link>
               </div>
             </div>

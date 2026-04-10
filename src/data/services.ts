@@ -1,178 +1,117 @@
-import { WebDevIcon, AppDevIcon, SEOContentIcon, BusinessOpIcon, OthersIcon, PackagesIcon } from '../assets/icons'
+import { useMemo } from 'react'
+import {
+  WebDevIcon,
+  AppDevIcon,
+  SEOContentIcon,
+  BusinessOpIcon,
+  OthersIcon,
+  PackagesIcon,
+} from '../assets/icons'
 import type { ServiceCategory } from '../types'
+import { useT } from '../i18n'
 
-export const serviceCategories: ServiceCategory[] = [
+/**
+ * Structural data for each service category — icons, image paths, device
+ * type, and home-page visibility flags. Text content (title, description,
+ * sub-services, etc.) lives in the translation files (`locales/en.ts` and
+ * `locales/id.ts`).
+ *
+ * The two are merged via the `useServiceCategories` hook below, which is
+ * the only API consumers should use.
+ *
+ * Slugs are stable across locales (English-only) so URLs like
+ * `/insights/{slug}` and `/services#{slug}` work the same in both languages.
+ */
+interface ServiceStructure {
+  slug: string
+  icon: React.ComponentType<{ className?: string }>
+  illustration: string
+  illustrations?: string[]
+  device: 'browser' | 'phone'
+  showOnHome?: boolean
+}
+
+const STRUCTURE: ServiceStructure[] = [
   {
+    slug: 'website-development',
     icon: WebDevIcon,
     illustration: '/images/services/website-1.png',
     device: 'browser',
-    title: 'Website Development',
-    tagline: 'Your digital storefront, built right.',
-    description:
-      'We design, develop, and deploy websites on modern infrastructure — fast, secure, and scalable. Every site comes with analytics baked in.',
-    subServices: [
-      {
-        name: 'Website Only',
-        description: 'Development and deployment, hosted on Vercel. You bring your own domain or go without.',
-        image: '/images/services/website-1.png',
-      },
-      {
-        name: 'Website + Domain',
-        description: 'We handle everything including domain registration. Available TLDs: .com, .co.id, .id, .sch.id, .ai, .io, .dev, and more.',
-        image: '/images/services/website-2.png',
-      },
-    ],
-    ctaLabel: 'Let\u2019s Talk',
-    whatsappMessage: 'Hi Polaris! I\u2019m interested in Website Development. Can we discuss my project?',
-    slug: 'website-development',
     showOnHome: true,
   },
   {
+    slug: 'application-development',
     icon: AppDevIcon,
     illustration: '/images/services/content-creation.webp',
     device: 'phone',
-    title: 'Application Development',
-    tagline: 'Custom applications built for your specific needs.',
-    description:
-      'From concept to deployment — native or cross-platform mobile apps for iOS and Android. From simple utility apps to full-featured business tools.',
-    subServices: [
-      {
-        name: 'Mobile Application',
-        description: 'Native or cross-platform mobile apps for iOS and Android, tailored to your business requirements.',
-      },
-    ],
-    ctaLabel: 'Let\u2019s Talk',
-    whatsappMessage: 'Hi Polaris! I\u2019m interested in Application Development. Can we discuss my project?',
-    slug: 'application-development',
     showOnHome: false,
   },
   {
+    slug: 'seo-content-creation',
     icon: SEOContentIcon,
     illustration: '/images/services/seo.jpeg',
     device: 'browser',
-    title: 'SEO & Content Creation',
-    tagline: 'Your brand\u2019s visibility, powered by AI and guided by strategy.',
-    description:
-      'We optimize, create, and manage content that drives traffic and builds trust. From search engine optimization to social media — one cohesive strategy, fully managed.',
-    subServices: [
-      {
-        name: 'SEO Optimization',
-        description: 'Technical and on-page SEO to improve your search rankings. Keyword research, site speed, meta tags, structured data, and ongoing optimization.',
-      },
-      {
-        name: 'SEO Blog Writing',
-        description: 'SEO-optimized articles researched and published to your site. Each with custom imagery and keyword targeting to drive organic traffic.',
-      },
-      {
-        name: 'SEO Audit',
-        description: 'Comprehensive analysis of your site\u2019s SEO health. Technical issues, content gaps, competitor benchmarking, and a prioritized action plan.',
-      },
-      {
-        name: 'Social Media Branding',
-        description: 'Brand identity for your social presence. Visual templates, tone of voice guidelines, bio optimization, and cohesive profile design across platforms.',
-      },
-      {
-        name: 'Social Media Content Creation',
-        description: 'Ready-to-post content for Instagram, LinkedIn, TikTok, and more. Captions, images, reels, and hashtag strategy — fully managed.',
-      },
-    ],
-    ctaLabel: 'Let\u2019s Talk',
-    whatsappMessage: 'Hi Polaris! I\u2019m interested in SEO & Content Creation services. Let\u2019s talk!',
-    slug: 'seo-content-creation',
     showOnHome: true,
   },
   {
+    slug: 'business-operation',
     icon: BusinessOpIcon,
     illustration: '/images/services/business-automation.webp',
     device: 'browser',
-    title: 'Business Operation',
-    tagline: 'Your back-office, digitized.',
-    description:
-      'Custom internal systems so you can run your business from one place. From company profiles to full HR automation — we build the digital backbone your business needs.',
-    subServices: [
-      {
-        name: 'Company Profile',
-        description: 'Professional company profile document or deck. Clear, well-designed, and ready to share with clients, investors, or partners.',
-      },
-      {
-        name: 'Financial Reporting',
-        description: 'Live dashboards, automated financial statements. Always know your numbers — no more manual spreadsheets.',
-      },
-      {
-        name: 'CRM & Lead Management',
-        description: 'Track every lead, automate follow-ups, never lose a prospect again. See your entire sales pipeline at a glance.',
-      },
-      {
-        name: 'Payroll & HR Attendance',
-        description: 'Employee management, attendance tracking, automated payroll calculations. Your HR in one click.',
-      },
-    ],
-    ctaLabel: 'Let\u2019s Talk',
-    whatsappMessage: 'Hi Polaris! I\u2019m interested in Business Operation services. What modules do you recommend?',
-    slug: 'business-operation',
     showOnHome: true,
   },
   {
+    slug: 'others',
     icon: OthersIcon,
     illustration: '/images/services/online-invitation-1.jpeg',
-    illustrations: ['/images/services/online-invitation-1.jpeg', '/images/services/online-invitation-2.jpeg'],
-    device: 'phone',
-    title: 'Others & Custom Solutions',
-    tagline: 'If you can describe the problem, we can build the solution.',
-    description:
-      'Beyond our core categories — data analysis, digital invitations, presentation decks, and more. Have something else in mind? We\u2019re open to custom projects. If it\u2019s a problem, we\u2019ll solve it.',
-    subServices: [
-      {
-        name: 'Data Analysis / Data Science',
-        description: 'Turn your data into insights. From exploratory analysis to predictive models, dashboards, and automated reporting pipelines.',
-      },
-      {
-        name: 'Online Invitation',
-        description: 'Digital invitations for weddings, events, or corporate gatherings. Beautifully designed, interactive, and shareable via link.',
-        image: '/images/services/online-invitation-1.jpeg',
-      },
-      {
-        name: 'Slide / PowerPoint Creation',
-        description: 'Professional presentation decks for pitches, reports, or internal use. Clear storytelling, clean design, data visualization.',
-      },
-      {
-        name: 'Custom Project',
-        description: 'Have a unique challenge? Describe it, and we\u2019ll scope a solution. AI chatbots, e-commerce integrations, custom workflows, API integrations — you name it.',
-      },
+    illustrations: [
+      '/images/services/online-invitation-1.jpeg',
+      '/images/services/online-invitation-2.jpeg',
     ],
-    ctaLabel: 'Let\u2019s Talk',
-    whatsappMessage: 'Hi Polaris! I have a project idea I\u2019d like to discuss. Are you available?',
-    slug: 'others',
+    device: 'phone',
     showOnHome: true,
   },
   {
+    slug: 'packages',
     icon: PackagesIcon,
     illustration: '/images/services/website-2.png',
     device: 'browser',
-    title: 'Packages',
-    tagline: 'Bundled services at a better price.',
-    description:
-      'Pick the combo that fits your business. Our packages bundle complementary services together so you get more value — and one less thing to think about.',
-    subServices: [
-      {
-        name: 'Full Business Suite',
-        description: 'CRM, financial reporting, payroll & HR — the complete digital backbone for your business in one unified platform.',
-      },
-      {
-        name: 'Social Media Content & SEO Blog Writing',
-        description: 'Consistent content across social media and your blog. One cohesive strategy, fully managed.',
-      },
-      {
-        name: 'Website + SEO Blog Writing',
-        description: 'A new website plus ongoing blog content to drive organic traffic from day one.',
-      },
-      {
-        name: 'SEO Optimization & SEO Blog Writing',
-        description: 'Optimize your site for search engines and fuel it with fresh, keyword-targeted content every month.',
-      },
-    ],
-    ctaLabel: 'Let\u2019s Talk',
-    whatsappMessage: 'Hi Polaris! I\u2019m interested in your service packages. Which one do you recommend for my business?',
-    slug: 'packages',
   },
 ]
+
+/**
+ * Returns the full list of service categories merged with the active
+ * locale's translations. The shape matches `ServiceCategory` so existing
+ * components can drop this in with no other changes.
+ *
+ * Memoized on `t.services.categories` so the array is stable across renders
+ * within the same locale (animations and key-based React features stay happy).
+ */
+export function useServiceCategories(): ServiceCategory[] {
+  const t = useT()
+  return useMemo(() => {
+    return STRUCTURE.map((structure) => {
+      const translation = t.services.categories.find((c) => c.slug === structure.slug)
+      if (!translation) {
+        throw new Error(`Missing translation for service category: ${structure.slug}`)
+      }
+      return {
+        icon: structure.icon,
+        illustration: structure.illustration,
+        illustrations: structure.illustrations,
+        device: structure.device,
+        showOnHome: structure.showOnHome,
+        slug: structure.slug,
+        title: translation.title,
+        tagline: translation.tagline,
+        description: translation.description,
+        ctaLabel: translation.ctaLabel,
+        whatsappMessage: translation.whatsappMessage,
+        subServices: translation.subServices.map((s) => ({
+          name: s.name,
+          description: s.description,
+        })),
+      }
+    })
+  }, [t.services.categories])
+}

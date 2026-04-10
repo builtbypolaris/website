@@ -1,9 +1,14 @@
 import { Link } from 'react-router-dom'
 import { Container } from '../ui/Container'
-import { navItems } from '../../data/navigation'
+import { LanguageSwitcher } from '../ui/LanguageSwitcher'
+import { useNavItems } from '../../data/navigation'
 import { socials } from '../../data/socials'
+import { useT } from '../../i18n'
 
 export function Footer() {
+  const t = useT()
+  const navItems = useNavItems()
+
   return (
     <footer className="bg-void border-t border-border/50 pt-10">
       <Container>
@@ -15,15 +20,16 @@ export function Footer() {
               alt="Polaris"
               className="h-14 w-auto mb-5"
             />
-            <p className="text-sm text-grey leading-relaxed max-w-[280px]">
-              Diagnostic-first IT consultancy for growing Indonesian businesses.
+            <p className="text-sm text-grey leading-relaxed max-w-[280px] mb-6">
+              {t.footer.tagline}
             </p>
+            <LanguageSwitcher variant="footer" />
           </div>
 
           {/* Navigation */}
           <div>
             <h5 className="font-sans font-normal text-[12px] tracking-[3px] uppercase text-grey mb-6">
-              Navigate
+              {t.footer.navigate}
             </h5>
             <div className="flex flex-col">
               {navItems.map((item) => (
@@ -41,7 +47,7 @@ export function Footer() {
           {/* Contact */}
           <div>
             <h5 className="font-sans font-normal text-[12px] tracking-[3px] uppercase text-grey mb-6">
-              Get in Touch
+              {t.footer.getInTouch}
             </h5>
             <a
               href="mailto:builtbypolaris@gmail.com"
@@ -49,7 +55,7 @@ export function Footer() {
             >
               builtbypolaris@gmail.com
             </a>
-            <p className="text-sm text-grey-light mb-3">Jakarta, Indonesia</p>
+            <p className="text-sm text-grey-light mb-3">{t.footer.location}</p>
             <div className="flex gap-3 mt-5">
               {socials.map((social) => (
                 <a
@@ -66,7 +72,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-border/40 py-6 text-center text-[13px] text-grey/70">
-          &copy; 2026 PT Aurora Polaris Digital &middot; Jakarta, Indonesia
+          {t.footer.copyright}
         </div>
       </Container>
     </footer>

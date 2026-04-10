@@ -1,13 +1,20 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Button } from '../ui/Button'
+import { LanguageSwitcher } from '../ui/LanguageSwitcher'
 import { useScrolled } from '../../hooks/useScrolled'
 import { useMobileMenu } from '../../hooks/useMobileMenu'
-import { navItems } from '../../data/navigation'
+import { useNavItems } from '../../data/navigation'
+import { useT, useLocale, buildLocalePath } from '../../i18n'
 
 export function Navbar() {
   const scrolled = useScrolled()
   const { isOpen, toggle, close } = useMobileMenu()
   const { pathname } = useLocation()
+  const t = useT()
+  const locale = useLocale()
+  const navItems = useNavItems()
+  const homePath = buildLocalePath('/', locale)
+  const contactPath = buildLocalePath('/contact', locale)
 
   return (
     <nav
@@ -17,7 +24,7 @@ export function Navbar() {
     >
       <div className="relative max-w-[1100px] mx-auto px-4 sm:px-6 md:px-10 flex items-center justify-between h-[88px]">
         {/* Logo — left */}
-        <Link to="/" className="relative z-[1] block">
+        <Link to={homePath} className="relative z-[1] block">
           <img
             src="/images/logo/logo-dark.png"
             alt="Polaris — Your Business Compass"
@@ -28,7 +35,7 @@ export function Navbar() {
         {/* Nav links — absolute center of the bar */}
         <div className="hidden md:flex items-center gap-10 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           {navItems.map((item) => {
-            const isActive = item.to === '/' ? pathname === '/' : pathname.startsWith(item.to)
+            const isActive = item.to === homePath ? pathname === homePath : pathname.startsWith(item.to)
             return (
               <Link
                 key={item.to}
@@ -50,8 +57,8 @@ export function Navbar() {
 
         {/* CTA — right */}
         <div className="hidden md:block relative z-[1]">
-          <Button to="/contact" className="!py-3 !px-6 !text-[13px]">
-            See what your business needs
+          <Button to={contactPath} className="!py-3 !px-6 !text-[13px]">
+            {t.nav.cta}
           </Button>
         </div>
 
@@ -74,7 +81,7 @@ export function Navbar() {
         } fixed top-[88px] left-0 w-full bg-deep/[0.98] backdrop-blur-[16px] border-b border-border p-8 flex-col gap-6 items-center md:hidden`}
       >
         {navItems.map((item) => {
-          const isActive = item.to === '/' ? pathname === '/' : pathname.startsWith(item.to)
+          const isActive = item.to === homePath ? pathname === homePath : pathname.startsWith(item.to)
           return (
             <Link
               key={item.to}
@@ -88,9 +95,12 @@ export function Navbar() {
             </Link>
           )
         })}
-        <Button to="/contact" className="mt-2">
-          Free Health Check
+        <Button to={contactPath} className="mt-2">
+          {t.nav.mobileCta}
         </Button>
+        <div className="pt-4 border-t border-border/40 w-full flex justify-center">
+          <LanguageSwitcher variant="mobile" onSelect={close} />
+        </div>
       </div>
     </nav>
   )

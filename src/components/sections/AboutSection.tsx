@@ -2,18 +2,11 @@ import { Container } from '../ui/Container'
 import { SectionLabel } from '../ui/SectionLabel'
 import { MotionReveal } from '../ui/MotionReveal'
 import { StaggerContainer, StaggerItem } from '../ui/StaggerContainer'
-import type { StatBox } from '../../types'
-
-const stats: StatBox[] = [
-  { title: 'Diagnostic-first', description: 'We start by listening, diagnose the real problem, then build what actually fixes it.' },
-  { title: 'One Relationship', description: 'You never re-explain your business to a new person.' },
-  { title: 'Ongoing Partnership', description: 'We grow with you, not just deliver and disappear.' },
-  { title: 'All-female team', description: 'Indonesia-based, genuinely invested in your growth.' },
-  { title: 'Outcome-driven', description: 'We care about your outcome, not just the invoice.' },
-  { title: 'AI-powered efficiency', description: 'We leverage cutting-edge AI to deliver faster and better.' },
-]
+import { useT } from '../../i18n'
 
 export function AboutSection() {
+  const t = useT()
+  const stats = t.aboutSection.stats
   return (
     <section className="bg-void py-[100px] relative section-divider-top">
       {/* Subtle atmospheric glow */}
@@ -21,10 +14,10 @@ export function AboutSection() {
 
       <Container>
         <MotionReveal className="mb-16">
-          <SectionLabel>About Polaris</SectionLabel>
+          <SectionLabel>{t.aboutSection.sectionLabel}</SectionLabel>
           <h2 className="font-serif font-light text-[48px] text-white mb-0 leading-[1.15] max-w-[700px]">
-            Indonesia&rsquo;s diagnostic-first
-            <span className="block text-purple-glow">technology consultancy.</span>
+            {t.aboutSection.titleLine1}
+            <span className="block text-purple-glow">{t.aboutSection.titleLine2}</span>
           </h2>
         </MotionReveal>
 

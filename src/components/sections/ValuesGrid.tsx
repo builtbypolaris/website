@@ -2,9 +2,12 @@ import { Container } from '../ui/Container'
 import { SectionLabel } from '../ui/SectionLabel'
 import { MotionReveal } from '../ui/MotionReveal'
 import { StaggerContainer, StaggerItem } from '../ui/StaggerContainer'
-import { values } from '../../data/values'
+import { useValues } from '../../data/values'
+import { useT } from '../../i18n'
 
 export function ValuesGrid() {
+  const t = useT()
+  const values = useValues()
   return (
     <section className="bg-deep py-[100px] relative section-divider-top">
       {/* Atmospheric gradient */}
@@ -12,12 +15,12 @@ export function ValuesGrid() {
 
       <Container>
         <MotionReveal className="max-w-[600px] mb-16">
-          <SectionLabel>Our Values</SectionLabel>
+          <SectionLabel>{t.valuesGrid.sectionLabel}</SectionLabel>
           <h2 className="font-serif font-light text-[48px] text-white mb-5 leading-[1.15]">
-            What we <span className="text-purple-glow">stand for.</span>
+            {t.valuesGrid.titleLine1} <span className="text-purple-glow">{t.valuesGrid.titleLine2}</span>
           </h2>
           <p className="font-sans font-light text-base text-grey-light leading-[1.8]">
-            Four principles that guide every decision we make.
+            {t.valuesGrid.subtitle}
           </p>
         </MotionReveal>
 

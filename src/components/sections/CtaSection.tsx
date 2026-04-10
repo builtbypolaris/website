@@ -4,8 +4,10 @@ import { Button } from '../ui/Button'
 import { WhatsAppButton } from '../ui/WhatsAppButton'
 import { CtaStar } from '../../assets/icons'
 import { MotionReveal } from '../ui/MotionReveal'
+import { useT } from '../../i18n'
 
 export function CtaSection() {
+  const t = useT()
   return (
     <section className="relative py-[100px] text-center overflow-hidden">
       {/* Rich gradient background */}
@@ -34,17 +36,17 @@ export function CtaSection() {
 
         <MotionReveal delay={0.1}>
           <h2 className="font-serif font-light text-[48px] text-white mb-5 leading-[1.15]">
-            Ready to find your<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-mist via-white to-gold-soft">true north?</span>
+            {t.cta.titleLine1}<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-mist via-white to-gold-soft">{t.cta.titleLine2}</span>
           </h2>
         </MotionReveal>
 
         <MotionReveal delay={0.2}>
           <p className="font-sans font-light text-base text-purple-mist/80 max-w-[500px] mx-auto mb-4 leading-[1.8]">
-            Start with a Business Health Check. 3 days. A clear written report. And finally, direction.
+            {t.cta.description}
           </p>
           <span className="inline-block px-4 py-1.5 text-[13px] font-sans font-medium tracking-[2px] uppercase bg-gold/15 text-gold border border-gold/30 rounded-full mb-10">
-            FREE
+            {t.cta.badgeFree}
           </span>
         </MotionReveal>
 
@@ -55,12 +57,12 @@ export function CtaSection() {
               href="mailto:builtbypolaris@gmail.com?subject=Business Health Check"
               className="!text-[15px] !py-4 !px-9"
             >
-              Get Your Free Health Check
+              {t.cta.primary}
             </Button>
-            <WhatsAppButton message="Hi Polaris! I'd like to discuss a project. Are you available?" />
+            <WhatsAppButton message={t.cta.whatsappMessage} />
           </div>
           <p className="mt-6 font-sans text-sm text-purple-soft/70">
-            Or email us at{' '}
+            {t.cta.emailLabel}{' '}
             <a
               href="mailto:builtbypolaris@gmail.com"
               className="text-white/90 border-b border-white/20 hover:border-white/60 transition-colors duration-200"

@@ -2,9 +2,12 @@ import { Container } from '../ui/Container'
 import { SectionLabel } from '../ui/SectionLabel'
 import { MotionReveal } from '../ui/MotionReveal'
 import { StaggerContainer, StaggerItem } from '../ui/StaggerContainer'
-import { timelineSteps } from '../../data/timeline'
+import { useTimelineSteps } from '../../data/timeline'
+import { useT } from '../../i18n'
 
 export function HowItWorks() {
+  const t = useT()
+  const timelineSteps = useTimelineSteps()
   return (
     <section className="bg-void py-[100px] relative section-divider-top">
       {/* Subtle center glow */}
@@ -12,10 +15,10 @@ export function HowItWorks() {
 
       <Container>
         <MotionReveal className="mb-16 max-w-[600px]">
-          <SectionLabel>How It Works</SectionLabel>
+          <SectionLabel>{t.howItWorks.sectionLabel}</SectionLabel>
           <h2 className="font-serif font-light text-[28px] sm:text-[36px] md:text-[48px] text-white leading-[1.15]">
-            Three steps from confusion<br />
-            <span className="text-gold">to clarity.</span>
+            {t.howItWorks.titleLine1}<br />
+            <span className="text-gold">{t.howItWorks.titleLine2}</span>
           </h2>
         </MotionReveal>
 

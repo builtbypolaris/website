@@ -3,6 +3,7 @@ import { Button } from '../ui/Button'
 import { VideoWithPoster } from '../ui/VideoWithPoster'
 import { ConstellationCanvas } from '../canvas/ConstellationCanvas'
 import { StarMascot } from '../canvas/StarMascot'
+import { useT, useLocale, buildLocalePath } from '../../i18n'
 
 const cascade = {
   hidden: { opacity: 0, y: 30 },
@@ -14,6 +15,8 @@ const cascade = {
 }
 
 export function Hero() {
+  const t = useT()
+  const locale = useLocale()
   return (
     <section className="min-h-screen relative bg-void overflow-hidden pt-[88px] flex items-center">
       <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(124,92,191,0.10)_0%,transparent_60%)] pointer-events-none" />
@@ -36,7 +39,7 @@ export function Hero() {
             className="inline-flex items-center gap-2 sm:gap-3 mb-5 sm:mb-7 px-3 sm:px-5 py-2 border border-border/60 rounded-full"
           >
             <div className="w-1.5 h-1.5 rounded-full bg-purple-core shadow-[0_0_8px_rgba(124,92,191,0.6)]" />
-            <span className="text-[10px] sm:text-[12px] text-grey-light tracking-[2px] sm:tracking-[3px] uppercase font-sans">Diagnostic-First Consultancy</span>
+            <span className="text-[10px] sm:text-[12px] text-grey-light tracking-[2px] sm:tracking-[3px] uppercase font-sans">{t.hero.badge}</span>
           </motion.div>
 
           <motion.h1
@@ -46,9 +49,9 @@ export function Hero() {
             variants={cascade}
             className="font-serif font-light text-[42px] sm:text-[48px] md:text-[56px] lg:text-[68px] text-white mb-4 sm:mb-6 -tracking-[1px] leading-[1.08]"
           >
-            Your Business,<br />
-            Finally Pointed<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-glow via-purple-bright to-gold">True North.</span>
+            {t.hero.titleLine1}<br />
+            {t.hero.titleLine2}<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-glow via-purple-bright to-gold">{t.hero.titleLine3}</span>
           </motion.h1>
 
           <motion.p
@@ -58,9 +61,7 @@ export function Hero() {
             variants={cascade}
             className="font-sans font-light text-[13px] sm:text-[14px] text-grey-light max-w-[440px] mx-auto lg:mx-0 mb-6 sm:mb-8 leading-[1.75]"
           >
-            We&rsquo;re not another tech agency selling packages.
-            We diagnose what&rsquo;s really holding your business back and
-            build exactly what fixes it.
+            {t.hero.subtitle}
           </motion.p>
 
           <motion.div
@@ -70,8 +71,8 @@ export function Hero() {
             variants={cascade}
             className="flex gap-3 sm:gap-4 flex-wrap justify-center lg:justify-start"
           >
-            <Button to="/contact">Get Your Free Health Check</Button>
-            <Button variant="ghost" to="/services">See How It Works</Button>
+            <Button to={buildLocalePath('/contact', locale)}>{t.hero.ctaPrimary}</Button>
+            <Button variant="ghost" to={buildLocalePath('/services', locale)}>{t.hero.ctaSecondary}</Button>
           </motion.div>
         </div>
 
@@ -104,8 +105,8 @@ export function Hero() {
                 </div>
               </div>
             </div>
-            <p className="font-sans font-medium text-[11px] sm:text-[13px] text-gold uppercase tracking-[2px] mt-3 sm:mt-4 text-center sm:text-left">F&B Website</p>
-            <p className="font-sans font-light text-[10px] sm:text-[12px] text-grey-light mt-0.5 text-center sm:text-left">Website Development</p>
+            <p className="font-sans font-medium text-[11px] sm:text-[13px] text-gold uppercase tracking-[2px] mt-3 sm:mt-4 text-center sm:text-left">{t.hero.laptopLabel}</p>
+            <p className="font-sans font-light text-[10px] sm:text-[12px] text-grey-light mt-0.5 text-center sm:text-left">{t.hero.laptopSubLabel}</p>
           </div>
 
           {/* Phone — height matched to laptop */}
@@ -126,8 +127,8 @@ export function Hero() {
 
               <div className="absolute inset-0 rounded-[2.2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-white/[0.04] via-transparent to-transparent pointer-events-none" />
             </div>
-            <p className="font-sans font-medium text-[11px] sm:text-[13px] text-gold uppercase tracking-[2px] mt-3 sm:mt-4 text-center">Digital Invitation</p>
-            <p className="font-sans font-light text-[10px] sm:text-[12px] text-grey-light mt-0.5 text-center">Online Invitation</p>
+            <p className="font-sans font-medium text-[11px] sm:text-[13px] text-gold uppercase tracking-[2px] mt-3 sm:mt-4 text-center">{t.hero.phoneLabel}</p>
+            <p className="font-sans font-light text-[10px] sm:text-[12px] text-grey-light mt-0.5 text-center">{t.hero.phoneSubLabel}</p>
           </div>
         </motion.div>
       </div>

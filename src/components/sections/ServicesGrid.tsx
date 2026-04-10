@@ -9,43 +9,25 @@ import { VideoWithPoster } from '../ui/VideoWithPoster'
 import { ArrowRight } from '../../assets/icons'
 import { SEODashboard } from '../mockups/SEODashboard'
 import { CRMDashboard } from '../mockups/CRMDashboard'
+import { useT, useLocale, buildLocalePath } from '../../i18n'
 
-const showcases = [
-  {
-    tab: 'Website',
-    title: 'Website Development',
-    tagline: 'Your digital storefront, built right. Fast, secure, and scalable.',
-    video: '/videos/stevia-cookies.mp4',
-    device: 'laptop' as const,
-    slug: 'website-development',
-  },
-  {
-    tab: 'SEO & Content',
-    title: 'SEO & Content Creation',
-    tagline: 'Your brand\'s visibility, powered by AI and guided by strategy.',
-    component: 'seo' as const,
-    device: 'laptop' as const,
-    slug: 'seo-content-creation',
-  },
-  {
-    tab: 'Business Operation',
-    title: 'Business Operation',
-    tagline: 'Your back-office, digitized. Run your business from one place.',
-    component: 'crm' as const,
-    device: 'laptop' as const,
-    slug: 'business-operation',
-  },
-  {
-    tab: 'Invitation',
-    title: 'Others & Custom Solutions',
-    tagline: 'If you can describe the problem, we can build the solution.',
-    video: '/videos/mak-gien-invitation.mp4',
-    device: 'phone' as const,
-    slug: 'others',
-  },
+// Structural data — visual/media references and slug. Text comes from t.servicesGrid.showcases.
+const SHOWCASE_STRUCTURE = [
+  { video: '/videos/stevia-cookies.mp4', device: 'laptop' as const, slug: 'website-development' },
+  { component: 'seo' as const, device: 'laptop' as const, slug: 'seo-content-creation' },
+  { component: 'crm' as const, device: 'laptop' as const, slug: 'business-operation' },
+  { video: '/videos/mak-gien-invitation.mp4', device: 'phone' as const, slug: 'others' },
 ]
 
 export function ServicesGrid() {
+  const t = useT()
+  const locale = useLocale()
+  const showcases = SHOWCASE_STRUCTURE.map((s, i) => ({
+    ...s,
+    tab: t.servicesGrid.showcases[i].tab,
+    title: t.servicesGrid.showcases[i].title,
+    tagline: t.servicesGrid.showcases[i].tagline,
+  }))
   const [active, setActive] = useState(0)
   const current = showcases[active]
 
@@ -65,7 +47,7 @@ export function ServicesGrid() {
 
   // Preload next video only (avoid loading all videos at once)
   useEffect(() => {
-    const next = showcases[(active + 1) % showcases.length]
+    const next = SHOWCASE_STRUCTURE[(active + 1) % SHOWCASE_STRUCTURE.length]
     if (next.video) {
       const v = document.createElement('video')
       v.preload = 'metadata'
@@ -79,10 +61,10 @@ export function ServicesGrid() {
 
       <Container>
         <MotionReveal className="max-w-[600px] mb-10">
-          <SectionLabel>What We Build</SectionLabel>
+          <SectionLabel>{t.servicesGrid.sectionLabel}</SectionLabel>
           <h2 className="font-serif font-light text-[32px] sm:text-[40px] md:text-[48px] text-white mb-5 leading-[1.15]">
-            One partner.<br />
-            <span className="text-purple-glow">Every solution.</span>
+            {t.servicesGrid.titleLine1}<br />
+            <span className="text-purple-glow">{t.servicesGrid.titleLine2}</span>
           </h2>
         </MotionReveal>
 
@@ -197,10 +179,10 @@ export function ServicesGrid() {
                   {current.tagline}
                 </p>
                 <Link
-                  to={`/services#${current.slug}`}
+                  to={`${buildLocalePath('/services', locale)}#${current.slug}`}
                   className="inline-flex items-center gap-2 font-sans text-sm text-gold hover:text-gold-soft transition-colors duration-200 group/link"
                 >
-                  Explore {current.tab}
+                  {t.servicesGrid.explore} {current.tab}
                   <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover/link:translate-x-1.5" />
                 </Link>
               </div>
@@ -210,13 +192,13 @@ export function ServicesGrid() {
 
         <MotionReveal delay={0.2} className="mt-14 flex flex-col items-center gap-6">
           <Link
-            to="/services"
+            to={buildLocalePath('/services', locale)}
             className="inline-flex items-center gap-2 font-sans text-base text-purple-glow hover:text-purple-bright transition-colors duration-200 group/all"
           >
-            See all services
+            {t.servicesGrid.seeAllServices}
             <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover/all:translate-x-1" />
           </Link>
-          <WhatsAppButton message="Hi Polaris! I'm interested in learning more about your services. Can we chat?" />
+          <WhatsAppButton message={t.servicesGrid.whatsappMessage} />
         </MotionReveal>
       </Container>
     </section>

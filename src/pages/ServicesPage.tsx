@@ -7,12 +7,14 @@ import { WhatsAppButton } from '../components/ui/WhatsAppButton'
 import { VideoWithPoster } from '../components/ui/VideoWithPoster'
 import { ConstellationCanvas } from '../components/canvas/ConstellationCanvas'
 import { ArrowRight } from '../assets/icons'
-import { serviceCategories } from '../data/services'
+import { useServiceCategories } from '../data/services'
 import { BrowserMockup } from '../components/mockups'
 import { SEODashboard } from '../components/mockups/SEODashboard'
 import { CRMDashboard } from '../components/mockups/CRMDashboard'
 import { PackagesDashboard } from '../components/mockups/PackagesDashboard'
 import { MobileAppMockup } from '../components/mockups/MobileAppMockup'
+import { useT } from '../i18n'
+import { usePageHead } from '../hooks/usePageHead'
 
 const showcaseOverrides: Record<string, { type: 'video' | 'component'; src?: string; component?: 'seo' | 'crm' | 'packages' | 'mobile-app' }> = {
   'website-development': { type: 'video', src: '/videos/stevia-cookies.mp4' },
@@ -24,6 +26,12 @@ const showcaseOverrides: Record<string, { type: 'video' | 'component'; src?: str
 }
 
 export function ServicesPage() {
+  const t = useT()
+  usePageHead({
+    title: t.meta.services.title,
+    description: t.meta.services.description,
+  })
+  const serviceCategories = useServiceCategories()
   const location = useLocation()
   const [activeSlug, setActiveSlug] = useState(serviceCategories[0].slug)
 
@@ -33,7 +41,7 @@ export function ServicesPage() {
       const match = serviceCategories.find((s) => s.slug === hash)
       if (match) setActiveSlug(match.slug)
     }
-  }, [location.hash])
+  }, [location.hash, serviceCategories])
 
   const activeCategory = serviceCategories.find((s) => s.slug === activeSlug) ?? serviceCategories[0]
 
@@ -45,13 +53,13 @@ export function ServicesPage() {
         <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(201,169,110,0.05)_0%,transparent_60%)] pointer-events-none" />
         <Container className="relative z-[1]">
           <MotionReveal className="max-w-[700px]">
-            <p className="font-sans font-light text-[13px] text-gold tracking-[4px] uppercase mb-6">Services</p>
+            <p className="font-sans font-light text-[13px] text-gold tracking-[4px] uppercase mb-6">{t.services.page.eyebrow}</p>
             <h1 className="font-serif font-light text-[32px] sm:text-[48px] md:text-[72px] text-white leading-[1.1] mb-6">
-              Discover how we can<br />
-              <span className="text-purple-glow">grow your business.</span>
+              {t.services.page.titleLine1}<br />
+              <span className="text-purple-glow">{t.services.page.titleLine2}</span>
             </h1>
             <p className="font-sans font-light text-base text-grey-light leading-[1.8] max-w-[540px]">
-              From diagnosis to deployment. One trusted partner for every solution your business needs.
+              {t.services.page.subtitle}
             </p>
           </MotionReveal>
         </Container>
@@ -247,7 +255,7 @@ export function ServicesPage() {
 
               {/* Sub-services */}
               <div>
-                <p className="font-sans text-[12px] tracking-[3px] uppercase text-grey mb-6">What's included</p>
+                <p className="font-sans text-[12px] tracking-[3px] uppercase text-grey mb-6">{t.services.page.whatsIncluded}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {activeCategory.subServices.map((sub, i) => (
                     <motion.div

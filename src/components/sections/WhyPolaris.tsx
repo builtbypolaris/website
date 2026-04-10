@@ -2,41 +2,21 @@ import { Container } from '../ui/Container'
 import { SectionLabel } from '../ui/SectionLabel'
 import { MotionReveal } from '../ui/MotionReveal'
 import { StaggerContainer, StaggerItem } from '../ui/StaggerContainer'
-
-const differentiators = [
-  {
-    title: 'Diagnostic-first',
-    description: 'We start by listening, diagnose the real problem, then build what actually fixes it.',
-  },
-  {
-    title: 'One Relationship',
-    description: 'You never re-explain your business to a new person. One team, one partner.',
-  },
-  {
-    title: 'Ongoing Partnership',
-    description: 'We grow with you, not just deliver and disappear. Long-term technology partner.',
-  },
-  {
-    title: 'Outcome-driven',
-    description: 'We care about your outcome, not just the invoice. Results over revenue.',
-  },
-  {
-    title: 'AI-powered efficiency',
-    description: 'We leverage cutting-edge AI to deliver faster, better, and at a fraction of traditional costs.',
-  },
-]
+import { useT } from '../../i18n'
 
 export function WhyPolaris() {
+  const t = useT()
+  const differentiators = t.whyPolaris.differentiators
   return (
     <section className="bg-deep py-[100px] relative section-divider-top">
       <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(201,169,110,0.04)_0%,transparent_60%)] pointer-events-none" />
 
       <Container>
         <MotionReveal className="max-w-[600px] mb-14">
-          <SectionLabel>Why Polaris</SectionLabel>
+          <SectionLabel>{t.whyPolaris.sectionLabel}</SectionLabel>
           <h2 className="font-serif font-light text-[48px] text-white mb-5 leading-[1.15]">
-            What makes us<br />
-            <span className="text-purple-glow">different.</span>
+            {t.whyPolaris.titleLine1}<br />
+            <span className="text-purple-glow">{t.whyPolaris.titleLine2}</span>
           </h2>
         </MotionReveal>
 

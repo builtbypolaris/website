@@ -4,8 +4,11 @@ import { SectionLabel } from '../ui/SectionLabel'
 import { MotionReveal } from '../ui/MotionReveal'
 import { VideoWithPoster } from '../ui/VideoWithPoster'
 import { ArrowRight } from '../../assets/icons'
+import { useT, useLocale, buildLocalePath } from '../../i18n'
 
 export function WorkShowcase() {
+  const t = useT()
+  const locale = useLocale()
   return (
     <section className="bg-void py-[100px] relative section-divider-top overflow-hidden">
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-[radial-gradient(circle,rgba(124,92,191,0.06)_0%,transparent_70%)] pointer-events-none" />
@@ -43,8 +46,8 @@ export function WorkShowcase() {
                 <div className="absolute top-0 left-0 right-0 h-[50%] rounded-t-xl bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
               </div>
               <div className="mt-6">
-                <h4 className="font-sans font-medium text-[14px] text-gold uppercase tracking-[2px]">F&B Website</h4>
-                <p className="font-sans font-light text-sm text-grey-light mt-1">Website Development</p>
+                <h4 className="font-sans font-medium text-[14px] text-gold uppercase tracking-[2px]">{t.hero.laptopLabel}</h4>
+                <p className="font-sans font-light text-sm text-grey-light mt-1">{t.hero.laptopSubLabel}</p>
               </div>
             </div>
 
@@ -66,8 +69,8 @@ export function WorkShowcase() {
                 </div>
 
                 <div className="mt-6 text-center">
-                  <h4 className="font-sans font-medium text-[14px] text-gold uppercase tracking-[2px]">Digital Invitation</h4>
-                  <p className="font-sans font-light text-sm text-grey-light mt-1">Online Invitation</p>
+                  <h4 className="font-sans font-medium text-[14px] text-gold uppercase tracking-[2px]">{t.hero.phoneLabel}</h4>
+                  <p className="font-sans font-light text-sm text-grey-light mt-1">{t.hero.phoneSubLabel}</p>
                 </div>
               </div>
             </div>
@@ -76,10 +79,10 @@ export function WorkShowcase() {
 
         <MotionReveal delay={0.2} className="mt-14 text-center">
           <Link
-            to="/services"
+            to={buildLocalePath('/services', locale)}
             className="inline-flex items-center gap-2 font-sans text-base text-purple-glow hover:text-purple-bright transition-colors duration-200 group/all"
           >
-            See all services
+            {t.servicesGrid.seeAllServices}
             <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover/all:translate-x-1" />
           </Link>
         </MotionReveal>
