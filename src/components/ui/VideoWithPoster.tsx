@@ -13,16 +13,20 @@ export function VideoWithPoster({ src, className }: { src: string; className: st
   const poster = posterMap[src]
 
   useEffect(() => {
-    const onChange = () => {
-      if (document.hidden) {
-        setShowPoster(true)
-      } else {
-        setTimeout(() => setShowPoster(false), 100)
-        videoRef.current?.play()
-      }
+    const hide = () => setShowPoster(true)
+    const show = () => {
+      setTimeout(() => setShowPoster(false), 100)
+      videoRef.current?.play()
     }
-    document.addEventListener('visibilitychange', onChange)
-    return () => document.removeEventListener('visibilitychange', onChange)
+    window.addEventListener('blur', hide)
+    window.addEventListener('focus', show)
+    document.addEventListener('visibilitychange', () => {
+      document.hidden ? hide() : show()
+    })
+    return () => {
+      window.removeEventListener('blur', hide)
+      window.removeEventListener('focus', show)
+    }
   }, [])
 
   return (
