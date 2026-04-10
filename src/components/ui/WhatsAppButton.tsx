@@ -1,5 +1,6 @@
 import { motion } from 'motion/react'
 import { WhatsApp } from '../../assets/icons'
+import { useT } from '../../i18n'
 
 interface WhatsAppButtonProps {
   message: string
@@ -10,6 +11,7 @@ interface WhatsAppButtonProps {
 const PHONE = '6281946494333'
 
 export function WhatsAppButton({ message, className = '', children }: WhatsAppButtonProps) {
+  const t = useT()
   const url = `https://wa.me/${PHONE}?text=${encodeURIComponent(message)}`
 
   return (
@@ -23,7 +25,7 @@ export function WhatsAppButton({ message, className = '', children }: WhatsAppBu
       transition={{ type: 'spring', stiffness: 400, damping: 17 }}
     >
       <WhatsApp className="w-5 h-5" />
-      {children || 'Contact Us Now'}
+      {children || t.common.contactUsNow}
     </motion.a>
   )
 }

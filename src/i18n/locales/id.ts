@@ -45,9 +45,14 @@ export const id: EnTranslations = {
     indonesian: 'Bahasa Indonesia',
   },
 
+  // ── Common labels (used across multiple components) ────────────────────
+  common: {
+    contactUsNow: 'Hubungi Kami Sekarang',
+  },
+
   // ── Hero (home) ────────────────────────────────────────────────────────
   hero: {
-    badge: 'Konsultan Diagnostic-First',
+    badge: 'Diagnostic-First Consultancy',
     titleLine1: 'Bisnis Anda,',
     titleLine2: 'Akhirnya Menemukan',
     titleLine3: 'Arah yang Tepat.',

@@ -16,6 +16,13 @@ export function Navbar() {
   const homePath = buildLocalePath('/', locale)
   const contactPath = buildLocalePath('/contact', locale)
 
+  // Split Contact out of the centered nav so it can sit next to the CTA
+  // button on the right. The Indonesian CTA label is much longer than the
+  // English one, and keeping Contact in the center made the bar feel
+  // cramped. Mobile menu still shows the full list.
+  const centeredNavItems = navItems.filter((item) => item.to !== contactPath)
+  const contactItem = navItems.find((item) => item.to === contactPath)
+
   return (
     <nav
       className={`fixed top-0 left-0 w-full z-[1000] border-b border-border/50 backdrop-blur-[16px] transition-all duration-300 ${
@@ -34,7 +41,7 @@ export function Navbar() {
 
         {/* Nav links — absolute center of the bar */}
         <div className="hidden md:flex items-center gap-10 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          {navItems.map((item) => {
+          {centeredNavItems.map((item) => {
             const isActive = item.to === homePath ? pathname === homePath : pathname.startsWith(item.to)
             return (
               <Link
@@ -55,8 +62,23 @@ export function Navbar() {
           })}
         </div>
 
-        {/* CTA — right */}
-        <div className="hidden md:block relative z-[1]">
+        {/* Contact + CTA — right */}
+        <div className="hidden md:flex items-center gap-6 relative z-[1]">
+          {contactItem && (
+            <Link
+              to={contactItem.to}
+              className={`relative text-[15px] tracking-wide transition-colors duration-200 group ${
+                pathname.startsWith(contactItem.to) ? 'text-white' : 'text-grey-light hover:text-white'
+              }`}
+            >
+              {contactItem.label}
+              <span
+                className={`absolute -bottom-1 left-0 h-[2px] bg-gradient-to-r from-purple-core to-purple-bright rounded-full transition-all duration-300 ${
+                  pathname.startsWith(contactItem.to) ? 'w-full' : 'w-0 group-hover:w-full'
+                }`}
+              />
+            </Link>
+          )}
           <Button to={contactPath} className="!py-3 !px-6 !text-[13px]">
             {t.nav.cta}
           </Button>

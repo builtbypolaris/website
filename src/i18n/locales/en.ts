@@ -54,6 +54,11 @@ export const en = {
     indonesian: 'Bahasa Indonesia',
   },
 
+  // ── Common labels (used across multiple components) ────────────────────
+  common: {
+    contactUsNow: 'Contact Us Now',
+  },
+
   // ── Hero (home) ────────────────────────────────────────────────────────
   hero: {
     badge: 'Diagnostic-First Consultancy',
