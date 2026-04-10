@@ -1,3 +1,4 @@
+import { useRef, useCallback } from 'react'
 import { motion } from 'motion/react'
 import { Button } from '../ui/Button'
 import { ConstellationCanvas } from '../canvas/ConstellationCanvas'
@@ -12,7 +13,29 @@ const cascade = {
   }),
 }
 
+/** Once a video decodes its first frame, paint it to a canvas-derived
+ *  data-URL and set it as the poster. This prevents white/black flashes
+ *  on initial load and when the browser pauses the video (e.g. alt-tab). */
+function usePosterFromFirstFrame() {
+  const ref = useRef<HTMLVideoElement>(null)
+  const onLoaded = useCallback(() => {
+    const v = ref.current
+    if (!v || v.poster) return
+    try {
+      const c = document.createElement('canvas')
+      c.width = v.videoWidth
+      c.height = v.videoHeight
+      c.getContext('2d')!.drawImage(v, 0, 0)
+      v.poster = c.toDataURL('image/jpeg', 0.85)
+    } catch { /* cross-origin or empty — ignore */ }
+  }, [])
+  return { ref, onLoaded }
+}
+
 export function Hero() {
+  const laptop = usePosterFromFirstFrame()
+  const phone = usePosterFromFirstFrame()
+
   return (
     <section className="min-h-screen relative bg-void overflow-hidden pt-[88px] flex items-center">
       <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(124,92,191,0.10)_0%,transparent_60%)] pointer-events-none" />
@@ -87,7 +110,7 @@ export function Hero() {
               <div className="bg-[#1e1e22] rounded-t-lg sm:rounded-t-xl pt-2 sm:pt-3 px-2 sm:px-3 pb-2 sm:pb-3 shadow-[0_-2px_20px_rgba(0,0,0,0.3)]">
                 <div className="absolute top-[4px] sm:top-[6px] left-1/2 -translate-x-1/2 w-[4px] sm:w-[5px] h-[4px] sm:h-[5px] rounded-full bg-[#2a2a2e] ring-1 ring-[#333]" />
                 <div className="rounded-[3px] sm:rounded-[4px] overflow-hidden ring-1 ring-black/50">
-                  <video muted playsInline autoPlay loop preload="auto" className="w-[500px] h-[240px] sm:h-[280px] lg:h-[270px] object-cover bg-white block">
+                  <video ref={laptop.ref} onLoadedData={laptop.onLoaded} muted playsInline autoPlay loop preload="auto" className="w-[500px] h-[240px] sm:h-[280px] lg:h-[270px] object-cover bg-[#1e1e22] block">
                     <source src="/videos/stevia-cookies.mp4" type="video/mp4" />
                   </video>
                 </div>
@@ -115,7 +138,7 @@ export function Hero() {
               <div className="absolute -right-[1.5px] sm:-right-[2px] top-[30%] w-[2px] sm:w-[3px] h-[32px] sm:h-[40px] bg-[#3a3a3c] rounded-r" />
 
               <div className="relative rounded-[1.8rem] sm:rounded-[2.1rem] bg-black overflow-hidden ring-1 ring-black/80 h-full">
-                <video muted playsInline autoPlay loop preload="auto" className="h-full aspect-[9/19.5] object-cover">
+                <video ref={phone.ref} onLoadedData={phone.onLoaded} muted playsInline autoPlay loop preload="auto" className="h-full aspect-[9/19.5] object-cover">
                   <source src="/videos/mak-gien-invitation.mp4" type="video/mp4" />
                 </video>
                 <div className="absolute bottom-[3px] sm:bottom-[5px] left-1/2 -translate-x-1/2 w-[50px] sm:w-[70px] h-[3px] bg-black/40 rounded-full z-20" />
