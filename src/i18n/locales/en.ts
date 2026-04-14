@@ -39,12 +39,12 @@ export const en = {
 
   // ── Footer ─────────────────────────────────────────────────────────────
   footer: {
-    tagline: 'Diagnostic-first IT consultancy for growing Indonesian businesses.',
+    tagline: 'Diagnostic-first business & IT consultancy for growing Indonesian businesses.',
     navigate: 'Navigate',
     getInTouch: 'Get in Touch',
-    location: 'Jakarta, Indonesia',
+    location: 'Jakarta · Yogyakarta · Bali',
     language: 'Language',
-    copyright: '© 2026 PT Aurora Polaris Digital · Jakarta, Indonesia',
+    copyright: '© 2026 PT Aurora Polaris Digital · Jakarta · Yogyakarta · Bali',
   },
 
   // ── Language switcher ──────────────────────────────────────────────────
@@ -468,7 +468,7 @@ export const en = {
     titleLine1: 'Built to bring',
     titleLine2: 'clarity, not complexity.',
     subtitle:
-      "We're a diagnostic-first IT consultancy based in Jakarta. We find the real problem before building anything.",
+      "We're a diagnostic-first business & IT consultancy based in Jakarta, Yogyakarta, and Bali. We find the real problem before building anything.",
   },
 
   // ── Insights listing page ──────────────────────────────────────────────
@@ -506,7 +506,7 @@ export const en = {
     home: {
       title: 'Polaris — Your Business Compass | PT Aurora Polaris Digital',
       description:
-        "Polaris is Indonesia's diagnostic-first IT consultancy. We find the real problem before building the solution. Web, AI, data, automation — one trusted partner.",
+        "Polaris is Indonesia's diagnostic-first business & IT consultancy. We find the real problem before building the solution. Web, AI, data, automation — one trusted partner.",
     },
     services: {
       title: 'Services — Polaris',
@@ -516,7 +516,7 @@ export const en = {
     about: {
       title: 'About — Polaris',
       description:
-        "We're a diagnostic-first IT consultancy based in Jakarta. We find the real problem before building anything.",
+        "We're a diagnostic-first business & IT consultancy based in Jakarta, Yogyakarta, and Bali. We find the real problem before building anything.",
     },
     insights: {
       title: 'Insights — Polaris',

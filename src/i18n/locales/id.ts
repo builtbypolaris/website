@@ -30,12 +30,12 @@ export const id: EnTranslations = {
   // ── Footer ─────────────────────────────────────────────────────────────
   footer: {
     tagline:
-      'Konsultan IT diagnostic-first untuk bisnis Indonesia yang sedang berkembang.',
+      'Konsultan bisnis & IT diagnostic-first untuk bisnis Indonesia yang sedang berkembang.',
     navigate: 'Navigasi',
     getInTouch: 'Hubungi Kami',
-    location: 'Jakarta, Indonesia',
+    location: 'Jakarta · Yogyakarta · Bali',
     language: 'Bahasa',
-    copyright: '© 2026 PT Aurora Polaris Digital · Jakarta, Indonesia',
+    copyright: '© 2026 PT Aurora Polaris Digital · Jakarta · Yogyakarta · Bali',
   },
 
   // ── Language switcher ──────────────────────────────────────────────────
@@ -464,7 +464,7 @@ export const id: EnTranslations = {
     titleLine1: 'Dibangun untuk membawa',
     titleLine2: 'kejelasan, bukan kompleksitas.',
     subtitle:
-      'Kami adalah konsultan IT diagnostic-first yang berbasis di Jakarta. Kami menemukan masalah sesungguhnya sebelum membangun apapun.',
+      'Kami adalah konsultan bisnis & IT diagnostic-first yang berbasis di Jakarta, Yogyakarta, dan Bali. Kami menemukan masalah sesungguhnya sebelum membangun apapun.',
   },
 
   // ── Insights listing page ──────────────────────────────────────────────
@@ -502,7 +502,7 @@ export const id: EnTranslations = {
     home: {
       title: 'Polaris — Kompas Bisnis Anda | PT Aurora Polaris Digital',
       description:
-        'Polaris adalah konsultan IT diagnostic-first pertama di Indonesia. Kami menemukan masalah sesungguhnya sebelum membangun solusinya. Web, AI, data, otomasi — satu partner terpercaya.',
+        'Polaris adalah konsultan bisnis & IT diagnostic-first pertama di Indonesia. Kami menemukan masalah sesungguhnya sebelum membangun solusinya. Web, AI, data, otomasi — satu partner terpercaya.',
     },
     services: {
       title: 'Layanan — Polaris',
@@ -512,7 +512,7 @@ export const id: EnTranslations = {
     about: {
       title: 'Tentang — Polaris',
       description:
-        'Kami adalah konsultan IT diagnostic-first yang berbasis di Jakarta. Kami menemukan masalah sesungguhnya sebelum membangun apapun.',
+        'Kami adalah konsultan bisnis & IT diagnostic-first yang berbasis di Jakarta, Yogyakarta, dan Bali. Kami menemukan masalah sesungguhnya sebelum membangun apapun.',
     },
     insights: {
       title: 'Insight — Polaris',
