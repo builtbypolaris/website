@@ -9,27 +9,20 @@ const posterMap: Record<string, string> = {
   '/videos/javanese-emotion.mp4': '/images/posters/javanese-emotion.jpg',
 }
 
-/**
- * Video with a poster fallback. The poster image shows:
- *  1. While the video is still loading
- *  2. When the tab is hidden (alt-tab) — Chrome drops the video surface
- *
- * On visibility change we hide the video element entirely so the poster
- * underneath is guaranteed to show, regardless of browser behavior.
- */
 export function VideoWithPoster({ src, className }: { src: string; className: string }) {
   const poster = posterMap[src]
   const videoRef = useRef<HTMLVideoElement>(null)
-  const [hidden, setHidden] = useState(false)
+  const [tabHidden, setTabHidden] = useState(false)
 
   useEffect(() => {
     const onVisibility = () => {
       if (document.hidden) {
-        setHidden(true)
+        setTabHidden(true)
+        videoRef.current?.pause()
       } else {
-        setHidden(false)
-        // Resume playback when tab becomes visible again
         videoRef.current?.play().catch(() => {})
+        // Small delay before showing video again so it has a frame ready
+        setTimeout(() => setTabHidden(false), 100)
       }
     }
     document.addEventListener('visibilitychange', onVisibility)
@@ -49,7 +42,8 @@ export function VideoWithPoster({ src, className }: { src: string; className: st
         loop
         preload="auto"
         poster={poster}
-        className={`relative ${className} ${hidden ? 'invisible' : ''}`}
+        className={`relative ${className}`}
+        style={tabHidden ? { display: 'none' } : undefined}
       >
         <source src={src} type="video/mp4" />
       </video>
