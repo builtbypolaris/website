@@ -21,7 +21,7 @@ const SHOWCASE = [
   { type: 'video' as const, device: 'phone' as const, src: '/videos/mak-gien-invitation.mp4' },
 ]
 
-const ease = [0.22, 1, 0.36, 1]
+const ease = [0.22, 1, 0.36, 1] as const
 
 function LaptopFrame({ children }: { children: React.ReactNode }) {
   return (
