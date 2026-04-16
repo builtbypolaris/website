@@ -32,7 +32,7 @@ export function VideoWithPoster({ src, className }: { src: string; className: st
   return (
     <div className="relative w-full h-full">
       {poster && (
-        <img src={poster} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        <img src={poster} alt="" className={`absolute inset-0 w-full h-full ${className}`} />
       )}
       <video
         ref={videoRef}
