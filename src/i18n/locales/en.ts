@@ -264,6 +264,103 @@ export const en = {
     ],
   },
 
+  // ── Work showcase (About page) ──────────────────────────────────────
+  workShowcase: {
+    sectionLabel: 'Our Work',
+    titleLine1: "What we've",
+    titleLine2: 'delivered.',
+    subtitle: "Real projects, real outcomes. Here's a look at what we've built for our clients.",
+    projects: [
+      {
+        service: 'Website Development',
+        title: 'Stevia Cookies',
+      },
+      {
+        service: 'Website Development',
+        title: 'Mulia Plastik',
+      },
+      {
+        service: 'Website Development',
+        title: 'Posyandu',
+      },
+      {
+        service: 'Website Development',
+        title: 'ADHD Productivity',
+      },
+      {
+        service: 'Application Development',
+        title: 'Order Management App',
+      },
+      {
+        service: 'Business Operation',
+        title: 'CRM & Sales Dashboard',
+      },
+      {
+        service: 'SEO & Content',
+        title: 'Search Console Growth',
+      },
+      {
+        service: 'Custom Solution',
+        title: 'Javanese Emotion',
+      },
+      {
+        service: 'Custom Solution',
+        title: 'Mak Gien Invitation',
+      },
+    ],
+  },
+
+  // ── Results showcase (About page) — DEPRECATED ────────────────────────
+  resultsShowcase: {
+    sectionLabel: 'Results & Values',
+    titleLine1: 'What our work',
+    titleLine2: 'actually delivers.',
+    subtitle:
+      'Four principles. Real outcomes. Every project starts with a value and ends with proof.',
+    items: [
+      {
+        value: 'Clarity',
+        valueDescription:
+          "We give you direction when everything feels unclear. You always know where you're headed and why.",
+        metric: '3 days',
+        metricLabel: 'from kickoff to written diagnosis',
+        quote:
+          'Within the first week, we finally understood what was actually slowing us down. No one had ever mapped it out like that before.',
+        attribution: 'Founder, Jakarta e-commerce startup',
+      },
+      {
+        value: 'Integrity',
+        valueDescription:
+          "We tell you the truth, even when it's hard. No sugarcoating, no hidden agendas, no jargon.",
+        metric: '100%',
+        metricLabel: 'transparent reporting, no hidden fees',
+        quote:
+          "They told us our original plan wouldn't work — and then showed us what would. That honesty saved us months.",
+        attribution: 'Operations Director, Bali hospitality group',
+      },
+      {
+        value: 'Precision',
+        valueDescription:
+          'Every solution is built to fit exactly what you need, not a template, not a guess. Exactly right.',
+        metric: '0',
+        metricLabel: 'cookie-cutter templates used',
+        quote:
+          "The system they built fits our workflow like it was designed from the inside. Because it was — they understood our process before writing a single line.",
+        attribution: 'CEO, Yogyakarta manufacturing firm',
+      },
+      {
+        value: 'Growth',
+        valueDescription:
+          "We're not here to just fix today's problem. We're here to make sure you're genuinely better for it.",
+        metric: '↑ 40%',
+        metricLabel: 'average efficiency gain after 6 months',
+        quote:
+          "Six months later, we're still using everything they set up — and it's actually growing with us. That never happens with consultants.",
+        attribution: 'Managing Partner, Jakarta professional services',
+      },
+    ],
+  },
+
   // ── CTA section ────────────────────────────────────────────────────────
   cta: {
     titleLine1: 'Ready to find your',

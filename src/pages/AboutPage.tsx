@@ -1,7 +1,7 @@
 import { Container } from '../components/ui/Container'
 import { MotionReveal } from '../components/ui/MotionReveal'
 import { ValuesGrid } from '../components/sections/ValuesGrid'
-import { AboutSection } from '../components/sections/AboutSection'
+import { WorkShowcase } from '../components/sections/WorkShowcase'
 import { ConstellationCanvas } from '../components/canvas/ConstellationCanvas'
 import { useT } from '../i18n'
 import { usePageHead } from '../hooks/usePageHead'
@@ -32,7 +32,7 @@ export function AboutPage() {
         </Container>
       </section>
       <ValuesGrid />
-      <AboutSection />
+      <WorkShowcase />
     </div>
   )
 }

@@ -259,6 +259,103 @@ export const id: EnTranslations = {
     ],
   },
 
+  // ── Work showcase (About page) ──────────────────────────────────────
+  workShowcase: {
+    sectionLabel: 'Karya Kami',
+    titleLine1: 'Apa yang telah',
+    titleLine2: 'kami hasilkan.',
+    subtitle: 'Proyek nyata, hasil nyata. Berikut sekilas apa yang telah kami bangun untuk klien kami.',
+    projects: [
+      {
+        service: 'Website Development',
+        title: 'Stevia Cookies',
+      },
+      {
+        service: 'Website Development',
+        title: 'Mulia Plastik',
+      },
+      {
+        service: 'Website Development',
+        title: 'Posyandu',
+      },
+      {
+        service: 'Website Development',
+        title: 'ADHD Productivity',
+      },
+      {
+        service: 'Application Development',
+        title: 'Aplikasi Manajemen Pesanan',
+      },
+      {
+        service: 'Business Operation',
+        title: 'CRM & Dashboard Penjualan',
+      },
+      {
+        service: 'SEO & Konten',
+        title: 'Pertumbuhan Search Console',
+      },
+      {
+        service: 'Custom Solution',
+        title: 'Javanese Emotion',
+      },
+      {
+        service: 'Custom Solution',
+        title: 'Undangan Mak Gien',
+      },
+    ],
+  },
+
+  // ── Results showcase (About page) — DEPRECATED ────────────────────────
+  resultsShowcase: {
+    sectionLabel: 'Hasil & Nilai',
+    titleLine1: 'Apa yang kerja kami',
+    titleLine2: 'benar-benar hasilkan.',
+    subtitle:
+      'Empat prinsip. Hasil nyata. Setiap proyek dimulai dengan nilai dan diakhiri dengan bukti.',
+    items: [
+      {
+        value: 'Kejelasan',
+        valueDescription:
+          'Kami memberikan arah ketika semuanya terasa tidak jelas. Anda selalu tahu kemana tujuan Anda dan mengapa.',
+        metric: '3 hari',
+        metricLabel: 'dari kickoff hingga diagnosis tertulis',
+        quote:
+          'Dalam minggu pertama, kami akhirnya memahami apa yang sebenarnya memperlambat kami. Tidak ada yang pernah memetakannya seperti itu sebelumnya.',
+        attribution: 'Founder, startup e-commerce Jakarta',
+      },
+      {
+        value: 'Integritas',
+        valueDescription:
+          'Kami mengatakan kebenaran, bahkan saat itu sulit. Tidak ada yang dimaniskan, tidak ada agenda tersembunyi, tidak ada jargon.',
+        metric: '100%',
+        metricLabel: 'pelaporan transparan, tanpa biaya tersembunyi',
+        quote:
+          'Mereka bilang rencana awal kami tidak akan berhasil — lalu menunjukkan apa yang akan berhasil. Kejujuran itu menghemat waktu kami berbulan-bulan.',
+        attribution: 'Direktur Operasional, grup hospitality Bali',
+      },
+      {
+        value: 'Presisi',
+        valueDescription:
+          'Setiap solusi dibangun untuk pas dengan kebutuhan Anda, bukan template, bukan tebakan. Tepat sasaran.',
+        metric: '0',
+        metricLabel: 'template generik yang digunakan',
+        quote:
+          'Sistem yang mereka bangun cocok dengan alur kerja kami seperti dirancang dari dalam. Karena memang begitu — mereka memahami proses kami sebelum menulis satu baris kode.',
+        attribution: 'CEO, perusahaan manufaktur Yogyakarta',
+      },
+      {
+        value: 'Pertumbuhan',
+        valueDescription:
+          'Kami tidak hanya di sini untuk memperbaiki masalah hari ini. Kami di sini untuk memastikan Anda benar-benar lebih baik karenanya.',
+        metric: '↑ 40%',
+        metricLabel: 'rata-rata peningkatan efisiensi setelah 6 bulan',
+        quote:
+          'Enam bulan kemudian, kami masih menggunakan semua yang mereka siapkan — dan itu benar-benar berkembang bersama kami. Itu tidak pernah terjadi dengan konsultan lain.',
+        attribution: 'Managing Partner, jasa profesional Jakarta',
+      },
+    ],
+  },
+
   // ── CTA section ────────────────────────────────────────────────────────
   cta: {
     titleLine1: 'Siap menemukan',
