@@ -101,7 +101,7 @@ export function WorkShowcase() {
     if (showcase.type === 'video') {
       return (
         <LaptopFrame>
-          <VideoWithPoster src={showcase.src!} className="w-full aspect-[16/10] object-contain block bg-black" />
+          <VideoWithPoster src={showcase.src!} className="w-full aspect-[16/10] object-cover block" />
         </LaptopFrame>
       )
     }
