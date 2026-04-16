@@ -136,37 +136,38 @@ export function WorkShowcase() {
 
         {/* Carousel — fixed-width wrapper so arrows stay in place */}
         <div className="max-w-[560px] mx-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={current}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.3, ease }}
-            >
-              <div className="flex flex-col items-center gap-8">
-                {/* Device mockup */}
+          {/* Fixed height container so arrows never move */}
+          <div className="min-h-[580px] sm:min-h-[560px] flex flex-col">
+            <div className="flex-1 flex items-center justify-center">
+              <AnimatePresence mode="wait">
                 <motion.div
+                  key={current}
                   className="w-full"
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: 0.1, ease }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25, ease }}
                 >
-                  {renderDevice()}
-                </motion.div>
+                  <div className="flex flex-col items-center gap-8">
+                    {/* Device mockup */}
+                    <div className="w-full">
+                      {renderDevice()}
+                    </div>
 
-                {/* Caption */}
-                <div className="text-center">
-                  <span className="font-sans text-[10px] font-normal tracking-[2px] uppercase text-purple-bright bg-purple-core/10 border border-purple-core/20 rounded-full px-3 py-1">
-                    {project.service}
-                  </span>
-                  <h3 className="font-serif font-light text-[24px] text-white leading-[1.3] mt-3">
-                    {project.title}
-                  </h3>
-                </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
+                    {/* Caption */}
+                    <div className="text-center">
+                      <span className="font-sans text-[10px] font-normal tracking-[2px] uppercase text-purple-bright bg-purple-core/10 border border-purple-core/20 rounded-full px-3 py-1">
+                        {project.service}
+                      </span>
+                      <h3 className="font-serif font-light text-[24px] text-white leading-[1.3] mt-3">
+                        {project.title}
+                      </h3>
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
 
           {/* Navigation — same width as device */}
           <div className="flex items-center justify-between mt-10">
