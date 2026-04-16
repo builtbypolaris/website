@@ -1,6 +1,10 @@
 const posterMap: Record<string, string> = {
   '/videos/stevia-cookies.mp4': '/images/posters/stevia-cookies.jpg',
   '/videos/mak-gien-invitation.mp4': '/images/posters/mak-gien-invitation.jpg',
+  '/videos/mulia-plastik.mp4': '/images/posters/mulia-plastik.jpg',
+  '/videos/posyandu.mp4': '/images/posters/posyandu.jpg',
+  '/videos/adhd-productivity.mp4': '/images/posters/adhd-productivity.jpg',
+  '/videos/javanese-emotion.mp4': '/images/posters/javanese-emotion.jpg',
 }
 
 /** Poster image sits permanently behind the video. When Chrome drops the
