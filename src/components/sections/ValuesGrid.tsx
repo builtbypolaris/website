@@ -9,41 +9,36 @@ export function ValuesGrid() {
   const t = useT()
   const values = useValues()
   return (
-    <section className="bg-deep py-[100px] relative section-divider-top">
-      {/* Atmospheric gradient */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-[radial-gradient(ellipse,rgba(124,92,191,0.05)_0%,transparent_60%)] pointer-events-none" />
-
+    <section className="bg-deep py-[60px] relative section-divider-top">
       <Container>
-        <MotionReveal className="max-w-[600px] mb-16">
+        <MotionReveal className="max-w-[600px] mb-8">
           <SectionLabel>{t.valuesGrid.sectionLabel}</SectionLabel>
-          <h2 className="font-serif font-light text-[48px] text-white mb-5 leading-[1.15]">
+          <h2 className="font-serif font-light text-[36px] text-white mb-3 leading-[1.15]">
             {t.valuesGrid.titleLine1} <span className="text-purple-glow">{t.valuesGrid.titleLine2}</span>
           </h2>
-          <p className="font-sans font-light text-base text-grey-light leading-[1.8]">
+          <p className="font-sans font-light text-sm text-grey-light leading-[1.8]">
             {t.valuesGrid.subtitle}
           </p>
         </MotionReveal>
 
-        <StaggerContainer stagger={0.12} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <StaggerContainer stagger={0.08} className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {values.map((value) => (
             <StaggerItem key={value.number}>
               <div className="group relative h-full">
-                <div className="relative bg-card border border-border rounded-2xl p-5 h-full transition-all duration-500 hover:border-purple-core/50 hover:bg-card-hover card-glow overflow-hidden">
-                  {/* Large faded number */}
-                  <div className="font-serif text-[44px] font-light leading-none text-white/15 mb-2 select-none pointer-events-none">
-                    {value.number}
-                  </div>
-
-                  {/* Accent line */}
-                  <div className="w-8 h-px bg-gradient-to-r from-purple-core to-transparent mb-4" />
-
-                  {/* Value word */}
-                  <div className="font-sans font-normal text-[11px] tracking-[2px] text-purple-glow uppercase mb-3">
-                    {value.word}
+                <div className="relative bg-card border border-border rounded-xl p-4 h-full transition-all duration-500 hover:border-purple-core/50 hover:bg-card-hover card-glow overflow-hidden">
+                  {/* Number + Value word */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="font-serif text-[20px] font-light leading-none text-white/50 select-none">
+                      {value.number}
+                    </span>
+                    <div className="w-4 h-px bg-gradient-to-r from-purple-core to-transparent" />
+                    <span className="font-sans font-normal text-[10px] tracking-[2px] text-purple-glow uppercase">
+                      {value.word}
+                    </span>
                   </div>
 
                   {/* Description */}
-                  <p className="font-sans font-light text-sm text-grey-light leading-[1.7] relative z-[1] max-w-[400px]">
+                  <p className="font-sans font-light text-[13px] text-grey-light leading-[1.6] relative z-[1]">
                     {value.description}
                   </p>
 
