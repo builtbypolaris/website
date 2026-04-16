@@ -134,74 +134,76 @@ export function WorkShowcase() {
           </p>
         </MotionReveal>
 
-        {/* Carousel */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={current}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.3, ease }}
-          >
-            <div className="flex flex-col items-center gap-8">
-              {/* Device mockup — constrained width */}
-              <motion.div
-                className="w-full max-w-[560px] mx-auto"
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.1, ease }}
-              >
-                {renderDevice()}
-              </motion.div>
+        {/* Carousel — fixed-width wrapper so arrows stay in place */}
+        <div className="max-w-[560px] mx-auto">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={current}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.3, ease }}
+            >
+              <div className="flex flex-col items-center gap-8">
+                {/* Device mockup */}
+                <motion.div
+                  className="w-full"
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.1, ease }}
+                >
+                  {renderDevice()}
+                </motion.div>
 
-              {/* Caption */}
-              <div className="text-center">
-                <span className="font-sans text-[10px] font-normal tracking-[2px] uppercase text-purple-bright bg-purple-core/10 border border-purple-core/20 rounded-full px-3 py-1">
-                  {project.service}
-                </span>
-                <h3 className="font-serif font-light text-[24px] text-white leading-[1.3] mt-3">
-                  {project.title}
-                </h3>
+                {/* Caption */}
+                <div className="text-center">
+                  <span className="font-sans text-[10px] font-normal tracking-[2px] uppercase text-purple-bright bg-purple-core/10 border border-purple-core/20 rounded-full px-3 py-1">
+                    {project.service}
+                  </span>
+                  <h3 className="font-serif font-light text-[24px] text-white leading-[1.3] mt-3">
+                    {project.title}
+                  </h3>
+                </div>
               </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Navigation — same width as device */}
+          <div className="flex items-center justify-between mt-10">
+            {/* Dots */}
+            <div className="flex gap-2">
+              {projects.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrent(i)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    i === current
+                      ? 'bg-purple-core w-6'
+                      : 'bg-white/20 hover:bg-white/40 w-2'
+                  }`}
+                />
+              ))}
             </div>
-          </motion.div>
-        </AnimatePresence>
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between mt-10">
-          {/* Dots */}
-          <div className="flex gap-2">
-            {projects.map((_, i) => (
+            {/* Arrows */}
+            <div className="flex gap-3">
               <button
-                key={i}
-                onClick={() => setCurrent(i)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  i === current
-                    ? 'bg-purple-core w-6'
-                    : 'bg-white/20 hover:bg-white/40 w-2'
-                }`}
-              />
-            ))}
-          </div>
-
-          {/* Arrows */}
-          <div className="flex gap-3">
-            <button
-              onClick={() => go(-1)}
-              className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-grey-light hover:border-purple-core/50 hover:text-white transition-all duration-300"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <button
-              onClick={() => go(1)}
-              className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-grey-light hover:border-purple-core/50 hover:text-white transition-all duration-300"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
+                onClick={() => go(-1)}
+                className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-grey-light hover:border-purple-core/50 hover:text-white transition-all duration-300"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <button
+                onClick={() => go(1)}
+                className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-grey-light hover:border-purple-core/50 hover:text-white transition-all duration-300"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </Container>
