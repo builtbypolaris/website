@@ -73,7 +73,7 @@ Small businesses win in search by being specific. You know your niche, your neig
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/seo-for-small-business/illustration-1.svg" alt="How search intent narrows from broad to specific — and where small businesses win" />
 
-## The foundation: what you actually need to get right
+## The foundation: What you actually need to get right
 
 Before chasing rankings, make sure the basics are solid. A surprising number of small business websites have technical issues that actively limit their visibility without the owner knowing. Here's what to check first.
 
@@ -127,7 +127,7 @@ One page won't transform your rankings. But a steady habit of adding useful cont
 
 You don't need to publish weekly. Even one well-researched article per month, focused on a specific question your customers have, builds real authority over time. The key is consistency and relevance, not volume.
 
-## Local SEO: the shortcut most small businesses skip
+## Local SEO: The shortcut most small businesses skip
 
 If your business serves a specific geographic area, local SEO deserves a disproportionate amount of your attention. The competition is much lower than for general terms, and the people searching with local intent are usually ready to act.
 

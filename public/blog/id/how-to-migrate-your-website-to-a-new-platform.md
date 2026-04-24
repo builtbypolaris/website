@@ -75,7 +75,7 @@ Meskipun begitu, ada alasan yang sah untuk pindah:
 
 Jika frustrasi Anda sebagian besar bersifat kosmetik (tema baru, tata letak yang diperbarui), mendesain ulang di platform Anda saat ini biasanya lebih murah dan kurang berisiko daripada migrasi total.
 
-## Cara migrasi website Anda ke platform baru: proses langkah demi langkah
+## Cara migrasi website Anda ke platform baru: Proses langkah demi langkah
 
 Migrasi yang sukses mengikuti urutan yang dapat diprediksi. Melewatkan langkah adalah cara hal-hal rusak.
 

@@ -83,7 +83,7 @@ Who is actually visiting your site? Their device (most global web traffic now co
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/web-development-jakarta/illustration-3.svg" alt="Bar chart showing conversion rate dropping sharply as page load time increases from one to ten seconds" />
 
-## Custom development vs. templates: the real trade-off
+## Custom development vs. templates: The real trade-off
 
 This debate comes up in almost every web project conversation. Templates and site builders like <a href="https://www.wix.com" target="_blank" rel="noopener noreferrer">Wix</a> or <a href="https://www.squarespace.com" target="_blank" rel="noopener noreferrer">Squarespace</a> are genuinely useful for certain situations. Custom development is better for others. The mistake is treating this as a quality question when it's actually a fit question.
 

@@ -96,19 +96,19 @@ The TLD (top-level domain) is the part after the dot: .com, .io, .ai, .co.id, an
 
 Here's a practical breakdown of the most relevant options:
 
-### .com: the default for most businesses
+### .com: The default for most businesses
 
 Over 62% of funded startups still use .com, and for good reason. It's the extension people type by reflex. If someone hears your brand name, they'll try the .com first. For consumer-facing businesses, .com is still the safest bet.
 
 Standard .com registration costs $9 to $15/year through registrars like <a href="https://www.cloudflare.com/products/registrar/" target="_blank" rel="noopener noreferrer">Cloudflare Registrar</a> or <a href="https://porkbun.com" target="_blank" rel="noopener noreferrer">Porkbun</a>. Premium .com names on the aftermarket can run $5,000 to $50,000 or more.
 
-### .io and .dev: strong for tech and SaaS
+### .io and .dev: Strong for tech and SaaS
 
 If your audience is developers or tech-savvy professionals, .io and .dev carry real credibility. With over 1.1 million registrations, .io has become the standard for developer tools and B2B SaaS products.
 
 <a href="https://get.dev" target="_blank" rel="noopener noreferrer">.dev</a> is managed by Google and enforces HTTPS by default via the <a href="https://hstspreload.org/" target="_blank" rel="noopener noreferrer">HSTS preload list</a>, which signals security from day one. Expect to pay $30 to $50/year for .io and around $15 to $20/year for .dev.
 
-### .ai: the AI era TLD
+### .ai: The AI era TLD
 
 If you're building anything related to artificial intelligence or machine learning, .ai is almost expected now. It saw 375% growth from 2022 to 2023 and continues to climb. The downside is cost: renewals run $70 to $120/year, and the extension is controlled by Anguilla, which means limited registrar options.
 

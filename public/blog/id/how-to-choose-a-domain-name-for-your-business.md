@@ -96,13 +96,13 @@ TLD (top-level domain) adalah bagian setelah titik: .com, .io, .ai, .co.id, dan 
 
 Berikut rincian praktis dari opsi yang paling relevan:
 
-### .com: default untuk sebagian besar bisnis
+### .com: Default untuk sebagian besar bisnis
 
 Lebih dari 62% startup yang didanai masih menggunakan .com, dan ada alasan yang bagus. Ini ekstensi yang diketik orang secara refleks. Jika seseorang mendengar nama brand Anda, mereka akan mencoba .com terlebih dahulu. Untuk bisnis yang menghadap konsumen, .com masih taruhan paling aman.
 
 Pendaftaran .com standar seharga $9 hingga $15/tahun melalui registrar seperti <a href="https://www.cloudflare.com/products/registrar/" target="_blank" rel="noopener noreferrer">Cloudflare Registrar</a> atau <a href="https://porkbun.com" target="_blank" rel="noopener noreferrer">Porkbun</a>. Nama .com premium di aftermarket bisa mencapai $5.000 hingga $50.000 atau lebih.
 
-### .io dan .dev: kuat untuk tech dan SaaS
+### .io dan .dev: Kuat untuk tech dan SaaS
 
 Jika audiens Anda adalah developer atau profesional yang tech-savvy, .io dan .dev membawa kredibilitas nyata. Dengan lebih dari 1,1 juta pendaftaran, .io telah menjadi standar untuk alat developer dan produk B2B SaaS.
 

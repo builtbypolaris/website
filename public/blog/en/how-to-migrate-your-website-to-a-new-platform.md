@@ -75,7 +75,7 @@ That said, there are legitimate reasons to move:
 
 If your frustrations are mostly cosmetic (a new theme, updated layout), a redesign on your current platform is usually cheaper and less risky than a full migration.
 
-## How to migrate your website to a new platform: the step-by-step process
+## How to migrate your website to a new platform: The step-by-step process
 
 A successful migration follows a predictable sequence. Skipping steps is how things break.
 

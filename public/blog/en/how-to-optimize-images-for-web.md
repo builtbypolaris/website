@@ -75,19 +75,19 @@ When you optimize images for web, you're not just trimming file sizes. You're im
 
 Format selection is the single highest-impact decision you can make when optimizing images. The difference between formats isn't marginal; it's dramatic.
 
-### JPEG: the reliable baseline
+### JPEG: The reliable baseline
 
 JPEG has been the web's workhorse for decades. It handles photographs well and supports lossy compression, which means you can trade small amounts of visual quality for significant file size reductions. For a JPEG, quality settings between 75 and 85 hit the sweet spot where files shrink substantially but still look sharp to the human eye. Above 85, file sizes grow quickly with minimal visible improvement.
 
-### WebP: the modern standard
+### WebP: The modern standard
 
 <a href="https://developers.google.com/speed/webp" target="_blank" rel="noopener noreferrer">WebP</a> produces files 25-34% smaller than JPEG at equivalent visual quality. Lossless WebP images are 26% smaller than PNGs. With <a href="https://caniuse.com/webp" target="_blank" rel="noopener noreferrer">over 97% browser support</a>, there's almost no reason not to use it. WebP handles both photographs and graphics with transparency, making it a versatile replacement for both JPEG and PNG in most situations.
 
-### AVIF: the next generation
+### AVIF: The next generation
 
 <a href="https://aomediacodec.github.io/av1-avif/" target="_blank" rel="noopener noreferrer">AVIF</a> takes compression further, producing files roughly 50% smaller than JPEG and 20-25% smaller than WebP at similar quality. The trade-off is that AVIF encodes 5-10x slower than WebP and decodes about 2x slower. <a href="https://caniuse.com/avif" target="_blank" rel="noopener noreferrer">Browser support sits at 93.8%</a>, which is excellent but not quite universal. For static assets that you compress once and serve many times, AVIF's slower encoding is a non-issue.
 
-### PNG: when you need it
+### PNG: When you need it
 
 PNG is lossless and supports transparency, which makes it the right choice for logos, icons, and graphics with sharp edges or text. But for photographs, PNG files are enormous compared to the alternatives. If you're using PNG for photos, that's your first optimization win.
 

@@ -83,7 +83,7 @@ Siapa yang sebenarnya mengunjungi situs Anda? Perangkat mereka (sebagian besar t
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/web-development-jakarta/illustration-3.svg" alt="Grafik batang yang menunjukkan tingkat konversi turun tajam seiring waktu loading halaman meningkat dari satu hingga sepuluh detik" />
 
-## Pengembangan kustom vs. template: trade-off yang sebenarnya
+## Pengembangan kustom vs. template: Trade-off yang sebenarnya
 
 Perdebatan ini muncul di hampir setiap percakapan proyek web. Template dan site builder seperti <a href="https://www.wix.com" target="_blank" rel="noopener noreferrer">Wix</a> atau <a href="https://www.squarespace.com" target="_blank" rel="noopener noreferrer">Squarespace</a> benar-benar berguna untuk situasi tertentu. Pengembangan kustom lebih baik untuk situasi lain. Kesalahannya adalah memperlakukan ini sebagai pertanyaan kualitas padahal sebenarnya pertanyaan kesesuaian.
 

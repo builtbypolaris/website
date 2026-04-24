@@ -73,7 +73,7 @@ Usaha kecil menang dalam pencarian dengan menjadi spesifik. Anda mengenal niche,
 
 <img src="https://hginwqcxibraaljphcej.supabase.co/storage/v1/object/public/blog-images/seo-for-small-business/illustration-1.svg" alt="Bagaimana niat pencarian menyempit dari luas ke spesifik dan di mana usaha kecil bisa menang" />
 
-## Fondasi: apa yang benar-benar perlu Anda benarkan
+## Fondasi: Apa yang benar-benar perlu Anda benarkan
 
 Sebelum mengejar peringkat, pastikan dasarnya sudah kuat. Cukup banyak website usaha kecil memiliki masalah teknis yang secara aktif membatasi visibilitas mereka tanpa sepengetahuan pemiliknya. Berikut yang perlu diperiksa terlebih dahulu.
 
@@ -127,7 +127,7 @@ Satu halaman tidak akan mengubah peringkat Anda. Tapi kebiasaan stabil menambahk
 
 Anda tidak perlu menerbitkan setiap minggu. Bahkan satu artikel yang diriset dengan baik per bulan, berfokus pada pertanyaan spesifik yang dimiliki pelanggan Anda, membangun otoritas nyata seiring waktu. Kuncinya adalah konsistensi dan relevansi, bukan volume.
 
-## SEO lokal: jalan pintas yang dilewatkan kebanyakan usaha kecil
+## SEO lokal: Jalan pintas yang dilewatkan kebanyakan usaha kecil
 
 Jika bisnis Anda melayani area geografis tertentu, SEO lokal layak mendapat porsi perhatian yang tidak proporsional. Persaingannya jauh lebih rendah dibandingkan istilah umum, dan orang yang mencari dengan niat lokal biasanya siap untuk bertindak.
 

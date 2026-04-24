@@ -75,19 +75,19 @@ Ketika Anda mengoptimalkan gambar untuk web, Anda tidak hanya memangkas ukuran f
 
 Pemilihan format adalah satu keputusan dengan dampak tertinggi yang bisa Anda buat saat mengoptimalkan gambar. Perbedaan antar format bukan hanya marginal; perbedaannya dramatis.
 
-### JPEG: baseline yang andal
+### JPEG: Baseline yang andal
 
 JPEG telah menjadi andalan web selama puluhan tahun. Format ini menangani foto dengan baik dan mendukung kompresi lossy, yang berarti Anda bisa menukar sedikit kualitas visual dengan pengurangan ukuran file yang signifikan. Untuk JPEG, pengaturan kualitas antara 75 dan 85 mencapai titik manis di mana file menyusut secara substansial tetapi tetap terlihat tajam bagi mata manusia. Di atas 85, ukuran file tumbuh dengan cepat dengan peningkatan yang hampir tidak terlihat.
 
-### WebP: standar modern
+### WebP: Standar modern
 
 <a href="https://developers.google.com/speed/webp" target="_blank" rel="noopener noreferrer">WebP</a> menghasilkan file 25-34% lebih kecil dibandingkan JPEG pada kualitas visual yang setara. Gambar WebP lossless 26% lebih kecil dari PNG. Dengan <a href="https://caniuse.com/webp" target="_blank" rel="noopener noreferrer">dukungan browser lebih dari 97%</a>, hampir tidak ada alasan untuk tidak menggunakannya. WebP menangani foto maupun grafis dengan transparansi, menjadikannya pengganti serbaguna untuk JPEG dan PNG dalam sebagian besar situasi.
 
-### AVIF: generasi berikutnya
+### AVIF: Generasi berikutnya
 
 <a href="https://aomediacodec.github.io/av1-avif/" target="_blank" rel="noopener noreferrer">AVIF</a> membawa kompresi lebih jauh, menghasilkan file sekitar 50% lebih kecil dari JPEG dan 20-25% lebih kecil dari WebP pada kualitas yang setara. Trade-off-nya adalah AVIF melakukan encoding 5-10x lebih lambat dari WebP dan decoding sekitar 2x lebih lambat. <a href="https://caniuse.com/avif" target="_blank" rel="noopener noreferrer">Dukungan browser berada di 93,8%</a>, yang sangat baik tetapi belum universal. Untuk aset statis yang Anda kompres sekali dan sajikan berkali-kali, encoding AVIF yang lebih lambat bukan masalah.
 
-### PNG: ketika Anda membutuhkannya
+### PNG: Ketika Anda membutuhkannya
 
 PNG bersifat lossless dan mendukung transparansi, yang menjadikannya pilihan tepat untuk logo, ikon, dan grafis dengan tepi tajam atau teks. Tetapi untuk foto, file PNG sangat besar dibandingkan alternatifnya. Jika Anda menggunakan PNG untuk foto, itu adalah kemenangan optimasi pertama Anda.
 
