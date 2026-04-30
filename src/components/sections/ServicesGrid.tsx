@@ -9,7 +9,7 @@ import { VideoWithPoster } from '../ui/VideoWithPoster'
 import { ArrowRight } from '../../assets/icons'
 import { SEODashboard } from '../mockups/SEODashboard'
 import { CRMDashboard } from '../mockups/CRMDashboard'
-import { SteviaCookiesInstagram } from '../mockups/SteviaCookiesInstagram'
+import { AnimatedSocialMedia } from '../mockups/AnimatedSocialMedia'
 import { useT, useLocale, buildLocalePath } from '../../i18n'
 
 // Structural data — visual/media references and slug. Text comes from t.servicesGrid.showcases.
@@ -167,7 +167,7 @@ export function ServicesGrid() {
                         {current.component === 'social-media' && (
                           <div className="h-full aspect-[9/19.5] relative overflow-hidden">
                             <div className="absolute inset-0 origin-top-left w-[200%] h-[200%] scale-50">
-                              <SteviaCookiesInstagram key={active} />
+                              <AnimatedSocialMedia />
                             </div>
                           </div>
                         )}
