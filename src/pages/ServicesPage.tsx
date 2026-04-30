@@ -13,12 +13,14 @@ import { SEODashboard } from '../components/mockups/SEODashboard'
 import { CRMDashboard } from '../components/mockups/CRMDashboard'
 import { PackagesDashboard } from '../components/mockups/PackagesDashboard'
 import { MobileAppMockup } from '../components/mockups/MobileAppMockup'
+import { SocialMediaDashboard } from '../components/mockups/SocialMediaDashboard'
 import { useT } from '../i18n'
 import { usePageHead } from '../hooks/usePageHead'
 
-const showcaseOverrides: Record<string, { type: 'video' | 'component'; src?: string; component?: 'seo' | 'crm' | 'packages' | 'mobile-app' }> = {
+const showcaseOverrides: Record<string, { type: 'video' | 'component'; src?: string; component?: 'seo' | 'crm' | 'packages' | 'mobile-app' | 'social-media' }> = {
   'website-development': { type: 'video', src: '/videos/stevia-cookies.mp4' },
   'seo-content-creation': { type: 'component', component: 'seo' },
+  'content-creation': { type: 'component', component: 'social-media' },
   'business-operation': { type: 'component', component: 'crm' },
   'application-development': { type: 'component', component: 'mobile-app' },
   'others': { type: 'video', src: '/videos/mak-gien-invitation.mp4' },
@@ -125,6 +127,7 @@ export function ServicesPage() {
                             <div className="relative rounded-[1.6rem] sm:rounded-[2.55rem] overflow-hidden ring-1 ring-black/80 h-full">
                               <div className="absolute inset-0 origin-top-left w-[250%] h-[250%] scale-[0.4] sm:w-[200%] sm:h-[200%] sm:scale-50 md:w-full md:h-full md:scale-100">
                                 {override.component === 'mobile-app' && <MobileAppMockup key={activeSlug} />}
+                              {override.component === 'social-media' && <SocialMediaDashboard key={activeSlug} />}
                               </div>
                               <div className="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[4px] bg-black/40 rounded-full z-20" />
                             </div>

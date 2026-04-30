@@ -103,8 +103,8 @@ export const en = {
         tagline: "Your site's visibility in search, powered by AI and guided by strategy.",
       },
       {
-        tab: 'Content',
-        title: 'Content Creation',
+        tab: 'Social Media',
+        title: 'Social Media',
         tagline: "Your brand's social presence, fully managed. From strategy to ready-to-post content.",
       },
       {
@@ -457,13 +457,13 @@ export const en = {
       },
       {
         slug: 'content-creation',
-        title: 'Content Creation',
+        title: 'Social Media',
         tagline: "Your brand's social presence, fully managed.",
         description:
           "We create, design, and schedule content that builds trust and keeps your audience engaged. From brand identity to ready-to-post reels — one cohesive strategy across every platform.",
         ctaLabel: "Let's Talk",
         whatsappMessage:
-          "Hi Polaris! I'm interested in Content Creation services. Let's talk!",
+          "Hi Polaris! I'm interested in Social Media services. Let's talk!",
         subServices: [
           {
             name: 'Social Media Branding',

@@ -94,8 +94,8 @@ export const id: EnTranslations = {
         tagline: 'Visibilitas situs Anda di mesin pencari, didukung AI dan dipandu strategi.',
       },
       {
-        tab: 'Konten',
-        title: 'Pembuatan Konten',
+        tab: 'Social Media',
+        title: 'Social Media',
         tagline: 'Kehadiran sosial brand Anda, fully managed. Dari strategi hingga konten siap-posting.',
       },
       {
@@ -453,13 +453,13 @@ export const id: EnTranslations = {
       },
       {
         slug: 'content-creation',
-        title: 'Pembuatan Konten',
+        title: 'Social Media',
         tagline: 'Kehadiran sosial brand Anda, fully managed.',
         description:
           'Kami membuat, mendesain, dan menjadwalkan konten yang membangun kepercayaan dan menjaga keterlibatan audiens Anda. Dari identitas brand hingga konten siap-posting — satu strategi yang kohesif di setiap platform.',
         ctaLabel: 'Mari Bicara',
         whatsappMessage:
-          'Halo Polaris! Saya tertarik dengan layanan Pembuatan Konten. Mari bicara!',
+          'Halo Polaris! Saya tertarik dengan layanan Social Media. Mari bicara!',
         subServices: [
           {
             name: 'Branding Social Media',

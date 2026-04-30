@@ -9,13 +9,14 @@ import { VideoWithPoster } from '../ui/VideoWithPoster'
 import { ArrowRight } from '../../assets/icons'
 import { SEODashboard } from '../mockups/SEODashboard'
 import { CRMDashboard } from '../mockups/CRMDashboard'
+import { SocialMediaDashboard } from '../mockups/SocialMediaDashboard'
 import { useT, useLocale, buildLocalePath } from '../../i18n'
 
 // Structural data — visual/media references and slug. Text comes from t.servicesGrid.showcases.
 const SHOWCASE_STRUCTURE = [
   { video: '/videos/stevia-cookies.mp4', device: 'laptop' as const, slug: 'website-development' },
   { component: 'seo' as const, device: 'laptop' as const, slug: 'seo-content-creation' },
-  { image: '/images/services/social-media-content-creation.png', device: 'phone' as const, slug: 'content-creation' },
+  { component: 'social-media' as const, device: 'phone' as const, slug: 'content-creation' },
   { component: 'crm' as const, device: 'laptop' as const, slug: 'business-operation' },
   { video: '/videos/mak-gien-invitation.mp4', device: 'phone' as const, slug: 'others' },
 ]
@@ -163,8 +164,12 @@ export function ServicesGrid() {
                         {current.video && (
                           <VideoWithPoster src={current.video} className="h-full aspect-[9/19.5] object-cover" />
                         )}
-                        {current.image && (
-                          <img src={current.image} alt={current.title} className="h-full aspect-[9/19.5] object-cover" />
+                        {current.component === 'social-media' && (
+                          <div className="h-full aspect-[9/19.5] relative overflow-hidden">
+                            <div className="absolute inset-0 origin-top-left w-[200%] h-[200%] scale-50">
+                              <SocialMediaDashboard key={active} />
+                            </div>
+                          </div>
                         )}
                         <div className="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[4px] bg-black/40 rounded-full z-20" />
                       </div>
