@@ -98,9 +98,14 @@ export const en = {
         tagline: 'Your digital storefront, built right. Fast, secure, and scalable.',
       },
       {
-        tab: 'SEO & Content',
-        title: 'SEO & Content Creation',
-        tagline: "Your brand's visibility, powered by AI and guided by strategy.",
+        tab: 'SEO',
+        title: 'SEO',
+        tagline: "Your site's visibility in search, powered by AI and guided by strategy.",
+      },
+      {
+        tab: 'Content',
+        title: 'Content Creation',
+        tagline: "Your brand's social presence, fully managed. From strategy to ready-to-post content.",
       },
       {
         tab: 'Business Operation',
@@ -425,13 +430,13 @@ export const en = {
       },
       {
         slug: 'seo-content-creation',
-        title: 'SEO & Content Creation',
-        tagline: "Your brand's visibility, powered by AI and guided by strategy.",
+        title: 'SEO',
+        tagline: "Your site's visibility in search, powered by AI and guided by strategy.",
         description:
-          'We optimize, create, and manage content that drives traffic and builds trust. From search engine optimization to social media — one cohesive strategy, fully managed.',
+          "We optimize and create content that drives organic traffic and builds domain authority. From technical SEO to AI-powered blog writing — every keyword targeted, every page optimized.",
         ctaLabel: "Let's Talk",
         whatsappMessage:
-          "Hi Polaris! I'm interested in SEO & Content Creation services. Let's talk!",
+          "Hi Polaris! I'm interested in SEO services. Let's talk!",
         subServices: [
           {
             name: 'SEO Optimization',
@@ -448,6 +453,18 @@ export const en = {
             description:
               "Comprehensive analysis of your site's SEO health. Technical issues, content gaps, competitor benchmarking, and a prioritized action plan.",
           },
+        ],
+      },
+      {
+        slug: 'content-creation',
+        title: 'Content Creation',
+        tagline: "Your brand's social presence, fully managed.",
+        description:
+          "We create, design, and schedule content that builds trust and keeps your audience engaged. From brand identity to ready-to-post reels — one cohesive strategy across every platform.",
+        ctaLabel: "Let's Talk",
+        whatsappMessage:
+          "Hi Polaris! I'm interested in Content Creation services. Let's talk!",
+        subServices: [
           {
             name: 'Social Media Branding',
             description:

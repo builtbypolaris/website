@@ -15,6 +15,7 @@ import { useT, useLocale, buildLocalePath } from '../../i18n'
 const SHOWCASE_STRUCTURE = [
   { video: '/videos/stevia-cookies.mp4', device: 'laptop' as const, slug: 'website-development' },
   { component: 'seo' as const, device: 'laptop' as const, slug: 'seo-content-creation' },
+  { image: '/images/services/social-media-content-creation.png', device: 'phone' as const, slug: 'content-creation' },
   { component: 'crm' as const, device: 'laptop' as const, slug: 'business-operation' },
   { video: '/videos/mak-gien-invitation.mp4', device: 'phone' as const, slug: 'others' },
 ]
@@ -161,6 +162,9 @@ export function ServicesGrid() {
                       <div className="relative rounded-[1.6rem] sm:rounded-[2.55rem] bg-black overflow-hidden ring-1 ring-black/80 h-full">
                         {current.video && (
                           <VideoWithPoster src={current.video} className="h-full aspect-[9/19.5] object-cover" />
+                        )}
+                        {current.image && (
+                          <img src={current.image} alt={current.title} className="h-full aspect-[9/19.5] object-cover" />
                         )}
                         <div className="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[4px] bg-black/40 rounded-full z-20" />
                       </div>

@@ -3,6 +3,7 @@ import {
   WebDevIcon,
   AppDevIcon,
   SEOContentIcon,
+  ContentCreationIcon,
   BusinessOpIcon,
   OthersIcon,
   PackagesIcon,
@@ -51,6 +52,13 @@ const STRUCTURE: ServiceStructure[] = [
     icon: SEOContentIcon,
     illustration: '/images/services/seo.jpeg',
     device: 'browser',
+    showOnHome: true,
+  },
+  {
+    slug: 'content-creation',
+    icon: ContentCreationIcon,
+    illustration: '/images/services/social-media-content-creation.png',
+    device: 'phone',
     showOnHome: true,
   },
   {

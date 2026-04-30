@@ -89,9 +89,14 @@ export const id: EnTranslations = {
         tagline: 'Etalase digital Anda, dibangun dengan benar. Cepat, aman, dan scalable.',
       },
       {
-        tab: 'SEO & Konten',
-        title: 'SEO & Pembuatan Konten',
-        tagline: 'Visibilitas brand Anda, didukung AI dan dipandu strategi.',
+        tab: 'SEO',
+        title: 'SEO',
+        tagline: 'Visibilitas situs Anda di mesin pencari, didukung AI dan dipandu strategi.',
+      },
+      {
+        tab: 'Konten',
+        title: 'Pembuatan Konten',
+        tagline: 'Kehadiran sosial brand Anda, fully managed. Dari strategi hingga konten siap-posting.',
       },
       {
         tab: 'Operasi Bisnis',
@@ -421,13 +426,13 @@ export const id: EnTranslations = {
       },
       {
         slug: 'seo-content-creation',
-        title: 'SEO & Pembuatan Konten',
-        tagline: 'Visibilitas brand Anda, didukung AI dan dipandu strategi.',
+        title: 'SEO',
+        tagline: 'Visibilitas situs Anda di mesin pencari, didukung AI dan dipandu strategi.',
         description:
-          'Kami mengoptimalkan, membuat, dan mengelola konten yang mendatangkan traffic dan membangun kepercayaan. Dari SEO hingga social media — satu strategi yang kohesif, fully managed.',
+          'Kami mengoptimalkan dan membuat konten yang mendatangkan traffic organik dan membangun otoritas domain. Dari SEO teknis hingga blog writing berbasis AI — setiap keyword ditarget, setiap halaman dioptimalkan.',
         ctaLabel: 'Mari Bicara',
         whatsappMessage:
-          'Halo Polaris! Saya tertarik dengan layanan SEO & Pembuatan Konten. Mari bicara!',
+          'Halo Polaris! Saya tertarik dengan layanan SEO. Mari bicara!',
         subServices: [
           {
             name: 'Optimasi SEO',
@@ -444,6 +449,18 @@ export const id: EnTranslations = {
             description:
               'Analisis komprehensif tentang kesehatan SEO situs Anda. Masalah teknis, gap konten, benchmark kompetitor, dan action plan yang diprioritaskan.',
           },
+        ],
+      },
+      {
+        slug: 'content-creation',
+        title: 'Pembuatan Konten',
+        tagline: 'Kehadiran sosial brand Anda, fully managed.',
+        description:
+          'Kami membuat, mendesain, dan menjadwalkan konten yang membangun kepercayaan dan menjaga keterlibatan audiens Anda. Dari identitas brand hingga konten siap-posting — satu strategi yang kohesif di setiap platform.',
+        ctaLabel: 'Mari Bicara',
+        whatsappMessage:
+          'Halo Polaris! Saya tertarik dengan layanan Pembuatan Konten. Mari bicara!',
+        subServices: [
           {
             name: 'Branding Social Media',
             description:

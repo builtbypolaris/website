@@ -126,6 +126,25 @@ export function PackagesIcon({ className }: { className?: string }) {
   )
 }
 
+export function ContentCreationIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      {/* Camera body */}
+      <rect x="6" y="14" width="32" height="22" rx="3" stroke="#c9a96e" strokeWidth="1.5" />
+      {/* Viewfinder bump */}
+      <path d="M17 14V11h14v3" stroke="#c9a96e" strokeWidth="1.5" strokeLinejoin="round" />
+      {/* Lens outer */}
+      <circle cx="24" cy="25" r="7" stroke="#c9a96e" strokeWidth="1.5" />
+      {/* Lens inner */}
+      <circle cx="24" cy="25" r="3.5" stroke="#c9a96e" strokeWidth="1" opacity="0.5" />
+      {/* Sparkle — top right */}
+      <path d="M38 8 L39 10.5 L41.5 11 L39 12 L38 14.5 L37 12 L34.5 11 L37 10.5 Z" stroke="#c9a96e" strokeWidth="0.8" fill="none" opacity="0.7" />
+      {/* Flash indicator dot */}
+      <circle cx="10" cy="18" r="1.5" fill="#c9a96e" opacity="0.5" />
+    </svg>
+  )
+}
+
 // Keep old names as aliases for backward compat during transition
 export const ContentIcon = SEOContentIcon
 export const AutomationIcon = BusinessOpIcon
