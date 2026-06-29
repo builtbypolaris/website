@@ -51,7 +51,6 @@ export default function PriorityPuzzle({ onXPEarned }: Props) {
     setDone(false)
     setStartTime(Date.now())
     setPlaying(true)
-    const _id = setInterval(() => setElapsed(Math.floor((Date.now() - Date.now()) / 1000)), 1000)
     // restart timer properly
     const start = Date.now()
     setStartTime(start)
