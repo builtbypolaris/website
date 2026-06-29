@@ -5,6 +5,7 @@ import { TEMPLATES } from '../data/templates'
 import { FINANCIAL_STAGES, TODO_STAGES, HABIT_STAGES } from '../data/creatures'
 import type { TemplateInfo } from '../types'
 import { Constellation } from '../../components/ui/Constellation'
+import { useT } from '../../i18n'
 
 function formatRp(n: number) {
   return 'Rp ' + n.toLocaleString('id-ID')
@@ -16,7 +17,7 @@ const CARD_STYLES = {
   habit:     { bg: '#00050F', accent: '#60A5FA', border: '#001030' },
 }
 
-function EvoDemo() {
+function EvoDemo({ stageLabel, evolvingLabel }: { stageLabel: string; evolvingLabel: string }) {
   const [stage, setStage] = useState(0)
   const [xp, setXp] = useState(0)
   const [evolving, setEvolving] = useState(false)
@@ -78,7 +79,7 @@ function EvoDemo() {
       </div>
 
       <div className="text-white font-nunito font-semibold text-sm mb-0.5">{cur.name}</div>
-      <div className="text-gray-600 font-nunito text-xs mb-5">Stage {stage + 1} / 10</div>
+      <div className="text-gray-600 font-nunito text-xs mb-5">{stageLabel} {stage + 1} / 10</div>
 
       <div className="w-full max-w-[200px]">
         <div className="flex justify-between text-xs font-nunito mb-1.5">
@@ -99,7 +100,7 @@ function EvoDemo() {
 
       {xp >= 80 && !evolving && (
         <div className="mt-3 text-xs font-nunito" style={{ color: '#7C5CCC' }}>
-          evolving into {nxt.name}...
+          {evolvingLabel} {nxt.name}...
         </div>
       )}
 
@@ -243,7 +244,7 @@ function TrackerPreview({ id }: { id: 'financial' | 'todo' | 'habit' }) {
   )
 }
 
-function TemplateModal({ t, onClose, onBuy }: { t: TemplateInfo; onClose: () => void; onBuy: () => void }) {
+function TemplateModal({ t, onClose, onBuy, previewLabel, getItLabel }: { t: TemplateInfo; onClose: () => void; onBuy: () => void; previewLabel: string; getItLabel: string }) {
   const cs = CARD_STYLES[t.id]
   return (
     <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
@@ -262,7 +263,7 @@ function TemplateModal({ t, onClose, onBuy }: { t: TemplateInfo; onClose: () => 
         </button>
         <div className="grid md:grid-cols-2">
           <div className="p-6 border-b md:border-b-0 md:border-r" style={{ borderColor: cs.border }}>
-            <div className="font-nunito mb-4" style={{ color: 'rgba(255,255,255,0.18)', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Preview</div>
+            <div className="font-nunito mb-4" style={{ color: 'rgba(255,255,255,0.18)', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{previewLabel}</div>
             <TrackerPreview id={t.id} />
           </div>
           <div className="p-6 flex flex-col">
@@ -290,7 +291,7 @@ function TemplateModal({ t, onClose, onBuy }: { t: TemplateInfo; onClose: () => 
                 className="font-nunito font-bold text-sm transition hover:opacity-90"
                 style={{ background: cs.accent, color: '#000', padding: '10px 24px', borderRadius: 9999 }}
               >
-                Get it
+                {getItLabel}
               </button>
             </div>
           </div>
@@ -304,6 +305,8 @@ export default function Home() {
   const navigate = useNavigate()
   const { session } = useAuth()
   const [modal, setModal] = useState<TemplateInfo | null>(null)
+  const t = useT()
+  const s = t.studios
 
   const go = () => navigate(session ? '/studios/dashboard' : '/studios/login')
 
@@ -326,13 +329,13 @@ export default function Home() {
                   marginBottom: 32,
                 }}
               >
-                Raise your<br />
-                <em style={{ color: '#7C3AED', fontStyle: 'italic', fontWeight: 700, fontFamily: "'Nunito', Arial, sans-serif" }}>digital pets.</em><br />
-                Get things done.
+                {s.hero.titleLine1}<br />
+                <em style={{ color: '#7C3AED', fontStyle: 'italic', fontWeight: 700, fontFamily: "'Nunito', Arial, sans-serif" }}>{s.hero.titleLine2Em}</em><br />
+                {s.hero.titleLine3}
               </h1>
 
               <p className="font-nunito text-gray-400 text-lg mb-8 md:mb-12 leading-relaxed" style={{ maxWidth: 420 }}>
-                Three productivity trackers. Nine mini-games. Creatures that evolve as you actually build better habits.
+                {s.hero.subtitle}
               </p>
 
               <div className="flex flex-wrap items-center gap-4 md:gap-8">
@@ -341,7 +344,7 @@ export default function Home() {
                   className="font-nunito font-bold text-sm transition hover:opacity-90 active:scale-95"
                   style={{ background: '#7C3AED', color: 'white', padding: '14px 36px', borderRadius: 9999 }}
                 >
-                  {session ? 'Open Dashboard' : 'Get your toolkit'}
+                  {session ? s.hero.ctaDashboard : s.hero.ctaGet}
                 </button>
                 {!session && (
                   <button
@@ -349,7 +352,7 @@ export default function Home() {
                     className="font-nunito text-sm transition hover:text-white"
                     style={{ color: 'rgba(255,255,255,0.35)', background: 'none', border: 'none', padding: 0 }}
                   >
-                    Sign in ↗
+                    {s.hero.ctaSignIn}
                   </button>
                 )}
               </div>
@@ -357,7 +360,7 @@ export default function Home() {
 
             {/* Right: floating EvoDemo — no containing box */}
             <div className="md:col-span-2 flex justify-center py-8">
-              <EvoDemo />
+              <EvoDemo stageLabel={s.evo.stageLabel} evolvingLabel={s.evo.evolving} />
             </div>
           </div>
         </div>
@@ -370,7 +373,7 @@ export default function Home() {
         borderBottom: '1px solid rgba(167,139,250,0.10)',
       }}>
         <p className="text-center pt-7 pb-4 text-[10px] font-nunito uppercase tracking-[0.25em]" style={{ color: 'rgba(167,139,250,0.45)' }}>
-          30 evolution stages · 3 trackers
+          {s.evo.stagesCaption}
         </p>
         {/* Edge-fade mask + overflow clip */}
         <div
@@ -428,11 +431,11 @@ export default function Home() {
                 color: '#0D0D0D',
               }}
             >
-              Three trackers.<br />
-              <em style={{ fontStyle: 'italic', color: '#7C3AED' }}>Infinite</em> growth.
+              {s.templates.titleLine1}<br />
+              <em style={{ fontStyle: 'italic', color: '#7C3AED' }}>{s.templates.titleLine2Em}</em> {s.templates.titleLine3}
             </h2>
             <p className="font-nunito text-gray-400 text-sm hidden md:block" style={{ maxWidth: 180, textAlign: 'right' }}>
-              {formatRp(25000)} each<br />one-time purchase
+              {formatRp(25000)} {s.templates.priceEach}<br />{s.templates.oneTimePurchase}
             </p>
           </div>
 
@@ -472,13 +475,13 @@ export default function Home() {
                   lineHeight: 1.05,
                   letterSpacing: '-0.025em',
                 }}>
-                  Log money.<br />Grow richer.
+                  {s.templates.financial.headline1}<br />{s.templates.financial.headline2}
                 </h3>
                 <p className="font-nunito" style={{ color: 'rgba(255,255,255,0.28)', fontSize: 13, marginTop: 10, lineHeight: 1.6 }}>
-                  Track spending & income. Your money pet evolves as you hit goals.
+                  {s.templates.financial.desc}
                 </p>
                 <div className="font-nunito" style={{ color: 'rgba(245,158,11,0.65)', fontSize: 13, marginTop: 16, letterSpacing: '0.01em' }}>
-                  See more ↗
+                  {s.templates.seeMore}
                 </div>
               </div>
             </div>
@@ -519,10 +522,10 @@ export default function Home() {
                   lineHeight: 1.2,
                   letterSpacing: '-0.01em',
                 }}>
-                  Tasks that<br />actually ship.
+                  {s.templates.todo.headline1}<br />{s.templates.todo.headline2}
                 </h3>
                 <div className="font-nunito" style={{ color: 'rgba(74,222,128,0.6)', fontSize: 12, marginTop: 10 }}>
-                  See more ↗
+                  {s.templates.seeMore}
                 </div>
               </div>
             </div>
@@ -562,10 +565,10 @@ export default function Home() {
                   lineHeight: 1.2,
                   letterSpacing: '-0.01em',
                 }}>
-                  Streaks that<br />stick.
+                  {s.templates.habit.headline1}<br />{s.templates.habit.headline2}
                 </h3>
                 <div className="font-nunito" style={{ color: 'rgba(96,165,250,0.6)', fontSize: 12, marginTop: 10 }}>
-                  See more ↗
+                  {s.templates.seeMore}
                 </div>
               </div>
             </div>
@@ -588,21 +591,21 @@ export default function Home() {
             letterSpacing: '-0.02em',
           }}
         >
-          Ready to level up?
+          {s.cta.title}
         </h2>
         <p className="text-gray-500 font-nunito text-base mb-10 max-w-xs mx-auto leading-relaxed">
-          Login and start tracking. Your pets are already waiting.
+          {s.cta.subtitle}
         </p>
         <button
           onClick={go}
           className="font-nunito font-bold text-sm transition hover:opacity-90"
           style={{ background: '#7C3AED', color: 'white', padding: '14px 44px', borderRadius: 9999 }}
         >
-          {session ? 'Go to Dashboard' : 'Get Started'}
+          {session ? s.cta.ctaDashboard : s.cta.ctaStart}
         </button>
       </section>
 
-      {modal && <TemplateModal t={modal} onClose={() => setModal(null)} onBuy={go} />}
+      {modal && <TemplateModal t={modal} onClose={() => setModal(null)} onBuy={go} previewLabel={s.modal.preview} getItLabel={s.modal.getIt} />}
     </div>
   )
 }

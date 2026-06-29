@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Layout } from './components/layout/Layout'
-import { LocaleProvider, LocaleAutoDetect } from './i18n'
+import { LocaleProvider } from './i18n'
 import { HomePage } from './pages/HomePage'
 import { ServicesPage } from './pages/ServicesPage'
 import { StudiosPage } from './pages/StudiosPage'
@@ -21,7 +21,6 @@ export default function App() {
   return (
     <BrowserRouter>
       <LocaleProvider>
-        <LocaleAutoDetect />
         <Routes>
           {/* Main Polaris website (with navbar + footer) */}
           <Route element={<Layout />}>

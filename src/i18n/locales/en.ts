@@ -33,7 +33,7 @@ export const en = {
     studios: 'Studios',
     insights: 'Insights',
     contact: 'Contact',
-    cta: 'See what your business needs',
+    cta: 'Contact Us',
     mobileCta: 'Free Health Check',
   },
 
@@ -690,30 +690,79 @@ export const en = {
     allArticles: '← All articles',
   },
 
+  // ── Studios / Novo landing page ────────────────────────────────────────
+  studios: {
+    hero: {
+      titleLine1: 'Raise your',
+      titleLine2Em: 'digital pets.',
+      titleLine3: 'Get things done.',
+      subtitle: 'Three productivity trackers. Nine mini-games. Creatures that evolve as you actually build better habits.',
+      ctaDashboard: 'Open Dashboard',
+      ctaGet: 'Get your toolkit',
+      ctaSignIn: 'Sign in ↗',
+    },
+    evo: {
+      stageLabel: 'Stage',
+      stagesCaption: '30 evolution stages · 3 trackers',
+      evolving: 'evolving into',
+    },
+    templates: {
+      titleLine1: 'Three trackers.',
+      titleLine2Em: 'Infinite',
+      titleLine3: 'growth.',
+      priceEach: 'each',
+      oneTimePurchase: 'one-time purchase',
+      seeMore: 'See more ↗',
+      financial: {
+        headline1: 'Log money.',
+        headline2: 'Grow richer.',
+        desc: 'Track spending & income. Your money pet evolves as you hit goals.',
+      },
+      todo: {
+        headline1: 'Tasks that',
+        headline2: 'actually ship.',
+      },
+      habit: {
+        headline1: 'Streaks that',
+        headline2: 'stick.',
+      },
+    },
+    modal: {
+      preview: 'Preview',
+      getIt: 'Get it',
+    },
+    cta: {
+      title: 'Ready to level up?',
+      subtitle: 'Login and start tracking. Your pets are already waiting.',
+      ctaDashboard: 'Go to Dashboard',
+      ctaStart: 'Get Started',
+    },
+  },
+
   // ── Per-page meta tags ─────────────────────────────────────────────────
   meta: {
     home: {
-      title: 'Polaris — Your Business Compass | Polaris Studio',
+      title: 'Polaris | Your Business Compass | Polaris Studio',
       description:
         "Polaris is Indonesia's diagnostic-first business & IT consultancy. We find the real problem before building the solution. Web, AI, data, automation. One trusted partner.",
     },
     services: {
-      title: 'Services — Polaris',
+      title: 'Services | Polaris',
       description:
         'Websites, apps, SEO, business automation, and more. One trusted partner for every digital solution your business needs.',
     },
     studios: {
-      title: 'Novo — built by Polaris Studio',
+      title: 'Novo | built by Polaris Studio',
       description:
         'Novo is a productivity app with digital pets that evolve as you track finances, tasks, and habits. Built by Polaris Studio.',
     },
     insights: {
-      title: 'Insights — Polaris',
+      title: 'Insights | Polaris',
       description:
         'Tips, guides, and honest thinking on strategy, technology, and building a digital presence that actually works.',
     },
     contact: {
-      title: 'Contact — Polaris',
+      title: 'Contact | Polaris',
       description:
         'Start with a free Business Health Check. 3 days, a clear written report, and finally direction.',
     },
