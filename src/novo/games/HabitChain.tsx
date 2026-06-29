@@ -12,7 +12,7 @@ export default function HabitChain({ onXPEarned }: Props) {
   const [playing, setPlaying] = useState(false)
   const [done, setDone] = useState(false)
   const [timeLeft, setTimeLeft] = useState(60)
-  const [lastClick, setLastClick] = useState(0)
+  const [_lastClick, setLastClick] = useState(0)
   const [pulseOk, setPulseOk] = useState(false)
   const [pulseBad, setPulseBad] = useState(false)
   const [progress, setProgress] = useState(100)

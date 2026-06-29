@@ -40,7 +40,7 @@ export default function PriorityPuzzle({ onXPEarned }: Props) {
   const [moves, setMoves] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [done, setDone] = useState(false)
-  const [startTime, setStartTime] = useState(0)
+  const [_startTime, setStartTime] = useState(0)
   const [elapsed, setElapsed] = useState(0)
   const [timerId, setTimerId] = useState<ReturnType<typeof setInterval> | null>(null)
 
@@ -51,7 +51,7 @@ export default function PriorityPuzzle({ onXPEarned }: Props) {
     setDone(false)
     setStartTime(Date.now())
     setPlaying(true)
-    const id = setInterval(() => setElapsed(Math.floor((Date.now() - Date.now()) / 1000)), 1000)
+    const _id = setInterval(() => setElapsed(Math.floor((Date.now() - Date.now()) / 1000)), 1000)
     // restart timer properly
     const start = Date.now()
     setStartTime(start)
