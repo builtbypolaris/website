@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { Container } from '../components/ui/Container'
 import { MotionReveal } from '../components/ui/MotionReveal'
+import { ConstellationCanvas } from '../components/canvas/ConstellationCanvas'
 import { fetchBlogPost, fetchBlogIndex, type BlogPost, type BlogPostMeta, type BlogFaqItem } from '../data/blog'
 import { useT, useLocale, buildLocalePath } from '../i18n'
 import { usePageHead } from '../hooks/usePageHead'
@@ -397,7 +398,7 @@ export function BlogPostPage() {
 
   // Loading
   if (post === undefined) {
-    return <div className="pt-[88px] min-h-screen bg-void" />
+    return <div className="pt-[64px] min-h-screen bg-void" />
   }
 
   // Not found
@@ -414,10 +415,12 @@ export function BlogPostPage() {
     : headings
 
   return (
-    <div className="pt-[88px]">
+    <div className="pt-[64px]">
       {/* Header */}
-      <section className="bg-void py-[80px]">
-        <Container>
+      <section className="bg-void py-[80px] relative overflow-hidden">
+        <ConstellationCanvas />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-purple-core/[0.07] rounded-full blur-[120px]" />
+        <Container className="relative z-[1]">
           <MotionReveal className="max-w-[760px] mx-auto xl:mx-0 xl:ml-[calc((100%-760px)/2+220px+40px)] xl:ml-auto xl:mr-auto">
             <Link
               to={buildLocalePath('/insights', locale)}

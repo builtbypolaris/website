@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --purple: #7C3AED;
+  --purple-dark: #4C1D95;
+  --purple-light: #A78BFA;
+  --dark: #09090F;
+  --dark-2: #12121C;
+  --off-white: #FAFAF9;
+}
+
+* { font-family: 'Nunito', sans-serif; }
+
+body {
+  background: var(--off-white);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  color: #0D0D0D;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #F1F0EF; }
+::-webkit-scrollbar-thumb { background: #C4C2BE; border-radius: 999px; }
+
+/* XP bar */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.xp-bar-fill {
+  background: linear-gradient(90deg, #7C3AED, #A78BFA, #7C3AED);
+  background-size: 200% auto;
+  animation: shimmer 2.5s linear infinite;
+}
+
+/* Float */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float { animation: float 3s ease-in-out infinite; }
+
+/* Pulse glow */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-pulseGlow { animation: pulseGlow 2.5s ease-in-out infinite; }
+
+/* Bounce in */
+@keyframes bounceIn {
+  0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+  70% { transform: scale(1.05) rotate(1deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+.bounce-in { animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+/* Marquee */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.marquee-track { animation: marquee 22s linear infinite; }
+
+/* Evolution flash */
+@keyframes evolutionFlash {
+  0%, 100% { opacity: 0; }
+  20%, 80% { opacity: 0.8; }
+}
+.evolution-flash { animation: evolutionFlash 0.9s ease-in-out; }
+
+/* Particle float */
+@keyframes particleFloat {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(-70px) rotate(360deg); opacity: 0; }
+}
+
+/* Hover lift - very subtle */
+.hover-lift { transition: transform 0.18s ease; }
+.hover-lift:hover { transform: translateY(-2px); }
+
+/* Game container */
+.game-container { position: relative; overflow: hidden; border-radius: 12px; }

@@ -6,6 +6,8 @@ import { useMobileMenu } from '../../hooks/useMobileMenu'
 import { useNavItems } from '../../data/navigation'
 import { useT, useLocale, buildLocalePath } from '../../i18n'
 
+const WA_HEALTH_CHECK = `https://wa.me/6285190846591?text=${encodeURIComponent('Hi Polaris, can I get a free healthcheck for my business?')}`
+
 export function Navbar() {
   const scrolled = useScrolled()
   const { isOpen, toggle, close } = useMobileMenu()
@@ -14,31 +16,18 @@ export function Navbar() {
   const locale = useLocale()
   const navItems = useNavItems()
   const homePath = buildLocalePath('/', locale)
-  const contactPath = buildLocalePath('/contact', locale)
 
   return (
     <nav
-      className={`fixed top-0 left-0 w-full z-[1000] border-b border-border/50 backdrop-blur-[16px] transition-all duration-300 ${
-        scrolled ? 'bg-deep/[0.97]' : 'bg-deep/80'
+      className={`fixed top-0 left-0 w-full z-[1000] border-b border-[rgba(255,255,255,0.04)] backdrop-blur-[20px] transition-all duration-300 ${
+        scrolled ? 'bg-[rgba(9,9,15,0.97)]' : 'bg-[rgba(9,9,15,0.92)]'
       }`}
     >
-      {/*
-        Three-column flex layout: logo (left), nav (center), CTA (right).
-        Each column is flex-1 so they share the available width equally,
-        which means the nav is geometrically centered AND can never overlap
-        with the logo or button no matter how long the labels get. The
-        previous absolute-positioned nav broke when the Indonesian CTA
-        button label was longer than the English one.
-      */}
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 md:px-10 flex items-center h-[88px] gap-4">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 md:px-10 flex items-center h-[64px] gap-4">
         {/* Logo — left column */}
         <div className="flex-1 flex justify-start">
-          <Link to={homePath} className="block">
-            <img
-              src="/images/logo/logo-dark.png"
-              alt="Polaris — Your Business Compass"
-              className="h-14 w-auto"
-            />
+          <Link to={homePath}>
+            <img src="/images/logo/logo-dark.png" alt="Polaris Studio" className="h-14 w-auto object-contain translate-y-0.5" />
           </Link>
         </div>
 
@@ -50,7 +39,7 @@ export function Navbar() {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`relative text-[15px] tracking-wide transition-colors duration-200 group whitespace-nowrap ${
+                className={`relative text-[14px] tracking-wide transition-colors duration-200 group whitespace-nowrap ${
                   isActive ? 'text-white' : 'text-grey-light hover:text-white'
                 }`}
               >
@@ -67,7 +56,7 @@ export function Navbar() {
 
         {/* CTA — right column (desktop) */}
         <div className="hidden md:flex flex-1 justify-end">
-          <Button to={contactPath} className="!py-3 !px-6 !text-[13px] whitespace-nowrap">
+          <Button href={WA_HEALTH_CHECK} className="!py-3 !px-6 !text-[13px] whitespace-nowrap">
             {t.nav.cta}
           </Button>
         </div>
@@ -88,7 +77,7 @@ export function Navbar() {
       <div
         className={`${
           isOpen ? 'flex' : 'hidden'
-        } fixed top-[88px] left-0 w-full bg-deep/[0.98] backdrop-blur-[16px] border-b border-border p-8 flex-col gap-6 items-center md:hidden`}
+        } fixed top-[64px] left-0 w-full bg-[rgba(9,9,15,0.98)] backdrop-blur-[20px] border-b border-[rgba(255,255,255,0.04)] p-8 flex-col gap-6 items-center md:hidden`}
       >
         {navItems.map((item) => {
           const isActive = item.to === homePath ? pathname === homePath : pathname.startsWith(item.to)
@@ -105,7 +94,7 @@ export function Navbar() {
             </Link>
           )
         })}
-        <Button to={contactPath} className="mt-2">
+        <Button href={WA_HEALTH_CHECK} className="mt-2">
           {t.nav.mobileCta}
         </Button>
         <div className="pt-4 border-t border-border/40 w-full flex justify-center">

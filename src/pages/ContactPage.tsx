@@ -9,7 +9,7 @@ export function ContactPage() {
     description: t.meta.contact.description,
   })
   return (
-    <div className="pt-[88px]">
+    <div className="pt-[64px]">
       <CtaSection />
     </div>
   )

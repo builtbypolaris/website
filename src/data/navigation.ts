@@ -20,9 +20,8 @@ export function useNavItems(): NavItem[] {
     return [
       { label: t.nav.home, to: buildLocalePath('/', locale) },
       { label: t.nav.services, to: buildLocalePath('/services', locale) },
-      { label: t.nav.about, to: buildLocalePath('/about', locale) },
+      { label: t.nav.studios, to: buildLocalePath('/studios', locale) },
       { label: t.nav.insights, to: buildLocalePath('/insights', locale) },
-      { label: t.nav.contact, to: buildLocalePath('/contact', locale) },
     ]
   }, [t.nav, locale])
 }

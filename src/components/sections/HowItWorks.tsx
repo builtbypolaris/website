@@ -8,62 +8,56 @@ import { useT } from '../../i18n'
 export function HowItWorks() {
   const t = useT()
   const timelineSteps = useTimelineSteps()
-  return (
-    <section className="bg-void py-[100px] relative section-divider-top">
-      {/* Subtle center glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-[radial-gradient(ellipse,rgba(124,92,191,0.05)_0%,transparent_70%)] pointer-events-none" />
 
+  return (
+    <section className="bg-void py-[100px] relative">
       <Container>
-        <MotionReveal className="mb-16 max-w-[600px]">
+        <MotionReveal className="mb-14 max-w-[600px]">
           <SectionLabel>{t.howItWorks.sectionLabel}</SectionLabel>
-          <h2 className="font-serif font-light text-[28px] sm:text-[36px] md:text-[48px] text-white leading-[1.15]">
+          <h2 className="font-serif text-[28px] sm:text-[36px] md:text-[48px] text-white leading-[1.05]">
             {t.howItWorks.titleLine1}<br />
-            <span className="text-gold">{t.howItWorks.titleLine2}</span>
+            <em style={{ color: '#7C3AED', fontStyle: 'italic' }}>{t.howItWorks.titleLine2}</em>
           </h2>
         </MotionReveal>
 
-        {/* Timeline */}
-        <div className="relative">
-          {/* Connecting line — spans from center of col1 to center of col3 */}
-          <div className="hidden xl:block absolute top-[52px] left-[16.67%] right-[16.67%] h-px">
-            <div className="w-full h-full bg-gradient-to-r from-purple-core/60 via-purple-bright/40 to-purple-core/60" />
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-core/40 via-purple-bright/20 to-purple-core/40 blur-sm" />
-          </div>
-
-          <StaggerContainer stagger={0.15} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {timelineSteps.map((step) => (
-              <StaggerItem key={step.number}>
-                <div className="group relative flex flex-col items-center">
-                  {/* Step number */}
-                  <div className="mb-2">
-                    <span className="font-serif text-[32px] font-light leading-none text-transparent bg-clip-text bg-gradient-to-b from-white/50 to-white/15">
-                      {step.number}
-                    </span>
-                  </div>
-
-                  {/* Dot on timeline */}
-                  <div className="relative mb-5 z-[2]">
-                    <div className="w-3 h-3 bg-purple-core rounded-full shadow-[0_0_16px_rgba(124,92,191,0.5)]" />
-                    <div className="absolute inset-0 w-3 h-3 bg-purple-core rounded-full animate-ping opacity-20" />
-                  </div>
-
-                  {/* Content card */}
-                  <div className="w-full bg-card border border-border rounded-2xl p-5 transition-all duration-500 group-hover:border-purple-core/50 group-hover:bg-card-hover card-glow">
-                    <h4 className="font-sans font-normal text-[11px] text-purple-glow uppercase tracking-[2px] mb-3">
-                      {step.title}
-                    </h4>
-                    <p className="font-sans font-light text-sm text-grey-light leading-[1.8] mb-5">
-                      {step.description}
-                    </p>
-                    <span className="inline-block px-4 py-1.5 border border-gold/30 rounded-full text-[11px] text-gold tracking-widest uppercase bg-gold/[0.05]">
-                      {step.tag}
-                    </span>
-                  </div>
+        <StaggerContainer stagger={0.13} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {timelineSteps.map((step) => (
+            <StaggerItem key={step.number}>
+              <div
+                className="relative rounded-2xl p-6 h-full border overflow-hidden"
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  borderColor: 'rgba(255,255,255,0.06)',
+                  transition: 'border-color 0.3s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(124,58,237,0.25)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)' }}
+              >
+                {/* Decorative step number — faint, top-right */}
+                <div className="absolute top-4 right-5 font-serif text-[64px] font-black leading-none text-white/[0.07] select-none pointer-events-none">
+                  {step.number}
                 </div>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </div>
+
+                {/* Tag badge — top-left */}
+                <div className="mb-5">
+                  <span className="inline-block px-3 py-1 border border-purple-core/30 rounded-full font-sans text-[11px] font-bold text-purple-glow tracking-wide bg-purple-core/[0.05]">
+                    {step.tag}
+                  </span>
+                </div>
+
+                {/* Title */}
+                <h4 className="font-serif font-bold text-[20px] text-white mb-3 leading-snug pr-8">
+                  {step.title}
+                </h4>
+
+                {/* Description */}
+                <p className="font-sans text-[14px] text-grey-light leading-[1.8]">
+                  {step.description}
+                </p>
+              </div>
+            </StaggerItem>
+          ))}
+        </StaggerContainer>
       </Container>
     </section>
   )

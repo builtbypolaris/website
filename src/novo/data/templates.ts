@@ -1,0 +1,55 @@
+import type { TemplateInfo } from '../types'
+
+export const TEMPLATES: TemplateInfo[] = [
+  {
+    id: 'financial',
+    name: 'Financial Tracker',
+    emoji: '💰',
+    description: 'Track income & expenses, monitor cashflow health, and grow your wealth creature!',
+    features: [
+      'Income & expense logging',
+      'Cashflow health score',
+      'Category breakdown',
+      'Net worth summary',
+      '3 mini-games to earn XP',
+      'Evolving pet creature (10 stages)',
+    ],
+    color: '#FDE68A',
+    gradient: 'from-yellow-50 to-amber-50',
+    price: 25000,
+  },
+  {
+    id: 'todo',
+    name: 'To-Do List',
+    emoji: '✅',
+    description: 'Manage tasks with priority levels, due dates, and watch your task creature evolve!',
+    features: [
+      'Tasks with priority levels',
+      'Due date tracking',
+      'Completion streaks',
+      'Progress analytics',
+      '3 mini-games to earn XP',
+      'Evolving pet creature (10 stages)',
+    ],
+    color: '#BBF7D0',
+    gradient: 'from-green-50 to-emerald-50',
+    price: 25000,
+  },
+  {
+    id: 'habit',
+    name: 'Habit Tracker',
+    emoji: '🌱',
+    description: 'Build daily and weekly habits, track streaks, and raise your discipline creature!',
+    features: [
+      'Daily & weekly habits',
+      'Streak tracking',
+      'Completion heatmap',
+      'Consistency score',
+      '3 mini-games to earn XP',
+      'Evolving pet creature (10 stages)',
+    ],
+    color: '#BAE6FD',
+    gradient: 'from-sky-50 to-blue-50',
+    price: 25000,
+  },
+]

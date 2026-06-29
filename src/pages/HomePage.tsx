@@ -1,8 +1,7 @@
 import { Hero } from '../components/sections/Hero'
 import { TrustBar } from '../components/sections/TrustBar'
-import { ServicesGrid } from '../components/sections/ServicesGrid'
-import { ProblemSection } from '../components/sections/ProblemSection'
-import { HowItWorks } from '../components/sections/HowItWorks'
+import { ServiceFeatures } from '../components/sections/ServiceFeatures'
+import { CtaSection } from '../components/sections/CtaSection'
 import { useT } from '../i18n'
 import { usePageHead } from '../hooks/usePageHead'
 
@@ -16,9 +15,8 @@ export function HomePage() {
     <>
       <Hero />
       <TrustBar />
-      <ServicesGrid />
-      <ProblemSection />
-      <HowItWorks />
+      <ServiceFeatures />
+      <CtaSection />
     </>
   )
 }

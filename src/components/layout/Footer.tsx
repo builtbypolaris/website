@@ -10,7 +10,7 @@ export function Footer() {
   const navItems = useNavItems()
 
   return (
-    <footer className="bg-void border-t border-border/50 pt-10">
+    <footer className="bg-void border-t border-[rgba(255,255,255,0.04)] pt-10">
       <Container>
         <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr] gap-6 md:gap-8 pb-8">
           {/* Brand */}
@@ -50,10 +50,10 @@ export function Footer() {
               {t.footer.getInTouch}
             </h5>
             <a
-              href="mailto:builtbypolaris@gmail.com"
+              href="mailto:hello@builtbypolaris.com"
               className="text-sm text-grey-light mb-3 block hover:text-white transition-colors duration-200"
             >
-              builtbypolaris@gmail.com
+              hello@builtbypolaris.com
             </a>
             <p className="text-sm text-grey-light mb-3">{t.footer.location}</p>
             <div className="flex gap-3 mt-5">
@@ -62,7 +62,7 @@ export function Footer() {
                   key={social.label}
                   href={social.href}
                   aria-label={social.label}
-                  className="w-10 h-10 border border-border/60 rounded-lg flex items-center justify-center hover:border-purple-core/40 hover:bg-purple-core/10 transition-all duration-300"
+                  className="w-10 h-10 border border-[rgba(255,255,255,0.08)] rounded-lg flex items-center justify-center hover:border-purple-core/40 hover:bg-purple-core/10 transition-all duration-300"
                 >
                   <social.icon className="w-[18px] h-[18px] text-grey-light" />
                 </a>
@@ -71,7 +71,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-border/40 py-6 text-center text-[13px] text-grey/70">
+        <div className="border-t border-[rgba(255,255,255,0.04)] py-6 text-center text-[13px] text-[#252535]">
           {t.footer.copyright}
         </div>
       </Container>

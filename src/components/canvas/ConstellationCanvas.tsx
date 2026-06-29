@@ -59,7 +59,7 @@ export function ConstellationCanvas() {
         const flicker = Math.sin(time * 0.001 + dot.phase) * 0.15 + 0.85
         ctx!.beginPath()
         ctx!.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2)
-        ctx!.fillStyle = `rgba(184, 159, 240, ${dot.opacity * flicker})`
+        ctx!.fillStyle = `rgba(167, 139, 250, ${dot.opacity * flicker})`
         ctx!.fill()
       })
 
@@ -72,7 +72,7 @@ export function ConstellationCanvas() {
             ctx!.beginPath()
             ctx!.moveTo(dots[i].x, dots[i].y)
             ctx!.lineTo(dots[j].x, dots[j].y)
-            ctx!.strokeStyle = `rgba(124, 92, 191, ${0.06 * (1 - dist / 120)})`
+            ctx!.strokeStyle = `rgba(124, 58, 237, ${0.07 * (1 - dist / 120)})`
             ctx!.lineWidth = 0.5
             ctx!.stroke()
           }

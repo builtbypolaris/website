@@ -8,7 +8,7 @@ interface WhatsAppButtonProps {
   children?: React.ReactNode
 }
 
-const PHONE = '6281946494333'
+const PHONE = '6285190846591'
 
 export function WhatsAppButton({ message, className = '', children }: WhatsAppButtonProps) {
   const t = useT()

@@ -30,7 +30,7 @@ export const en = {
   nav: {
     home: 'Home',
     services: 'Services',
-    about: 'About',
+    studios: 'Studios',
     insights: 'Insights',
     contact: 'Contact',
     cta: 'See what your business needs',
@@ -39,12 +39,12 @@ export const en = {
 
   // ── Footer ─────────────────────────────────────────────────────────────
   footer: {
-    tagline: 'Diagnostic-first business & IT consultancy for growing Indonesian businesses.',
+    tagline: 'Diagnostic-first consultancy helping Indonesian businesses identify bottlenecks, improve operations, and grow through technology.',
     navigate: 'Navigate',
     getInTouch: 'Get in Touch',
     location: 'Jakarta · Yogyakarta · Bali',
     language: 'Language',
-    copyright: '© 2026 PT Aurora Polaris Digital · Jakarta · Yogyakarta · Bali',
+    copyright: '© 2026 Polaris Studio · Jakarta · Yogyakarta · Bali',
   },
 
   // ── Language switcher ──────────────────────────────────────────────────
@@ -61,14 +61,16 @@ export const en = {
 
   // ── Hero (home) ────────────────────────────────────────────────────────
   hero: {
-    badge: 'Diagnostic-First Consultancy',
-    titleLine1: 'Your Business,',
-    titleLine2: 'Finally Pointed',
-    titleLine3: 'True North.',
+    badge: 'Diagnostic-First Agency',
+    titleLine1: 'We ',
+    titleLine1Em: 'diagnose',
+    titleLine2: 'before we',
+    titleLine2Em: 'build.',
+    titleLine3: '',
     subtitle:
-      "We're not another tech agency selling packages. We diagnose what's really holding your business back and build exactly what fixes it.",
-    ctaPrimary: 'Get Your Free Health Check',
-    ctaSecondary: 'See How It Works',
+      "Most businesses don’t need more tools. They need clarity. We identify what’s slowing growth, wasting time, or leaking revenue, then build only what’s necessary to fix it.",
+    ctaPrimary: 'Get a Free Health Check',
+    ctaSecondary: 'See our work',
     laptopLabel: 'F&B Website',
     laptopSubLabel: 'Website Development',
     phoneLabel: 'Digital Invitation',
@@ -77,7 +79,7 @@ export const en = {
 
   // ── Trust bar ──────────────────────────────────────────────────────────
   trustBar: {
-    label: 'Trusted across',
+    label: 'We help businesses grow',
     seeAllServices: 'See all services',
     tags: ['E-Commerce', 'F&B', 'Healthcare', 'Education', 'Professional Services'],
   },
@@ -116,6 +118,77 @@ export const en = {
         tab: 'Invitation',
         title: 'Others & Custom Solutions',
         tagline: 'If you can describe the problem, we can build the solution.',
+      },
+    ],
+  },
+
+  // ── Services bento (home) ─────────────────────────────────────────────
+  servicesBento: {
+    titleLine1: 'Every solution.',
+    titleLine2: 'One partner.',
+    seeMore: 'Explore',
+    seeAll: 'All services',
+    tabLabels: ['Website Dev', 'SEO & Ranking', 'Content Creation'],
+    headlines: [
+      { line1: 'Your site,', line2: 'built right.' },
+      { line1: 'Rank higher,', line2: 'grow faster.' },
+      { line1: 'Content that', line2: 'converts.' },
+    ],
+  },
+
+  // ── Metrics bar (home) ────────────────────────────────────────────────
+  metricsBar: {
+    stats: [
+      { number: '120+', label: 'Projects delivered' },
+      { number: '3×', label: 'Average revenue lift' },
+      { number: '6', label: 'Cities active' },
+      { number: '98%', label: 'Client retention' },
+    ],
+  },
+
+  // ── Featured work (home) ───────────────────────────────────────────────
+  featuredWork: {
+    sectionLabel: 'Selected Work',
+    titleLine1: 'Proof,',
+    titleLine2: 'not promises.',
+    subtitle: 'Real engagements. Real numbers.',
+    projects: [
+      {
+        tag: 'F&B · Jakarta',
+        duration: '6-month engagement',
+        name: 'Restaurant Chain Expansion',
+        outcomes: ['+340% organic traffic', '3× revenue growth', 'Operations fully systematized'],
+      },
+      {
+        tag: 'Fashion · Bali',
+        duration: '4-month engagement',
+        name: 'Local Brand Going Digital',
+        outcomes: ['+280% Instagram reach', '5× online sales growth', 'Full content pipeline built'],
+      },
+    ],
+    cta: 'Start your project',
+  },
+
+  // ── Service features (home alternating rows) ───────────────────────────
+  serviceFeatures: {
+    features: [
+      {
+        label: 'Website Development',
+        headLine1: 'Turn visitors',
+        headLine2: 'into customers.',
+        description: 'Every page is designed around a purpose: helping the right people understand your business and take action.',
+      },
+      {
+        label: 'Operation System',
+        headLine1: 'Systems that remove',
+        headLine2: 'operational friction.',
+        description: 'Manual processes slow businesses down. We build CRM systems, internal dashboards, automation workflows, and business tools that reduce repetitive work and improve visibility.',
+      },
+      {
+        label: 'Social Media & Content',
+        headLine1: 'Consistent content.',
+        headLine2: 'Clear positioning.',
+        description: 'We help businesses communicate clearly through strategy, design, and content that reinforces their brand and keeps them visible.',
       },
     ],
   },
@@ -340,7 +413,7 @@ export const en = {
         metric: '100%',
         metricLabel: 'transparent reporting, no hidden fees',
         quote:
-          "They told us our original plan wouldn't work — and then showed us what would. That honesty saved us months.",
+          "They told us our original plan wouldn't work, and then showed us what would. That honesty saved us months.",
         attribution: 'Operations Director, Bali hospitality group',
       },
       {
@@ -350,7 +423,7 @@ export const en = {
         metric: '0',
         metricLabel: 'cookie-cutter templates used',
         quote:
-          "The system they built fits our workflow like it was designed from the inside. Because it was — they understood our process before writing a single line.",
+          "The system they built fits our workflow like it was designed from the inside. Because it was. They understood our process before writing a single line.",
         attribution: 'CEO, Yogyakarta manufacturing firm',
       },
       {
@@ -360,7 +433,7 @@ export const en = {
         metric: '↑ 40%',
         metricLabel: 'average efficiency gain after 6 months',
         quote:
-          "Six months later, we're still using everything they set up — and it's actually growing with us. That never happens with consultants.",
+          "Six months later, we're still using everything they set up, and it's actually growing with us. That never happens with consultants.",
         attribution: 'Managing Partner, Jakarta professional services',
       },
     ],
@@ -368,10 +441,10 @@ export const en = {
 
   // ── CTA section ────────────────────────────────────────────────────────
   cta: {
-    titleLine1: 'Ready to find your',
-    titleLine2: 'true north?',
+    titleLine1: 'Direction before',
+    titleLine2: 'execution.',
     description:
-      'Start with a Business Health Check. 3 days. A clear written report. And finally, direction.',
+      'Our Business Health Check delivers a practical assessment of your business, operations, and digital presence, so you know exactly what to fix before investing time or money.',
     badgeFree: 'FREE',
     primary: 'Get Your Free Health Check',
     whatsappMessage: "Hi Polaris! I'd like to discuss a project. Are you available?",
@@ -382,7 +455,7 @@ export const en = {
   services: {
     page: {
       eyebrow: 'Services',
-      titleLine1: 'Discover how we can',
+      titleLine1: 'Discover how we',
       titleLine2: 'grow your business.',
       subtitle:
         'From diagnosis to deployment. One trusted partner for every solution your business needs.',
@@ -394,7 +467,7 @@ export const en = {
         title: 'Website Development',
         tagline: 'Your digital storefront, built right.',
         description:
-          'We design, develop, and deploy websites on modern infrastructure — fast, secure, and scalable. Every site comes with analytics baked in.',
+          'We design, develop, and deploy websites on modern infrastructure. Fast, secure, and scalable. Every site comes with analytics baked in.',
         ctaLabel: "Let's Talk",
         whatsappMessage:
           "Hi Polaris! I'm interested in Website Development. Can we discuss my project?",
@@ -416,7 +489,7 @@ export const en = {
         title: 'Application Development',
         tagline: 'Custom applications built for your specific needs.',
         description:
-          'From concept to deployment — native or cross-platform mobile apps for iOS and Android. From simple utility apps to full-featured business tools.',
+          'From concept to deployment. Native or cross-platform mobile apps for iOS and Android, from simple utility apps to full-featured business tools.',
         ctaLabel: "Let's Talk",
         whatsappMessage:
           "Hi Polaris! I'm interested in Application Development. Can we discuss my project?",
@@ -433,7 +506,7 @@ export const en = {
         title: 'SEO',
         tagline: "Your site's visibility in search, powered by AI and guided by strategy.",
         description:
-          "We optimize and create content that drives organic traffic and builds domain authority. From technical SEO to AI-powered blog writing — every keyword targeted, every page optimized.",
+          "We optimize and create content that drives organic traffic and builds domain authority. From technical SEO to AI-powered blog writing, every keyword targeted, every page optimized.",
         ctaLabel: "Let's Talk",
         whatsappMessage:
           "Hi Polaris! I'm interested in SEO services. Let's talk!",
@@ -460,7 +533,7 @@ export const en = {
         title: 'Social Media',
         tagline: "Your brand's social presence, fully managed.",
         description:
-          "We create, design, and schedule content that builds trust and keeps your audience engaged. From brand identity to ready-to-post reels — one cohesive strategy across every platform.",
+          "We create, design, and schedule content that builds trust and keeps your audience engaged. From brand identity to ready-to-post reels, one cohesive strategy across every platform.",
         ctaLabel: "Let's Talk",
         whatsappMessage:
           "Hi Polaris! I'm interested in Social Media services. Let's talk!",
@@ -473,7 +546,7 @@ export const en = {
           {
             name: 'Social Media Content Creation',
             description:
-              'Ready-to-post content for Instagram, LinkedIn, TikTok, and more. Captions, images, reels, and hashtag strategy — fully managed.',
+              'Ready-to-post content for Instagram, LinkedIn, TikTok, and more. Captions, images, reels, and hashtag strategy, fully managed.',
           },
         ],
       },
@@ -482,7 +555,7 @@ export const en = {
         title: 'Business Operation',
         tagline: 'Your back-office, digitized.',
         description:
-          'Custom internal systems so you can run your business from one place. From company profiles to full HR automation — we build the digital backbone your business needs.',
+          'Custom internal systems so you can run your business from one place. From company profiles to full HR automation, we build the digital backbone your business needs.',
         ctaLabel: "Let's Talk",
         whatsappMessage:
           "Hi Polaris! I'm interested in Business Operation services. What modules do you recommend?",
@@ -495,7 +568,7 @@ export const en = {
           {
             name: 'Financial Reporting',
             description:
-              'Live dashboards, automated financial statements. Always know your numbers — no more manual spreadsheets.',
+              'Live dashboards, automated financial statements. Always know your numbers. No more manual spreadsheets.',
           },
           {
             name: 'CRM & Lead Management',
@@ -514,7 +587,7 @@ export const en = {
         title: 'Others & Custom Solutions',
         tagline: 'If you can describe the problem, we can build the solution.',
         description:
-          "Beyond our core categories — data analysis, digital invitations, presentation decks, and more. Have something else in mind? We're open to custom projects. If it's a problem, we'll solve it.",
+          "Beyond our core categories: data analysis, digital invitations, presentation decks, and more. Have something else in mind? We're open to custom projects. If it's a problem, we'll solve it.",
         ctaLabel: "Let's Talk",
         whatsappMessage:
           "Hi Polaris! I have a project idea I'd like to discuss. Are you available?",
@@ -537,7 +610,7 @@ export const en = {
           {
             name: 'Custom Project',
             description:
-              "Have a unique challenge? Describe it, and we'll scope a solution. AI chatbots, e-commerce integrations, custom workflows, API integrations — you name it.",
+              "Have a unique challenge? Describe it, and we'll scope a solution. AI chatbots, e-commerce integrations, custom workflows, API integrations. You name it.",
           },
         ],
       },
@@ -546,7 +619,7 @@ export const en = {
         title: 'Packages',
         tagline: 'Bundled services at a better price.',
         description:
-          'Pick the combo that fits your business. Our packages bundle complementary services together so you get more value — and one less thing to think about.',
+          'Pick the combo that fits your business. Our packages bundle complementary services together so you get more value and one less thing to think about.',
         ctaLabel: "Let's Talk",
         whatsappMessage:
           "Hi Polaris! I'm interested in your service packages. Which one do you recommend for my business?",
@@ -554,7 +627,7 @@ export const en = {
           {
             name: 'Full Business Suite',
             description:
-              'CRM, financial reporting, payroll & HR — the complete digital backbone for your business in one unified platform.',
+              'CRM, financial reporting, payroll & HR: the complete digital backbone for your business in one unified platform.',
           },
           {
             name: 'Social Media Content & SEO Blog Writing',
@@ -589,6 +662,8 @@ export const en = {
   insights: {
     eyebrow: 'Blog',
     title: 'Insights',
+    titleLine1: 'Think before',
+    titleLine2: 'you build.',
     subtitle:
       'Tips, guides, and honest thinking on strategy, technology, and building a digital presence that actually works.',
     minRead: 'min read',
@@ -618,19 +693,19 @@ export const en = {
   // ── Per-page meta tags ─────────────────────────────────────────────────
   meta: {
     home: {
-      title: 'Polaris — Your Business Compass | PT Aurora Polaris Digital',
+      title: 'Polaris — Your Business Compass | Polaris Studio',
       description:
-        "Polaris is Indonesia's diagnostic-first business & IT consultancy. We find the real problem before building the solution. Web, AI, data, automation — one trusted partner.",
+        "Polaris is Indonesia's diagnostic-first business & IT consultancy. We find the real problem before building the solution. Web, AI, data, automation. One trusted partner.",
     },
     services: {
       title: 'Services — Polaris',
       description:
         'Websites, apps, SEO, business automation, and more. One trusted partner for every digital solution your business needs.',
     },
-    about: {
-      title: 'About — Polaris',
+    studios: {
+      title: 'Novo — built by Polaris Studio',
       description:
-        "We're a diagnostic-first business & IT consultancy based in Jakarta, Yogyakarta, and Bali. We find the real problem before building anything.",
+        'Novo is a productivity app with digital pets that evolve as you track finances, tasks, and habits. Built by Polaris Studio.',
     },
     insights: {
       title: 'Insights — Polaris',

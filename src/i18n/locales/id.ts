@@ -20,7 +20,7 @@ export const id: EnTranslations = {
   nav: {
     home: 'Beranda',
     services: 'Layanan',
-    about: 'Tentang',
+    studios: 'Studios',
     insights: 'Insight',
     contact: 'Kontak',
     cta: 'Lihat apa yang bisnis Anda butuhkan',
@@ -30,12 +30,12 @@ export const id: EnTranslations = {
   // ── Footer ─────────────────────────────────────────────────────────────
   footer: {
     tagline:
-      'Konsultan bisnis & IT diagnostic-first untuk bisnis Indonesia yang sedang berkembang.',
+      'Konsultan diagnostic-first yang membantu bisnis Indonesia mengidentifikasi bottleneck, meningkatkan operasional, dan bertumbuh melalui teknologi.',
     navigate: 'Navigasi',
     getInTouch: 'Hubungi Kami',
     location: 'Jakarta · Yogyakarta · Bali',
     language: 'Bahasa',
-    copyright: '© 2026 PT Aurora Polaris Digital · Jakarta · Yogyakarta · Bali',
+    copyright: '© 2026 Polaris Studio · Jakarta · Yogyakarta · Bali',
   },
 
   // ── Language switcher ──────────────────────────────────────────────────
@@ -52,14 +52,16 @@ export const id: EnTranslations = {
 
   // ── Hero (home) ────────────────────────────────────────────────────────
   hero: {
-    badge: 'Diagnostic-First Consultancy',
-    titleLine1: 'Bisnis Anda,',
-    titleLine2: 'Akhirnya Menemukan',
-    titleLine3: 'Arah yang Tepat.',
+    badge: 'Agensi Diagnostik Pertama',
+    titleLine1: 'Kami ',
+    titleLine1Em: 'mendiagnosis',
+    titleLine2: 'sebelum kami',
+    titleLine2Em: 'membangun.',
+    titleLine3: '',
     subtitle:
-      'Kami bukan agensi tech yang menjual paket. Kami mendiagnosis apa yang sebenarnya menghambat bisnis Anda dan membangun solusi yang benar-benar memperbaikinya.',
+      'Sebagian besar bisnis tidak butuh lebih banyak tools. Mereka butuh kejelasan. Kami mengidentifikasi apa yang menghambat pertumbuhan, membuang waktu, atau menguras pendapatan, lalu membangun hanya yang diperlukan untuk memperbaikinya.',
     ctaPrimary: 'Dapatkan Health Check Gratis',
-    ctaSecondary: 'Lihat Cara Kerjanya',
+    ctaSecondary: 'Lihat karya kami',
     laptopLabel: 'Website F&B',
     laptopSubLabel: 'Pengembangan Website',
     phoneLabel: 'Undangan Digital',
@@ -68,7 +70,7 @@ export const id: EnTranslations = {
 
   // ── Trust bar ──────────────────────────────────────────────────────────
   trustBar: {
-    label: 'Dipercaya oleh',
+    label: 'Kami membantu bisnis bertumbuh',
     seeAllServices: 'Lihat semua layanan',
     tags: ['E-Commerce', 'F&B', 'Kesehatan', 'Pendidikan', 'Jasa Profesional'],
   },
@@ -107,6 +109,77 @@ export const id: EnTranslations = {
         tab: 'Undangan',
         title: 'Lainnya & Solusi Custom',
         tagline: 'Jika Anda bisa menjelaskan masalahnya, kami bisa membangun solusinya.',
+      },
+    ],
+  },
+
+  // ── Services bento (home) ─────────────────────────────────────────────
+  servicesBento: {
+    titleLine1: 'Setiap solusi.',
+    titleLine2: 'Satu partner.',
+    seeMore: 'Jelajahi',
+    seeAll: 'Semua layanan',
+    tabLabels: ['Website Dev', 'SEO & Peringkat', 'Pembuatan Konten'],
+    headlines: [
+      { line1: 'Website Anda,', line2: 'dibangun tepat.' },
+      { line1: 'Rank lebih tinggi,', line2: 'tumbuh lebih cepat.' },
+      { line1: 'Konten yang', line2: 'mengkonversi.' },
+    ],
+  },
+
+  // ── Metrics bar (home) ────────────────────────────────────────────────
+  metricsBar: {
+    stats: [
+      { number: '120+', label: 'Proyek selesai' },
+      { number: '3×', label: 'Rata-rata peningkatan pendapatan' },
+      { number: '6', label: 'Kota aktif' },
+      { number: '98%', label: 'Retensi klien' },
+    ],
+  },
+
+  // ── Featured work (home) ───────────────────────────────────────────────
+  featuredWork: {
+    sectionLabel: 'Karya Pilihan',
+    titleLine1: 'Bukti,',
+    titleLine2: 'bukan janji.',
+    subtitle: 'Engagement nyata. Angka nyata.',
+    projects: [
+      {
+        tag: 'F&B · Jakarta',
+        duration: 'Engagement 6 bulan',
+        name: 'Ekspansi Jaringan Restoran',
+        outcomes: ['+340% traffic organik', '3× pertumbuhan pendapatan', 'Operasional tersistemasi'],
+      },
+      {
+        tag: 'Fashion · Bali',
+        duration: 'Engagement 4 bulan',
+        name: 'Brand Lokal Go Digital',
+        outcomes: ['+280% jangkauan Instagram', '5× pertumbuhan penjualan online', 'Pipeline konten terbangun'],
+      },
+    ],
+    cta: 'Mulai proyek Anda',
+  },
+
+  // ── Service features (home alternating rows) ───────────────────────────
+  serviceFeatures: {
+    features: [
+      {
+        label: 'Website Development',
+        headLine1: 'Ubah pengunjung',
+        headLine2: 'menjadi pelanggan.',
+        description: 'Setiap halaman dirancang dengan tujuan: membantu orang yang tepat memahami bisnis Anda dan mengambil tindakan.',
+      },
+      {
+        label: 'Sistem Operasional',
+        headLine1: 'Sistem yang menghilangkan',
+        headLine2: 'gesekan operasional.',
+        description: 'Proses manual memperlambat bisnis. Kami membangun CRM, dashboard internal, workflow otomasi, dan business tools yang mengurangi pekerjaan berulang dan meningkatkan visibilitas operasional.',
+      },
+      {
+        label: 'Media Sosial & Konten',
+        headLine1: 'Konten konsisten.',
+        headLine2: 'Positioning yang jelas.',
+        description: 'Kami membantu bisnis berkomunikasi dengan jelas melalui strategi, desain, dan konten yang memperkuat brand serta menjaga visibilitas mereka.',
       },
     ],
   },
@@ -335,7 +408,7 @@ export const id: EnTranslations = {
         metric: '100%',
         metricLabel: 'pelaporan transparan, tanpa biaya tersembunyi',
         quote:
-          'Mereka bilang rencana awal kami tidak akan berhasil — lalu menunjukkan apa yang akan berhasil. Kejujuran itu menghemat waktu kami berbulan-bulan.',
+          'Mereka bilang rencana awal kami tidak akan berhasil, lalu menunjukkan apa yang akan berhasil. Kejujuran itu menghemat waktu kami berbulan-bulan.',
         attribution: 'Direktur Operasional, grup hospitality Bali',
       },
       {
@@ -345,7 +418,7 @@ export const id: EnTranslations = {
         metric: '0',
         metricLabel: 'template generik yang digunakan',
         quote:
-          'Sistem yang mereka bangun cocok dengan alur kerja kami seperti dirancang dari dalam. Karena memang begitu — mereka memahami proses kami sebelum menulis satu baris kode.',
+          'Sistem yang mereka bangun cocok dengan alur kerja kami seperti dirancang dari dalam. Karena memang begitu. Mereka memahami proses kami sebelum menulis satu baris kode.',
         attribution: 'CEO, perusahaan manufaktur Yogyakarta',
       },
       {
@@ -355,7 +428,7 @@ export const id: EnTranslations = {
         metric: '↑ 40%',
         metricLabel: 'rata-rata peningkatan efisiensi setelah 6 bulan',
         quote:
-          'Enam bulan kemudian, kami masih menggunakan semua yang mereka siapkan — dan itu benar-benar berkembang bersama kami. Itu tidak pernah terjadi dengan konsultan lain.',
+          'Enam bulan kemudian, kami masih menggunakan semua yang mereka siapkan, dan itu benar-benar berkembang bersama kami. Itu tidak pernah terjadi dengan konsultan lain.',
         attribution: 'Managing Partner, jasa profesional Jakarta',
       },
     ],
@@ -363,10 +436,10 @@ export const id: EnTranslations = {
 
   // ── CTA section ────────────────────────────────────────────────────────
   cta: {
-    titleLine1: 'Siap menemukan',
-    titleLine2: 'arah Anda?',
+    titleLine1: 'Arah sebelum',
+    titleLine2: 'eksekusi.',
     description:
-      'Mulai dengan Business Health Check. 3 hari. Laporan tertulis yang jelas. Dan akhirnya, arah.',
+      'Business Health Check kami memberikan penilaian praktis tentang bisnis, operasional, dan kehadiran digital Anda, sehingga Anda tahu persis apa yang perlu diperbaiki sebelum menginvestasikan waktu atau uang.',
     badgeFree: 'GRATIS',
     primary: 'Dapatkan Health Check Gratis',
     whatsappMessage:
@@ -390,7 +463,7 @@ export const id: EnTranslations = {
         title: 'Pengembangan Website',
         tagline: 'Etalase digital Anda, dibangun dengan benar.',
         description:
-          'Kami merancang, mengembangkan, dan men-deploy website di infrastruktur modern — cepat, aman, dan scalable. Setiap site sudah dilengkapi analytics dari awal.',
+          'Kami merancang, mengembangkan, dan men-deploy website di infrastruktur modern. Cepat, aman, dan scalable. Setiap site sudah dilengkapi analytics dari awal.',
         ctaLabel: 'Mari Bicara',
         whatsappMessage:
           'Halo Polaris! Saya tertarik dengan layanan Pengembangan Website. Bisakah kita diskusikan project saya?',
@@ -412,7 +485,7 @@ export const id: EnTranslations = {
         title: 'Pengembangan Aplikasi',
         tagline: 'Aplikasi custom yang dibangun untuk kebutuhan spesifik Anda.',
         description:
-          'Dari konsep hingga deployment — aplikasi mobile native atau cross-platform untuk iOS dan Android. Dari aplikasi utility sederhana hingga business tool full-featured.',
+          'Dari konsep hingga deployment. Aplikasi mobile native atau cross-platform untuk iOS dan Android, dari aplikasi utility sederhana hingga business tool full-featured.',
         ctaLabel: 'Mari Bicara',
         whatsappMessage:
           'Halo Polaris! Saya tertarik dengan layanan Pengembangan Aplikasi. Bisakah kita diskusikan project saya?',
@@ -429,7 +502,7 @@ export const id: EnTranslations = {
         title: 'SEO',
         tagline: 'Visibilitas situs Anda di mesin pencari, didukung AI dan dipandu strategi.',
         description:
-          'Kami mengoptimalkan dan membuat konten yang mendatangkan traffic organik dan membangun otoritas domain. Dari SEO teknis hingga blog writing berbasis AI — setiap keyword ditarget, setiap halaman dioptimalkan.',
+          'Kami mengoptimalkan dan membuat konten yang mendatangkan traffic organik dan membangun otoritas domain. Dari SEO teknis hingga blog writing berbasis AI, setiap keyword ditarget, setiap halaman dioptimalkan.',
         ctaLabel: 'Mari Bicara',
         whatsappMessage:
           'Halo Polaris! Saya tertarik dengan layanan SEO. Mari bicara!',
@@ -456,7 +529,7 @@ export const id: EnTranslations = {
         title: 'Social Media',
         tagline: 'Kehadiran sosial brand Anda, fully managed.',
         description:
-          'Kami membuat, mendesain, dan menjadwalkan konten yang membangun kepercayaan dan menjaga keterlibatan audiens Anda. Dari identitas brand hingga konten siap-posting — satu strategi yang kohesif di setiap platform.',
+          'Kami membuat, mendesain, dan menjadwalkan konten yang membangun kepercayaan dan menjaga keterlibatan audiens Anda. Dari identitas brand hingga konten siap-posting, satu strategi yang kohesif di setiap platform.',
         ctaLabel: 'Mari Bicara',
         whatsappMessage:
           'Halo Polaris! Saya tertarik dengan layanan Social Media. Mari bicara!',
@@ -469,7 +542,7 @@ export const id: EnTranslations = {
           {
             name: 'Pembuatan Konten Social Media',
             description:
-              'Konten siap-posting untuk Instagram, LinkedIn, TikTok, dan lainnya. Caption, gambar, reels, dan strategi hashtag — fully managed.',
+              'Konten siap-posting untuk Instagram, LinkedIn, TikTok, dan lainnya. Caption, gambar, reels, dan strategi hashtag, fully managed.',
           },
         ],
       },
@@ -478,7 +551,7 @@ export const id: EnTranslations = {
         title: 'Operasi Bisnis',
         tagline: 'Back-office Anda, didigitalisasi.',
         description:
-          'Sistem internal custom agar Anda bisa menjalankan bisnis dari satu tempat. Dari company profile hingga otomasi HR penuh — kami membangun digital backbone yang dibutuhkan bisnis Anda.',
+          'Sistem internal custom agar Anda bisa menjalankan bisnis dari satu tempat. Dari company profile hingga otomasi HR penuh, kami membangun digital backbone yang dibutuhkan bisnis Anda.',
         ctaLabel: 'Mari Bicara',
         whatsappMessage:
           'Halo Polaris! Saya tertarik dengan layanan Operasi Bisnis. Modul apa yang Anda rekomendasikan?',
@@ -491,7 +564,7 @@ export const id: EnTranslations = {
           {
             name: 'Pelaporan Keuangan',
             description:
-              'Dashboard live, laporan keuangan otomatis. Selalu tahu angka Anda — tidak ada lagi spreadsheet manual.',
+              'Dashboard live, laporan keuangan otomatis. Selalu tahu angka Anda. Tidak ada lagi spreadsheet manual.',
           },
           {
             name: 'CRM & Manajemen Lead',
@@ -510,7 +583,7 @@ export const id: EnTranslations = {
         title: 'Lainnya & Solusi Custom',
         tagline: 'Jika Anda bisa menjelaskan masalahnya, kami bisa membangun solusinya.',
         description:
-          'Di luar kategori utama kami — analisis data, undangan digital, deck presentasi, dan lainnya. Punya ide lain? Kami terbuka untuk project custom. Jika itu masalah, kami akan selesaikan.',
+          'Di luar kategori utama kami: analisis data, undangan digital, deck presentasi, dan lainnya. Punya ide lain? Kami terbuka untuk project custom. Jika itu masalah, kami akan selesaikan.',
         ctaLabel: 'Mari Bicara',
         whatsappMessage:
           'Halo Polaris! Saya punya ide project yang ingin saya diskusikan. Apakah Anda available?',
@@ -533,7 +606,7 @@ export const id: EnTranslations = {
           {
             name: 'Project Custom',
             description:
-              'Punya tantangan unik? Jelaskan, dan kami akan scope solusinya. AI chatbot, integrasi e-commerce, workflow custom, integrasi API — sebut saja.',
+              'Punya tantangan unik? Jelaskan, dan kami akan scope solusinya. AI chatbot, integrasi e-commerce, workflow custom, integrasi API. Sebut saja.',
           },
         ],
       },
@@ -542,7 +615,7 @@ export const id: EnTranslations = {
         title: 'Paket',
         tagline: 'Layanan bundling dengan harga lebih baik.',
         description:
-          'Pilih kombinasi yang sesuai dengan bisnis Anda. Paket kami menggabungkan layanan komplementer agar Anda mendapatkan lebih banyak nilai — dan satu hal lebih sedikit untuk dipikirkan.',
+          'Pilih kombinasi yang sesuai dengan bisnis Anda. Paket kami menggabungkan layanan komplementer agar Anda mendapatkan lebih banyak nilai dan satu hal lebih sedikit untuk dipikirkan.',
         ctaLabel: 'Mari Bicara',
         whatsappMessage:
           'Halo Polaris! Saya tertarik dengan paket layanan Anda. Yang mana yang Anda rekomendasikan untuk bisnis saya?',
@@ -550,7 +623,7 @@ export const id: EnTranslations = {
           {
             name: 'Full Business Suite',
             description:
-              'CRM, pelaporan keuangan, payroll & HR — digital backbone lengkap untuk bisnis Anda dalam satu platform terpadu.',
+              'CRM, pelaporan keuangan, payroll & HR: digital backbone lengkap untuk bisnis Anda dalam satu platform terpadu.',
           },
           {
             name: 'Konten Social Media & SEO Blog Writing',
@@ -585,6 +658,8 @@ export const id: EnTranslations = {
   insights: {
     eyebrow: 'Blog',
     title: 'Insight',
+    titleLine1: 'Pikirkan sebelum',
+    titleLine2: 'Anda bangun.',
     subtitle:
       'Tips, panduan, dan pemikiran jujur tentang strategi, teknologi, dan membangun digital presence yang benar-benar berhasil.',
     minRead: 'menit baca',
@@ -614,19 +689,19 @@ export const id: EnTranslations = {
   // ── Per-page meta tags ─────────────────────────────────────────────────
   meta: {
     home: {
-      title: 'Polaris — Kompas Bisnis Anda | PT Aurora Polaris Digital',
+      title: 'Polaris — Kompas Bisnis Anda | Polaris Studio',
       description:
-        'Polaris adalah konsultan bisnis & IT diagnostic-first pertama di Indonesia. Kami menemukan masalah sesungguhnya sebelum membangun solusinya. Web, AI, data, otomasi — satu partner terpercaya.',
+        'Polaris adalah konsultan bisnis & IT diagnostic-first pertama di Indonesia. Kami menemukan masalah sesungguhnya sebelum membangun solusinya. Web, AI, data, otomasi. Satu partner terpercaya.',
     },
     services: {
       title: 'Layanan — Polaris',
       description:
         'Website, aplikasi, SEO, otomasi bisnis, dan lainnya. Satu partner terpercaya untuk setiap solusi digital yang dibutuhkan bisnis Anda.',
     },
-    about: {
-      title: 'Tentang — Polaris',
+    studios: {
+      title: 'Novo — built by Polaris Studio',
       description:
-        'Kami adalah konsultan bisnis & IT diagnostic-first yang berbasis di Jakarta, Yogyakarta, dan Bali. Kami menemukan masalah sesungguhnya sebelum membangun apapun.',
+        'Novo adalah aplikasi produktivitas dengan hewan peliharaan digital yang berkembang seiring kamu melacak keuangan, tugas, dan kebiasaan. Dibuat oleh Polaris Studio.',
     },
     insights: {
       title: 'Insight — Polaris',

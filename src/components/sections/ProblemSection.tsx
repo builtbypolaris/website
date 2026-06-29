@@ -8,53 +8,73 @@ import { useT } from '../../i18n'
 export function ProblemSection() {
   const t = useT()
   const problems = useProblems()
+
   return (
-    <section className="bg-deep py-[100px] relative section-divider-top">
+    <section className="bg-[#09090F] py-[100px] relative section-divider-top">
       {/* Atmospheric glow */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(124,92,191,0.06)_0%,transparent_70%)] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(201,169,110,0.04)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(124,58,237,0.05)_0%,transparent_70%)] pointer-events-none" />
 
       <Container>
-        <MotionReveal className="max-w-[680px] mb-16">
+        <MotionReveal className="max-w-[680px] mb-14">
           <SectionLabel>{t.problemSection.sectionLabel}</SectionLabel>
-          <h2 className="font-serif font-light text-[28px] sm:text-[36px] md:text-[48px] text-white mb-5 leading-[1.15]">
+          <h2 className="font-serif text-[28px] sm:text-[36px] md:text-[48px] text-white mb-5 leading-[1.05]">
             {t.problemSection.titleLine1}
-            <span className="block text-purple-glow">{t.problemSection.titleLine2}</span>
+            <em className="block" style={{ color: '#7C3AED', fontStyle: 'italic' }}>
+              {t.problemSection.titleLine2}
+            </em>
           </h2>
-          <p className="font-sans font-light text-base text-grey-light leading-[1.8] max-w-[560px]">
+          <p className="font-sans text-base text-grey-light leading-[1.8] max-w-[560px]">
             {t.problemSection.subtitle}
           </p>
         </MotionReveal>
 
-        <StaggerContainer stagger={0.15} className="flex flex-col gap-5">
+        <StaggerContainer stagger={0.12} className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {problems.map((problem) => (
             <StaggerItem key={problem.title}>
-              <div className="group relative">
-                <div className="relative bg-card border border-border rounded-2xl p-4 transition-all duration-500 hover:border-purple-core/50 hover:bg-card-hover card-glow overflow-hidden">
-                  {/* Large decorative quote mark */}
-                  <div className="absolute top-4 right-8 font-serif text-[120px] leading-none text-purple-core/[0.07] pointer-events-none select-none">
-                    &ldquo;
+              <div className="group relative h-full">
+                <div
+                  className="relative h-full rounded-2xl p-6 overflow-hidden border"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    borderColor: 'rgba(255,255,255,0.06)',
+                    transition: 'border-color 0.3s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(124,58,237,0.30)'
+                    const bar = e.currentTarget.querySelector<HTMLElement>('[data-accent]')
+                    if (bar) bar.style.opacity = '1'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'
+                    const bar = e.currentTarget.querySelector<HTMLElement>('[data-accent]')
+                    if (bar) bar.style.opacity = '0'
+                  }}
+                >
+                  {/* Left accent bar */}
+                  <div
+                    data-accent
+                    className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl pointer-events-none"
+                    style={{
+                      background: 'linear-gradient(to bottom, #7C3AED, #A78BFA)',
+                      opacity: 0,
+                      transition: 'opacity 0.3s ease',
+                    }}
+                  />
+
+                  {/* Icon */}
+                  <div className="mb-5 w-10 h-10 rounded-xl bg-purple-core/10 border border-purple-core/20 flex items-center justify-center flex-shrink-0">
+                    <problem.icon className="w-5 h-5" />
                   </div>
 
-                  <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6">
-                    {/* Icon */}
-                    <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-purple-core/10 border border-purple-core/20 flex items-center justify-center">
-                      <problem.icon className="w-5 h-5" />
-                    </div>
+                  {/* Title */}
+                  <h4 className="font-serif text-[18px] text-white mb-3 leading-snug">
+                    {problem.title}
+                  </h4>
 
-                    {/* Content */}
-                    <div className="relative z-[1]">
-                      <h4 className="font-serif font-light text-[18px] md:text-[21px] text-white mb-2 leading-snug">
-                        {problem.title}
-                      </h4>
-                      <p className="font-sans font-light text-sm text-grey-light leading-[1.8] max-w-[540px]">
-                        {problem.description}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Bottom accent line */}
-                  <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-core/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  {/* Description */}
+                  <p className="font-sans text-[13px] text-grey-light leading-[1.8]">
+                    {problem.description}
+                  </p>
                 </div>
               </div>
             </StaggerItem>

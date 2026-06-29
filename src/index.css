@@ -1,28 +1,29 @@
 @import "tailwindcss";
 
 @theme {
-  --color-void: #0a0812;
-  --color-deep: #0e0c1a;
-  --color-surface: #151228;
-  --color-card: #211e38;
-  --color-card-hover: #292548;
-  --color-border: #362f5a;
-  --color-border-glow: #5a4f8a;
+  --color-void: #09090F;
+  --color-deep: #0C0C14;
+  --color-surface: #0E0E1A;
+  --color-card: #14141F;
+  --color-card-hover: #1C1C2A;
+  --color-border: #1C1C28;
+  --color-border-glow: #2A2A3A;
+  --color-cream: #F5F4F2;
 
-  --color-purple-core: #7c5cbf;
-  --color-purple-bright: #9b7ee0;
-  --color-purple-glow: #b89ff0;
-  --color-purple-soft: #d4c4f8;
-  --color-purple-mist: #ede7ff;
+  --color-purple-core: #7C3AED;
+  --color-purple-bright: #8B5CF6;
+  --color-purple-glow: #A78BFA;
+  --color-purple-soft: #DDD6FE;
+  --color-purple-mist: #EDE9FE;
 
   --color-gold: #c9a96e;
   --color-gold-soft: #e8d5a8;
-  --color-white: #f4f1ff;
-  --color-grey: #8b87a8;
-  --color-grey-light: #c4c0d8;
+  --color-white: #FFFFFF;
+  --color-grey: #6B7280;
+  --color-grey-light: #9CA3AF;
 
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
-  --font-sans: 'DM Sans', Arial, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Nunito', Arial, sans-serif;
 }
 
 /* ========== BASE STYLES ========== */
@@ -49,7 +50,7 @@
 
   body {
     font-family: var(--font-sans);
-    font-weight: 300;
+    font-weight: 400;
     background: var(--color-void);
     color: var(--color-white);
     line-height: 1.7;
@@ -58,8 +59,13 @@
 
   h1, h2, h3, h4, h5 {
     font-family: var(--font-serif);
-    font-weight: 300;
-    line-height: 1.2;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+  }
+
+  em {
+    font-synthesis: none;
   }
 
   a {
@@ -95,11 +101,11 @@
 
 /* ========== CARD GLOW SHADOWS ========== */
 .card-glow {
-  box-shadow: 0 4px 24px rgba(124, 92, 191, 0.12), 0 0 0 1px rgba(54, 47, 90, 0.5);
+  box-shadow: 0 4px 24px rgba(124, 58, 237, 0.10), 0 0 0 1px rgba(28, 28, 40, 0.8);
 }
 
 .card-glow-hover {
-  box-shadow: 0 12px 48px rgba(124, 92, 191, 0.22), 0 0 0 1px rgba(124, 92, 191, 0.4);
+  box-shadow: 0 12px 48px rgba(124, 58, 237, 0.20), 0 0 0 1px rgba(124, 58, 237, 0.35);
 }
 
 /* ========== SECTION DIVIDER ========== */
@@ -120,11 +126,53 @@
   opacity: 0.4;
 }
 
-/* ========== BOUNCE KEYFRAME ========== */
+/* ========== FLOAT ANIMATION ========== */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+.animate-float { animation: float 3s ease-in-out infinite; }
+
+/* ========== MARQUEE ========== */
+@keyframes marqueeScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.marquee-track { animation: marqueeScroll 28s linear infinite; }
+
+/* ========== BOUNCE IN ========== */
+@keyframes bounceIn {
+  0%   { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+  70%  { transform: scale(1.05) rotate(1deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+.bounce-in { animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+/* ========== BOUNCE KEYFRAME (scroll indicator) ========== */
 @keyframes bounce {
   0%, 100% { transform: translateX(-50%) translateY(0); }
   50% { transform: translateX(-50%) translateY(10px); }
 }
+
+/* ========== BLOOM STUDIO — shared utilities ========== */
+@keyframes evolutionFlash {
+  0%, 100% { opacity: 0; }
+  20%, 80%  { opacity: 0.8; }
+}
+.evolution-flash { animation: evolutionFlash 0.9s ease-in-out; }
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+.xp-bar-fill {
+  background: linear-gradient(90deg, #7C3AED, #A78BFA, #7C3AED);
+  background-size: 200% auto;
+  animation: shimmer 2.5s linear infinite;
+}
+
+.font-display { font-family: 'Playfair Display', Georgia, serif; }
+.font-nunito  { font-family: 'Nunito', Arial, sans-serif; }
 
 /* ========== HAMBURGER ANIMATION ========== */
 .hamburger.active span:nth-child(1) {
