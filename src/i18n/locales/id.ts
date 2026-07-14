@@ -628,6 +628,36 @@ export const id: EnTranslations = {
           headline2: 'Catat.',
           desc: 'Check-in mood cepat dengan tag, heatmap kalender, dan tren. Pet langitmu ikut cerah bersamamu.',
         },
+        freelance: {
+          headline1: 'Kerja mandiri.',
+          headline2: 'Dibayar pantas.',
+          desc: 'Klien, proyek, deadline, dan penghasilan dalam satu tempat. Pet gigihmu tumbuh tiap proyek.',
+        },
+        health: {
+          headline1: 'Makan sehat.',
+          headline2: 'Hidup bugar.',
+          desc: 'Makanan, kalori, air, dan berat badan dalam satu rutinitas. Pet vitalmu tumbuh bersamamu.',
+        },
+        cycle: {
+          headline1: 'Kenali ritmemu.',
+          headline2: 'Pahami siklusmu.',
+          desc: 'Haid, gejala, dan prediksi lembut dalam kalender privat. Pet bungamu tumbuh seirama denganmu.',
+        },
+        travel: {
+          headline1: 'Rencanakan liburan.',
+          headline2: 'Jaga budget.',
+          desc: 'Itinerary dan budget perjalanan berdampingan. Pet petualangmu ikut terbang tiap perjalanan.',
+        },
+        baby: {
+          headline1: 'Setiap menyusu.',
+          headline2: 'Setiap momen.',
+          desc: 'Menyusu, tidur, popok, tumbuh kembang, dan milestone — dicatat dua ketukan. Pet mungilmu ikut bertumbuh.',
+        },
+        pet: {
+          headline1: 'Peliharaan bahagia.',
+          headline2: 'Tanpa lupa.',
+          desc: 'Catatan harian, pengingat vaksin, dan berat badan tiap peliharaan. Pet pendampingmu ikut menjaga.',
+        },
       },
     },
     modal: {

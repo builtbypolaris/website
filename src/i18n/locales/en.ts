@@ -744,6 +744,36 @@ export const en = {
           headline2: 'Track it.',
           desc: 'Quick mood check-ins with tags, a calendar heatmap, and trends. Your sky pet brightens with you.',
         },
+        freelance: {
+          headline1: 'Work for yourself.',
+          headline2: 'Get paid right.',
+          desc: 'Clients, projects, deadlines and earnings in one hub. Your hustle pet grows with every gig.',
+        },
+        health: {
+          headline1: 'Eat well.',
+          headline2: 'Feel better.',
+          desc: 'Meals, calories, water and weight in one gentle daily loop. Your vitality pet thrives as you do.',
+        },
+        cycle: {
+          headline1: 'Know your rhythm.',
+          headline2: 'Own your month.',
+          desc: 'Periods, symptoms and gentle predictions on a private calendar. Your bloom pet grows with your rhythm.',
+        },
+        travel: {
+          headline1: 'Plan the trip.',
+          headline2: 'Keep the budget.',
+          desc: 'Itineraries and travel budgets side by side. Your voyager pet earns its wings with every trip.',
+        },
+        baby: {
+          headline1: 'Every feed.',
+          headline2: 'Every first.',
+          desc: 'Feeds, sleep, diapers, growth and milestones — logged in two taps. Your nursery pet grows alongside.',
+        },
+        pet: {
+          headline1: 'Happy pets.',
+          headline2: 'Zero guesswork.',
+          desc: 'Daily care logs, vet reminders and weight tracking per pet. Your companion pet joins the pack.',
+        },
       },
     },
     modal: {

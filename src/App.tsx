@@ -25,6 +25,12 @@ const TRACKER_PAGES: Record<TemplateId, React.LazyExoticComponent<React.Componen
   savings: lazy(() => import('./novo/pages/Savings')),
   study: lazy(() => import('./novo/pages/Study')),
   mood: lazy(() => import('./novo/pages/Mood')),
+  freelance: lazy(() => import('./novo/pages/Freelance')),
+  health: lazy(() => import('./novo/pages/Health')),
+  cycle: lazy(() => import('./novo/pages/Cycle')),
+  travel: lazy(() => import('./novo/pages/Travel')),
+  baby: lazy(() => import('./novo/pages/Baby')),
+  pet: lazy(() => import('./novo/pages/Pet')),
 }
 
 export default function App() {

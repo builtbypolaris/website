@@ -78,6 +78,84 @@ export const MOOD_STAGES: CreatureStage[] = [
   { id: 9, emoji: '✨', name: 'Aurora Spirit', color: '#A5F3FC', glow: '#06B6D4', description: 'The whole sky dancing with serenity', xpRequired: 6000 },
 ]
 
+export const FREELANCE_STAGES: CreatureStage[] = [
+  { id: 0, emoji: '🐜', name: 'Busy Ant', color: '#D6D3D1', glow: '#78716C', description: 'Small, but never stops working', xpRequired: 0 },
+  { id: 1, emoji: '🐝', name: 'Gig Bee', color: '#FDE68A', glow: '#D97706', description: 'Buzzing between a dozen little jobs', xpRequired: 100 },
+  { id: 2, emoji: '🦔', name: 'Hustle Hedgehog', color: '#FED7AA', glow: '#EA580C', description: 'Juggles clients without dropping a quill', xpRequired: 300 },
+  { id: 3, emoji: '🐆', name: 'Deadline Cheetah', color: '#FEF3C7', glow: '#CA8A04', description: 'Never missed a deadline in its life', xpRequired: 600 },
+  { id: 4, emoji: '🦩', name: 'Portfolio Flamingo', color: '#FBCFE8', glow: '#DB2777', description: 'Stands out in any crowd of applicants', xpRequired: 1000 },
+  { id: 5, emoji: '🤖', name: 'Auto-Pilot Bot', color: '#BAE6FD', glow: '#0284C7', description: 'Systems running, invoices sent', xpRequired: 1600 },
+  { id: 6, emoji: '🦈', name: 'Rate Shark', color: '#A5F3FC', glow: '#0891B2', description: 'Negotiates rates nobody dares refuse', xpRequired: 2400 },
+  { id: 7, emoji: '🏆', name: 'Golden Client', color: '#FDE68A', glow: '#EAB308', description: 'The trophy of a five-star reputation', xpRequired: 3400 },
+  { id: 8, emoji: '🚀', name: 'Agency Rocket', color: '#DDD6FE', glow: '#7C3AED', description: 'From solo gig to soaring agency', xpRequired: 4600 },
+  { id: 9, emoji: '💫', name: 'Empire Comet', color: '#C7D2FE', glow: '#4F46E5', description: 'A one-person empire blazing across the sky', xpRequired: 6000 },
+]
+
+export const HEALTH_STAGES: CreatureStage[] = [
+  { id: 0, emoji: '🫘', name: 'Little Bean', color: '#FED7AA', glow: '#C2410C', description: 'Every healthy habit starts small', xpRequired: 0 },
+  { id: 1, emoji: '🥕', name: 'Crunchy Carrot', color: '#FED7AA', glow: '#EA580C', description: 'Snacks that fight back', xpRequired: 100 },
+  { id: 2, emoji: '🥑', name: 'Avo Buddy', color: '#D9F99D', glow: '#65A30D', description: 'Good fats, great vibes', xpRequired: 300 },
+  { id: 3, emoji: '🍎', name: 'Apple Ace', color: '#FCA5A5', glow: '#DC2626', description: 'Keeps the doctor guessing', xpRequired: 600 },
+  { id: 4, emoji: '🥦', name: 'Broccoli Boss', color: '#BBF7D0', glow: '#16A34A', description: 'Feared by kids, loved by gains', xpRequired: 1000 },
+  { id: 5, emoji: '💪', name: 'Flex Spirit', color: '#FEF3C7', glow: '#D97706', description: 'Strength you can feel', xpRequired: 1600 },
+  { id: 6, emoji: '🧘', name: 'Zen Master', color: '#DDD6FE', glow: '#7C3AED', description: 'Balance in body and mind', xpRequired: 2400 },
+  { id: 7, emoji: '🏃', name: 'Marathon Soul', color: '#BAE6FD', glow: '#0284C7', description: 'Endurance without end', xpRequired: 3400 },
+  { id: 8, emoji: '⚡', name: 'Vital Spark', color: '#FDE68A', glow: '#EAB308', description: 'Pure energy in motion', xpRequired: 4600 },
+  { id: 9, emoji: '🌞', name: 'Golden Glow', color: '#FEF3C7', glow: '#F59E0B', description: 'A lifetime of wellness, glowing from within', xpRequired: 6000 },
+]
+
+export const CYCLE_STAGES: CreatureStage[] = [
+  { id: 0, emoji: '🌷', name: 'Tulip Bud', color: '#FBCFE8', glow: '#DB2777', description: 'A soft bud, resting', xpRequired: 0 },
+  { id: 1, emoji: '🌸', name: 'Cherry Blossom', color: '#FBCFE8', glow: '#EC4899', description: 'Blooming in her own rhythm', xpRequired: 100 },
+  { id: 2, emoji: '🦢', name: 'Graceful Swan', color: '#F3F4F6', glow: '#9CA3AF', description: 'Calm on the surface, strong beneath', xpRequired: 300 },
+  { id: 3, emoji: '🌺', name: 'Hibiscus Queen', color: '#FCA5A5', glow: '#E11D48', description: 'Bold and beautifully in tune', xpRequired: 600 },
+  { id: 4, emoji: '🧚', name: 'Cycle Fairy', color: '#DDD6FE', glow: '#7C3AED', description: 'Knows exactly what each day needs', xpRequired: 1000 },
+  { id: 5, emoji: '🌹', name: 'Rose Empress', color: '#FCA5A5', glow: '#BE123C', description: 'Elegance with thorns when needed', xpRequired: 1600 },
+  { id: 6, emoji: '🌛', name: 'Crescent Sister', color: '#FEF3C7', glow: '#CA8A04', description: 'In sync with the moon', xpRequired: 2400 },
+  { id: 7, emoji: '💮', name: 'Blossom Spirit', color: '#FBCFE8', glow: '#DB2777', description: 'Serenity in full bloom', xpRequired: 3400 },
+  { id: 8, emoji: '🪷', name: 'Sacred Lotus', color: '#FBCFE8', glow: '#BE185D', description: 'Rooted, rising, radiant', xpRequired: 4600 },
+  { id: 9, emoji: '🌕', name: 'Full Moon Goddess', color: '#FDE68A', glow: '#EAB308', description: 'Complete harmony with every cycle', xpRequired: 6000 },
+]
+
+export const TRAVEL_STAGES: CreatureStage[] = [
+  { id: 0, emoji: '🐌', name: 'Homebody Snail', color: '#D6D3D1', glow: '#78716C', description: 'Carries home everywhere it goes', xpRequired: 0 },
+  { id: 1, emoji: '🦆', name: 'Puddle Duck', color: '#FDE68A', glow: '#D97706', description: 'First little trips beyond the pond', xpRequired: 100 },
+  { id: 2, emoji: '🎒', name: 'Backpack Sprite', color: '#FED7AA', glow: '#EA580C', description: 'Packed and ready for anything', xpRequired: 300 },
+  { id: 3, emoji: '🗺️', name: 'Map Whisperer', color: '#FEF3C7', glow: '#CA8A04', description: 'Reads maps like bedtime stories', xpRequired: 600 },
+  { id: 4, emoji: '🐘', name: 'Caravan Elephant', color: '#D6D3D1', glow: '#6B7280', description: 'Never forgets an itinerary', xpRequired: 1000 },
+  { id: 5, emoji: '⛵', name: 'Sail Spirit', color: '#BAE6FD', glow: '#0284C7', description: 'Wind in its sails, world in its sights', xpRequired: 1600 },
+  { id: 6, emoji: '🐋', name: 'Ocean Voyager', color: '#A5F3FC', glow: '#0891B2', description: 'Crosses oceans like puddles', xpRequired: 2400 },
+  { id: 7, emoji: '🧭', name: 'Compass Sage', color: '#FCA5A5', glow: '#DC2626', description: 'Always knows the way', xpRequired: 3400 },
+  { id: 8, emoji: '🎈', name: 'Sky Balloon', color: '#FBCFE8', glow: '#DB2777', description: 'Drifting over wonders of the world', xpRequired: 4600 },
+  { id: 9, emoji: '🛸', name: 'Galaxy Nomad', color: '#C7D2FE', glow: '#4F46E5', description: 'No destination left unexplored', xpRequired: 6000 },
+]
+
+export const BABY_STAGES: CreatureStage[] = [
+  { id: 0, emoji: '🥚', name: 'Little Egg', color: '#F3F4F6', glow: '#9CA3AF', description: 'Something wonderful is starting', xpRequired: 0 },
+  { id: 1, emoji: '🐣', name: 'Hatchling', color: '#FDE68A', glow: '#EAB308', description: 'Fresh into the world', xpRequired: 100 },
+  { id: 2, emoji: '🧸', name: 'Teddy Friend', color: '#FED7AA', glow: '#C2410C', description: 'Softest guardian of naptime', xpRequired: 300 },
+  { id: 3, emoji: '🍼', name: 'Bottle Buddy', color: '#BAE6FD', glow: '#0284C7', description: 'Fueled and growing fast', xpRequired: 600 },
+  { id: 4, emoji: '🐑', name: 'Lullaby Lamb', color: '#F3F4F6', glow: '#6B7280', description: 'Counts itself to sleep', xpRequired: 1000 },
+  { id: 5, emoji: '🦒', name: 'Growth Giraffe', color: '#FDE68A', glow: '#D97706', description: 'Taller every single week', xpRequired: 1600 },
+  { id: 6, emoji: '🎠', name: 'Carousel Dreamer', color: '#FBCFE8', glow: '#DB2777', description: 'Every day a little adventure', xpRequired: 2400 },
+  { id: 7, emoji: '🪁', name: 'Kite Dancer', color: '#BAE6FD', glow: '#0369A1', description: 'Learning to soar, safely held', xpRequired: 3400 },
+  { id: 8, emoji: '🎀', name: 'Precious Bow', color: '#FBCFE8', glow: '#EC4899', description: 'Every milestone wrapped in love', xpRequired: 4600 },
+  { id: 9, emoji: '👼', name: 'Little Angel', color: '#FEF3C7', glow: '#F59E0B', description: 'Growing up wrapped in love', xpRequired: 6000 },
+]
+
+export const PET_STAGES: CreatureStage[] = [
+  { id: 0, emoji: '🐾', name: 'Tiny Paws', color: '#D6D3D1', glow: '#78716C', description: 'Small prints, big heart', xpRequired: 0 },
+  { id: 1, emoji: '🐹', name: 'Pocket Pal', color: '#FED7AA', glow: '#D97706', description: 'Fits right in your palm', xpRequired: 100 },
+  { id: 2, emoji: '🐈', name: 'House Cat', color: '#FDE68A', glow: '#CA8A04', description: 'Rules the sofa kingdom', xpRequired: 300 },
+  { id: 3, emoji: '🐕', name: 'Loyal Pup', color: '#FED7AA', glow: '#C2410C', description: 'Best friend in training', xpRequired: 600 },
+  { id: 4, emoji: '🐩', name: 'Show Poodle', color: '#F3F4F6', glow: '#9CA3AF', description: 'Groomed to perfection', xpRequired: 1000 },
+  { id: 5, emoji: '🐎', name: 'Noble Steed', color: '#D6D3D1', glow: '#57534E', description: 'Companion of champions', xpRequired: 1600 },
+  { id: 6, emoji: '🦮', name: 'Guide Guardian', color: '#FDE68A', glow: '#D97706', description: 'Always by your side', xpRequired: 2400 },
+  { id: 7, emoji: '🦖', name: 'Dino Buddy', color: '#BBF7D0', glow: '#16A34A', description: 'A legendary companion from another age', xpRequired: 3400 },
+  { id: 8, emoji: '🐕‍🦺', name: 'Hero Hound', color: '#FCA5A5', glow: '#DC2626', description: 'Saves your day, every day', xpRequired: 4600 },
+  { id: 9, emoji: '🌟', name: 'Forever Friend', color: '#FDE68A', glow: '#EAB308', description: 'A bond that outshines everything', xpRequired: 6000 },
+]
+
 export function getStageFromXP(stages: CreatureStage[], xp: number): CreatureStage {
   let current = stages[0]
   for (const stage of stages) {

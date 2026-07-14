@@ -1,4 +1,7 @@
-export type TemplateId = 'financial' | 'todo' | 'habit' | 'savings' | 'study' | 'mood'
+export type TemplateId =
+  | 'financial' | 'todo' | 'habit'
+  | 'savings' | 'study' | 'mood'
+  | 'freelance' | 'health' | 'cycle' | 'travel' | 'baby' | 'pet'
 
 export interface User {
   username: string
@@ -134,6 +137,212 @@ export interface MoodEntry {
 
 export interface MoodData {
   entries: MoodEntry[]
+  character: CharacterState
+}
+
+// Freelance
+export type RateType = 'hourly' | 'fixed'
+
+export interface Client {
+  id: string
+  name: string
+  contact: string
+  createdAt: string
+}
+
+export interface Project {
+  id: string
+  clientId: string
+  name: string
+  deadline?: string
+  rateType: RateType
+  rate: number
+  status: 'active' | 'done'
+  createdAt: string
+}
+
+export interface WorkLog {
+  id: string
+  projectId: string
+  hours?: number
+  amount: number
+  note: string
+  date: string
+}
+
+export interface FreelanceData {
+  clients: Client[]
+  projects: Project[]
+  workLogs: WorkLog[]
+  character: CharacterState
+}
+
+// Health
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack'
+
+export interface Meal {
+  id: string
+  mealType: MealType
+  food: string
+  calories?: number
+  date: string
+}
+
+export interface WeightLog {
+  id: string
+  weightKg: number
+  date: string
+}
+
+export interface HealthGoals {
+  calorieTarget: number
+  waterTarget: number
+}
+
+export interface HealthData {
+  meals: Meal[]
+  waterByDate: Record<string, number>
+  weights: WeightLog[]
+  goals: HealthGoals
+  character: CharacterState
+}
+
+// Cycle
+export interface Period {
+  id: string
+  startDate: string
+  endDate?: string
+}
+
+export interface CycleLog {
+  date: string
+  flow: number  // 0-3
+  symptoms: string[]
+  note: string
+}
+
+export interface CycleData {
+  periods: Period[]
+  logs: CycleLog[]
+  character: CharacterState
+}
+
+// Travel
+export interface Trip {
+  id: string
+  destination: string
+  emoji: string
+  startDate: string
+  endDate: string
+  budget: number
+  createdAt: string
+}
+
+export interface ItineraryItem {
+  id: string
+  tripId: string
+  day: string
+  time?: string
+  title: string
+  location: string
+}
+
+export interface TripExpense {
+  id: string
+  tripId: string
+  amount: number
+  category: string
+  note: string
+  date: string
+}
+
+export interface TravelData {
+  trips: Trip[]
+  items: ItineraryItem[]
+  expenses: TripExpense[]
+  character: CharacterState
+}
+
+// Baby
+export type BabyEventType = 'feeding' | 'sleep_start' | 'sleep_end' | 'diaper' | 'pumping'
+
+export interface Baby {
+  id: string
+  name: string
+  emoji: string
+  birthdate: string
+}
+
+export interface BabyEvent {
+  id: string
+  babyId: string
+  eventType: BabyEventType
+  eventAt: string
+  note: string
+}
+
+export interface GrowthEntry {
+  id: string
+  babyId: string
+  date: string
+  weightKg?: number
+  heightCm?: number
+}
+
+export interface Milestone {
+  id: string
+  babyId: string
+  title: string
+  date: string
+}
+
+export interface BabyData {
+  babies: Baby[]
+  events: BabyEvent[]
+  growth: GrowthEntry[]
+  milestones: Milestone[]
+  character: CharacterState
+}
+
+// Pet
+export type PetEventType = 'feeding' | 'walk' | 'grooming' | 'vet' | 'medication' | 'play'
+
+export interface Pet {
+  id: string
+  name: string
+  species: string
+  emoji: string
+  birthdate?: string
+}
+
+export interface PetEvent {
+  id: string
+  petId: string
+  eventType: PetEventType
+  eventAt: string
+  note: string
+}
+
+export interface PetCareItem {
+  id: string
+  petId: string
+  title: string
+  dueDate: string
+  done: boolean
+}
+
+export interface PetWeight {
+  id: string
+  petId: string
+  date: string
+  weightKg: number
+}
+
+export interface PetData {
+  pets: Pet[]
+  events: PetEvent[]
+  careItems: PetCareItem[]
+  weights: PetWeight[]
   character: CharacterState
 }
 
