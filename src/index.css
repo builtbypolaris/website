@@ -81,6 +81,14 @@
     max-width: 100%;
     display: block;
   }
+
+  /* Tailwind v4 preflight leaves buttons with the arrow cursor — every
+     enabled button/select should show the hand on hover */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  select:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 /* ========== FADE UP ANIMATION ========== */
@@ -173,6 +181,25 @@
 
 .font-display { font-family: 'Playfair Display', Georgia, serif; }
 .font-nunito  { font-family: 'Nunito', Arial, sans-serif; }
+.font-fredoka { font-family: 'Nunito', Arial, sans-serif; font-weight: 800; }
+
+/* ========== NOVO — pet & mini-game animations ========== */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+.animate-pulseGlow { animation: pulseGlow 2.5s ease-in-out infinite; }
+
+@keyframes particleFloat {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(-70px) rotate(360deg); opacity: 0; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-6px); }
+  75%      { transform: translateX(6px); }
+}
 
 /* ========== HAMBURGER ANIMATION ========== */
 .hamburger.active span:nth-child(1) {

@@ -230,21 +230,35 @@ function TemplateModal({ t, onClose, onBuy, previewLabel, getItLabel }: { t: Tem
 
 interface TrackerCopy { headline1: string; headline2: string; desc: string }
 
-function TemplateCard({ tpl, copy, seeMore, onClick }: { tpl: TemplateInfo; copy: TrackerCopy; seeMore: string; onClick: () => void }) {
+function TemplateCard({ tpl, copy, seeMore, onClick, index }: { tpl: TemplateInfo; copy: TrackerCopy; seeMore: string; onClick: () => void; index: number }) {
   const featured = !!tpl.featured
-  const border = tpl.accent + '26'
-  const borderHover = tpl.accent + '55'
+  const border = tpl.accent + '40'
+  const borderHover = tpl.accent + '80'
+  // Each card gets its own richly tinted night-sky: a glowing accent corner
+  // behind the creature + an accent-washed body. Corner position alternates
+  // so neighboring cards don't look stamped from the same mold.
+  const glowRight = index % 2 === 0
+  const bg = [
+    `radial-gradient(130% 95% at ${glowRight ? '85% 8%' : '12% 10%'}, color-mix(in srgb, ${tpl.accent} 42%, #0A0A12) 0%, transparent 58%)`,
+    `linear-gradient(${glowRight ? '160deg' : '205deg'}, color-mix(in srgb, ${tpl.accent} 20%, #0A0A12) 0%, #0A0A12 80%)`,
+  ].join(', ')
   return (
     <div
       className={`cursor-pointer overflow-hidden relative ${featured ? 'md:col-span-2 md:row-span-2 min-h-[380px]' : 'min-h-[200px]'}`}
       style={{
-        background: `linear-gradient(145deg, ${tpl.accent}14 0%, #0A0A12 65%)`,
+        background: bg,
         border: `1px solid ${border}`,
         borderRadius: 16,
-        transition: 'border-color 0.25s',
+        transition: 'border-color 0.25s, box-shadow 0.25s',
       }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = borderHover)}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = border)}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = borderHover
+        e.currentTarget.style.boxShadow = `0 10px 40px ${tpl.accent}30`
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = border
+        e.currentTarget.style.boxShadow = 'none'
+      }}
       onClick={onClick}
     >
       <div style={{
@@ -254,7 +268,7 @@ function TemplateCard({ tpl, copy, seeMore, onClick }: { tpl: TemplateInfo; copy
         fontSize: featured ? 96 : 64,
         lineHeight: 1,
         userSelect: 'none',
-        filter: `drop-shadow(0 8px 28px ${tpl.accent}60)`,
+        filter: `drop-shadow(0 8px 28px ${tpl.accent}90)`,
         animation: 'float 3s ease-in-out infinite',
       }}>
         {tpl.stages[9].emoji}
@@ -423,10 +437,11 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-3" style={{ gridAutoRows: 'minmax(200px, auto)' }}>
-            {TEMPLATES.map(tpl => (
+            {TEMPLATES.map((tpl, i) => (
               <TemplateCard
                 key={tpl.id}
                 tpl={tpl}
+                index={i}
                 copy={s.templates.trackers[tpl.id]}
                 seeMore={s.templates.seeMore}
                 onClick={() => setModal(tpl)}
