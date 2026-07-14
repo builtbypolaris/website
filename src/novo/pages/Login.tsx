@@ -166,6 +166,12 @@ export default function Login() {
         } else {
           setOnboardingUserId(data.user.id)
         }
+      } else if (data.user && data.user.identities?.length === 0) {
+        // signUp with an already-registered email returns a stub user with no
+        // identities (Supabase hides account existence) — send them to sign in
+        setMode('signin')
+        setError('This email is already registered — sign in with your password below.')
+        setLoading(false)
       } else {
         // Email confirmation required (signUp returns a user but no session)
         setError('Check your email to confirm your account, then sign in.')
