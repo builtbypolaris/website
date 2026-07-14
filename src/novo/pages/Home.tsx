@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { TEMPLATES, TRACKER_PRICE_IDR } from '../data/templates'
 import type { TemplateInfo } from '../types'
 import { Constellation } from '../../components/ui/Constellation'
-import { useT } from '../../i18n'
+import { en } from '../../i18n/locales/en'
 
 function formatRp(n: number) {
   return 'Rp ' + n.toLocaleString('id-ID')
@@ -292,8 +292,9 @@ export default function Home() {
   const navigate = useNavigate()
   const { session } = useAuth()
   const [modal, setModal] = useState<TemplateInfo | null>(null)
-  const t = useT()
-  const s = t.studios
+  // Novo is an English-only product — always use the English copy,
+  // regardless of the main site's language switcher.
+  const s = en.studios
 
   const go = () => navigate(session ? '/studios/dashboard' : '/studios/login')
 
