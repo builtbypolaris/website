@@ -140,13 +140,16 @@ export default function Login() {
     setLoading(true)
 
     if (mode === 'signin') {
-      const { error: err } = await signInWithEmail(email.trim(), password)
+      const { data, error: err } = await signInWithEmail(email.trim(), password)
       if (err) {
         setError(err.message)
         setLoading(false)
         return
       }
-      navigate('/studios/dashboard')
+      // Users who confirmed their email but never finished onboarding land here
+      const profile = data.user ? await getProfile(data.user.id) : null
+      if (profile) navigate('/studios/dashboard')
+      else if (data.user) setOnboardingUserId(data.user.id)
     } else {
       const { data, error: err } = await signUpWithEmail(email.trim(), password)
       if (err) {
@@ -154,8 +157,9 @@ export default function Login() {
         setLoading(false)
         return
       }
-      if (data.user) {
-        // Check if profile already exists (e.g. email confirmation disabled)
+      // Only proceed to onboarding with a live session — without one the
+      // profile insert would run unauthenticated and be rejected by RLS.
+      if (data.session && data.user) {
         const profile = await getProfile(data.user.id)
         if (profile) {
           navigate('/studios/dashboard')
@@ -163,7 +167,7 @@ export default function Login() {
           setOnboardingUserId(data.user.id)
         }
       } else {
-        // Email confirmation required
+        // Email confirmation required (signUp returns a user but no session)
         setError('Check your email to confirm your account, then sign in.')
         setLoading(false)
       }
