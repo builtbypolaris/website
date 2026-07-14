@@ -52,7 +52,7 @@ export const QUICK_STATS: Record<TemplateId, (userId: string) => Promise<QuickSt
     return [
       { label: 'Saved', value: `${(saved / 1000).toFixed(0)}K` },
       { label: 'Goals', value: String(goals.length) },
-      { label: 'Cicilan', value: String(active) },
+      { label: 'Installments', value: String(active) },
     ]
   },
   study: async userId => {

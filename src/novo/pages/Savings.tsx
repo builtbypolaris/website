@@ -22,7 +22,7 @@ import type { SavingsData, Installment, SavingsGoal } from '../types'
 const GOAL_EMOJIS = ['🎯', '🏠', '🚗', '📱', '✈️', '💍', '🎓', '🛵']
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
-type MainTab = 'overview' | 'goals' | 'cicilan' | 'games'
+type MainTab = 'overview' | 'goals' | 'installments' | 'games'
 
 const ACCENT = '#0D9488'
 const CARD_BG = '#FFFFFF'
@@ -156,9 +156,9 @@ export default function Savings() {
       })
       setData(d => d ? { ...d, installments: [...d.installments, inst] } : d)
       setInstForm({ item: '', total: '', monthly: '', dueDay: '10' })
-      showToast('Cicilan added!')
+      showToast('Installment added!')
     } catch {
-      showToast('Failed to add cicilan', false)
+      showToast('Failed to add installment', false)
     }
   }
 
@@ -230,7 +230,7 @@ export default function Savings() {
         >
           ←
         </button>
-        <div className="font-nunito font-bold text-[#09090F] text-sm md:text-base">🐖 Nabung & Cicilan</div>
+        <div className="font-nunito font-bold text-[#09090F] text-sm md:text-base">🐖 Savings & Installments</div>
         <div className="hidden lg:flex items-center gap-1.5 text-xs font-nunito text-[#09090F]/50 bg-black/5 px-2.5 py-1.5 rounded-lg">
           <span>{petStage.emoji}</span>
           <span>{data.character.xp} XP</span>
@@ -252,7 +252,7 @@ export default function Savings() {
             {[
               { label: 'Total saved', value: formatRp(totalSaved), color: GOOD_COLOR },
               { label: 'Goals done', value: `${completedGoals}/${data.goals.length}`, color: ACCENT },
-              { label: 'Monthly cicilan', value: formatRp(monthlyCommit), color: '#09090F' },
+              { label: 'Monthly payments', value: formatRp(monthlyCommit), color: '#09090F' },
               { label: 'Remaining debt', value: formatRp(totalDebt), color: totalDebt > 0 ? BAD_COLOR : GOOD_COLOR },
             ].map(m => (
               <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
@@ -267,7 +267,7 @@ export default function Savings() {
             {([
               { key: 'overview', label: '📊 Overview' },
               { key: 'goals',    label: '🎯 Goals' },
-              { key: 'cicilan',  label: '📅 Cicilan' },
+              { key: 'installments', label: '📅 Installments' },
               { key: 'games',    label: '🎮 Games' },
             ] as { key: MainTab; label: string }[]).map(t => (
               <button
@@ -349,7 +349,7 @@ export default function Savings() {
               {overdueCount > 0 && (
                 <div className="rounded-xl p-3 text-xs font-nunito leading-relaxed" style={{ background: '#FEE2E2', border: '1px solid #FCA5A5' }}>
                   <strong className="text-red-700">Heads up:</strong>{' '}
-                  <span className="text-red-800">{overdueCount} cicilan {overdueCount === 1 ? 'is' : 'are'} overdue this month. Pay on time to earn +25 XP instead of +10!</span>
+                  <span className="text-red-800">{overdueCount} installment{overdueCount === 1 ? ' is' : 's are'} overdue this month. Pay on time to earn +25 XP instead of +10!</span>
                 </div>
               )}
 
@@ -357,7 +357,7 @@ export default function Savings() {
                 <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
                   <div className="text-5xl mb-3">🐖</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">Nothing here yet</div>
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Create a savings goal or add a cicilan to get started</div>
+                  <div className="text-xs text-[#09090F]/40 font-nunito">Create a savings goal or add an installment to get started</div>
                 </div>
               )}
             </div>
@@ -507,12 +507,12 @@ export default function Savings() {
           )}
 
           {/* ── CICILAN ──────────────────────────────────────── */}
-          {mainTab === 'cicilan' && (
+          {mainTab === 'installments' && (
             <div className="space-y-4">
 
               {/* Add installment */}
               <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>New Cicilan</div>
+                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>New Installment</div>
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   <input
                     type="text"
@@ -556,7 +556,7 @@ export default function Savings() {
                   className="w-full py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
                   style={{ background: ACCENT }}
                 >
-                  Add Cicilan
+                  Add Installment
                 </button>
               </div>
 
@@ -580,7 +580,7 @@ export default function Savings() {
                       <div className="flex-1 min-w-0">
                         <div className="font-nunito font-bold text-sm text-[#09090F] truncate">
                           {inst.itemName}
-                          {lunas && <span className="ml-2" style={{ color: GOOD_COLOR }}>✓ Lunas!</span>}
+                          {lunas && <span className="ml-2" style={{ color: GOOD_COLOR }}>✓ Paid off!</span>}
                           {overdue && <span className="ml-2 text-xs font-nunito font-bold px-2 py-0.5 rounded-full" style={{ background: '#FEE2E2', color: BAD_COLOR }}>Overdue</span>}
                         </div>
                         <div className="text-xs text-[#09090F]/50 font-nunito">
@@ -623,7 +623,7 @@ export default function Savings() {
               {data.installments.length === 0 && (
                 <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
                   <div className="text-5xl mb-3">📅</div>
-                  <div className="font-nunito font-semibold text-[#09090F] mb-1">No cicilan yet</div>
+                  <div className="font-nunito font-semibold text-[#09090F] mb-1">No installments yet</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Add an installment plan above — paying on time earns bonus XP!</div>
                 </div>
               )}
@@ -676,7 +676,7 @@ export default function Savings() {
             )}
             <div className="rounded-xl p-3 text-xs font-nunito leading-relaxed" style={{ background: '#CCFBF1', border: '1px solid #99F6E4' }}>
               <strong className="text-teal-700">Pet tip:</strong>{' '}
-              <span className="text-teal-800">Deposits earn +15 XP, on-time cicilan +25 XP, and finishing a goal +50 XP!</span>
+              <span className="text-teal-800">Deposits earn +15 XP, on-time installments +25 XP, and finishing a goal +50 XP!</span>
             </div>
           </div>
         </aside>

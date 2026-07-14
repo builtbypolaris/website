@@ -732,7 +732,7 @@ export const en = {
         savings: {
           headline1: 'Save up.',
           headline2: 'Pay it off.',
-          desc: 'Savings goals and cicilan schedules in one place. Your treasure pet grows with every deposit.',
+          desc: 'Savings goals and installment schedules in one place. Your treasure pet grows with every deposit.',
         },
         study: {
           headline1: 'Study smart.',
