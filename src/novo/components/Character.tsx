@@ -1,25 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import type { TemplateId, CreatureStage } from '../types'
-import {
-  FINANCIAL_STAGES, TODO_STAGES, HABIT_STAGES,
-  getStageFromXP, getNextStage,
-} from '../data/creatures'
+import { getStageFromXP, getNextStage } from '../data/creatures'
+import { getTemplate } from '../data/templates'
 import { PRESTIGE_XP } from '../lib/storage'
-
-const STAGES_MAP: Record<TemplateId, CreatureStage[]> = {
-  financial: FINANCIAL_STAGES,
-  todo: TODO_STAGES,
-  habit: HABIT_STAGES,
-}
 
 const MAX_STAGE_XP = 6000  // xpRequired of stage 9
 
 const MOODS = ['Happy', 'Excited', 'Sleepy', 'Playful']
-const MESSAGES: Record<TemplateId, string[]> = {
-  financial: ['Save more, worry less!', 'Money loves company!', 'Track every rupiah!', 'Your wallet is growing!'],
-  todo: ['Tasks done = power gained!', 'Check! Check! Check!', "Let's conquer today!", 'One task at a time!'],
-  habit: ['Consistency is key!', 'Another day, another habit!', 'You are unstoppable!', 'Streaks make champions!'],
-}
 
 interface Props {
   type: TemplateId
@@ -31,7 +18,7 @@ interface Props {
 }
 
 export default function Character({ type, xp, happiness, prestige = 0, onEvolution, onPrestige }: Props) {
-  const stages = STAGES_MAP[type]
+  const stages = getTemplate(type).stages
   const currentStage = getStageFromXP(stages, xp)
   const nextStage = getNextStage(stages, currentStage.id)
   const isMaxLevel = !nextStage
@@ -70,7 +57,7 @@ export default function Character({ type, xp, happiness, prestige = 0, onEvoluti
   // Random speech bubble
   useEffect(() => {
     const interval = setInterval(() => {
-      const msgs = MESSAGES[type]
+      const msgs = getTemplate(type).petMessages
       setBubbleMsg(msgs[Math.floor(Math.random() * msgs.length)])
       setShowBubble(true)
       setTimeout(() => setShowBubble(false), 3000)

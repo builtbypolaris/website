@@ -1,20 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { TEMPLATES } from '../data/templates'
-import { FINANCIAL_STAGES, TODO_STAGES, HABIT_STAGES } from '../data/creatures'
+import { TEMPLATES, TRACKER_PRICE_IDR } from '../data/templates'
 import type { TemplateInfo } from '../types'
 import { Constellation } from '../../components/ui/Constellation'
 import { useT } from '../../i18n'
 
 function formatRp(n: number) {
   return 'Rp ' + n.toLocaleString('id-ID')
-}
-
-const CARD_STYLES = {
-  financial: { bg: '#0E0A00', accent: '#F59E0B', border: '#2A1E00' },
-  todo:      { bg: '#000E06', accent: '#4ADE80', border: '#00280F' },
-  habit:     { bg: '#00050F', accent: '#60A5FA', border: '#001030' },
 }
 
 function EvoDemo({ stageLabel, evolvingLabel }: { stageLabel: string; evolvingLabel: string }) {
@@ -44,8 +37,9 @@ function EvoDemo({ stageLabel, evolvingLabel }: { stageLabel: string; evolvingLa
     return () => clearTimeout(t)
   }, [xp])
 
-  const cur = FINANCIAL_STAGES[stage]
-  const nxt = FINANCIAL_STAGES[(stage + 1) % 10]
+  const demoStages = TEMPLATES[0].stages
+  const cur = demoStages[stage]
+  const nxt = demoStages[(stage + 1) % 10]
 
   return (
     <div className="flex flex-col items-center w-full">
@@ -105,7 +99,7 @@ function EvoDemo({ stageLabel, evolvingLabel }: { stageLabel: string; evolvingLa
       )}
 
       <div className="flex gap-1.5 mt-5">
-        {FINANCIAL_STAGES.map((_, i) => (
+        {demoStages.map((_, i) => (
           <div
             key={i}
             className="rounded-full transition-all duration-500"
@@ -121,137 +115,74 @@ function EvoDemo({ stageLabel, evolvingLabel }: { stageLabel: string; evolvingLa
   )
 }
 
-
-function TrackerPreview({ id }: { id: 'financial' | 'todo' | 'habit' }) {
-  const cs = CARD_STYLES[id]
-
-  if (id === 'financial') {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: '10px 12px' }}>
-          <span style={{ fontSize: 26 }}>{FINANCIAL_STAGES[4].emoji}</span>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-              <span className="font-nunito" style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10 }}>{FINANCIAL_STAGES[4].name} · Stage 5</span>
-              <span className="font-nunito" style={{ color: cs.accent, fontSize: 10 }}>64 XP</span>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 3, height: 3 }}>
-              <div style={{ width: '64%', background: cs.accent, height: 3, borderRadius: 3 }} />
-            </div>
+/** Generic preview built entirely from registry data — no bespoke mockup per tracker. */
+function TrackerPreview({ t }: { t: TemplateInfo }) {
+  const previewStages = [0, 3, 6, 9].map(i => t.stages[i])
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {/* Pet card */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: '10px 12px' }}>
+        <span style={{ fontSize: 26 }}>{t.stages[4].emoji}</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+            <span className="font-nunito" style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10 }}>{t.stages[4].name} · Stage 5</span>
+            <span className="font-nunito" style={{ color: t.accent, fontSize: 10 }}>64 XP</span>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 3, height: 3 }}>
+            <div style={{ width: '64%', background: t.accent, height: 3, borderRadius: 3 }} />
           </div>
         </div>
-        <div style={{ padding: '4px 2px' }}>
-          <div className="font-nunito" style={{ color: 'rgba(255,255,255,0.25)', fontSize: 10, marginBottom: 3 }}>Balance this month</div>
-          <div className="font-nunito" style={{ color: 'white', fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>Rp 2.050.000</div>
-        </div>
-        {[
-          { label: 'Gaji', amount: '+3.000.000', pos: true },
-          { label: 'Kos', amount: '−1.500.000', pos: false },
-          { label: 'Groceries', amount: '−250.000', pos: false },
-          { label: 'Freelance', amount: '+800.000', pos: true },
-        ].map((e, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
-            <span className="font-nunito" style={{ color: 'rgba(255,255,255,0.38)', fontSize: 12 }}>{e.label}</span>
-            <span className="font-nunito" style={{ color: e.pos ? '#4ADE80' : '#F87171', fontSize: 12, fontWeight: 600 }}>{e.amount}</span>
+      </div>
+
+      {/* Evolution strip */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '12px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: 10 }}>
+        {previewStages.map((stage, i) => (
+          <div key={stage.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 22 + i * 7, lineHeight: 1, filter: i === 3 ? `drop-shadow(0 0 10px ${t.accent}99)` : 'none' }}>
+                {stage.emoji}
+              </div>
+              <div className="font-nunito" style={{ color: 'rgba(255,255,255,0.25)', fontSize: 8, marginTop: 5 }}>
+                Stage {stage.id}
+              </div>
+            </div>
+            {i < previewStages.length - 1 && (
+              <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: 12 }}>→</span>
+            )}
           </div>
         ))}
       </div>
-    )
-  }
 
-  if (id === 'todo') {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: '10px 12px' }}>
-          <span style={{ fontSize: 26 }}>{TODO_STAGES[5].emoji}</span>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-              <span className="font-nunito" style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10 }}>{TODO_STAGES[5].name} · Stage 6</span>
-              <span className="font-nunito" style={{ color: cs.accent, fontSize: 10 }}>82 XP</span>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 3, height: 3 }}>
-              <div style={{ width: '82%', background: cs.accent, height: 3, borderRadius: 3 }} />
-            </div>
+      {/* Stat chips */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {t.previewStats.map(stat => (
+          <div key={stat} style={{ padding: '5px 12px', borderRadius: 20, border: `1px solid ${t.accent}55` }}>
+            <span className="font-nunito" style={{ color: t.accent, fontSize: 11 }}>{stat}</span>
           </div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-          {[
-            { col: 'To Do', tasks: ['Landing page', 'Client call'], active: false },
-            { col: 'Doing', tasks: ['Design sys', 'API setup'], active: true },
-            { col: 'Done', tasks: ['Deploy v1', 'Write docs'], active: false },
-          ].map(({ col, tasks, active }) => (
-            <div key={col}>
-              <div className="font-nunito" style={{ color: active ? cs.accent : 'rgba(255,255,255,0.22)', fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{col}</div>
-              {tasks.map(task => (
-                <div key={task} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 6, padding: '6px 7px', marginBottom: 4 }}>
-                  <span className="font-nunito" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, lineHeight: 1.3, display: 'block' }}>{task}</span>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {[
-            { label: '4 tasks', color: 'rgba(255,255,255,0.18)' },
-            { label: '2 in progress', color: cs.accent },
-            { label: '2 done ✓', color: 'rgba(74,222,128,0.45)' },
-          ].map(b => (
-            <div key={b.label} style={{ padding: '3px 10px', borderRadius: 20, border: `1px solid ${b.color}` }}>
-              <span className="font-nunito" style={{ color: b.color, fontSize: 10 }}>{b.label}</span>
-            </div>
-          ))}
-        </div>
+        ))}
       </div>
-    )
-  }
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: '10px 12px' }}>
-        <span style={{ fontSize: 26 }}>{HABIT_STAGES[6].emoji}</span>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-            <span className="font-nunito" style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10 }}>{HABIT_STAGES[6].name} · Stage 7</span>
-            <span className="font-nunito" style={{ color: cs.accent, fontSize: 10 }}>71 XP</span>
+      {/* Feature rows */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {t.features.slice(0, 4).map(f => (
+          <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
+            <span style={{ color: t.accent, fontSize: 11, flexShrink: 0 }}>✓</span>
+            <span className="font-nunito" style={{ color: 'rgba(255,255,255,0.38)', fontSize: 11 }}>{f}</span>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 3, height: 3 }}>
-            <div style={{ width: '71%', background: cs.accent, height: 3, borderRadius: 3 }} />
-          </div>
-        </div>
-      </div>
-      {[
-        { emoji: '💧', name: 'Drink water', checks: [1,1,1,1,1,1,0] },
-        { emoji: '📚', name: 'Read 30 min', checks: [1,1,0,1,1,0,0] },
-        { emoji: '🏃', name: 'Morning run', checks: [1,0,1,1,1,0,0] },
-        { emoji: '🧘', name: 'Meditate', checks: [0,1,1,1,0,1,0] },
-      ].map(h => (
-        <div key={h.name} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
-          <span style={{ fontSize: 13, flexShrink: 0 }}>{h.emoji}</span>
-          <span className="font-nunito" style={{ color: 'rgba(255,255,255,0.38)', fontSize: 11, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.name}</span>
-          <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-            {h.checks.map((c, i) => (
-              <div key={i} style={{ width: 13, height: 13, borderRadius: 3, background: c ? cs.accent : 'rgba(255,255,255,0.06)' }} />
-            ))}
-          </div>
-        </div>
-      ))}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
-        <span style={{ fontSize: 14 }}>🔥</span>
-        <span className="font-nunito" style={{ color: 'rgba(255,255,255,0.38)', fontSize: 12 }}>6-day streak</span>
-        <span className="font-nunito font-bold" style={{ color: '#F59E0B', fontSize: 12, marginLeft: 'auto' }}>Best: 14</span>
+        ))}
       </div>
     </div>
   )
 }
 
 function TemplateModal({ t, onClose, onBuy, previewLabel, getItLabel }: { t: TemplateInfo; onClose: () => void; onBuy: () => void; previewLabel: string; getItLabel: string }) {
-  const cs = CARD_STYLES[t.id]
+  const border = t.accent + '26'
   return (
     <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
       <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
       <div
         className="relative w-full overflow-x-hidden overflow-y-auto bounce-in max-h-[85vh] md:max-h-[90vh] my-2 md:my-0"
-        style={{ maxWidth: 760, background: cs.bg, border: `1px solid ${cs.border}`, borderRadius: 20 }}
+        style={{ maxWidth: 760, background: '#0B0B14', border: `1px solid ${border}`, borderRadius: 20 }}
         onClick={e => e.stopPropagation()}
       >
         <button
@@ -262,16 +193,12 @@ function TemplateModal({ t, onClose, onBuy, previewLabel, getItLabel }: { t: Tem
           ✕
         </button>
         <div className="grid md:grid-cols-2">
-          <div className="p-6 border-b md:border-b-0 md:border-r" style={{ borderColor: cs.border }}>
+          <div className="p-6 border-b md:border-b-0 md:border-r" style={{ borderColor: border }}>
             <div className="font-nunito mb-4" style={{ color: 'rgba(255,255,255,0.18)', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{previewLabel}</div>
-            <TrackerPreview id={t.id} />
+            <TrackerPreview t={t} />
           </div>
           <div className="p-6 flex flex-col">
-            <div className="text-5xl mb-4">
-              {t.id === 'financial' ? FINANCIAL_STAGES[9].emoji
-                : t.id === 'todo' ? TODO_STAGES[9].emoji
-                : HABIT_STAGES[9].emoji}
-            </div>
+            <div className="text-5xl mb-4">{t.stages[9].emoji}</div>
             <h2 className="text-white mb-2" style={{ fontFamily: 'Playfair Display, Georgia, serif', fontSize: 22, fontWeight: 700 }}>
               {t.name}
             </h2>
@@ -279,22 +206,82 @@ function TemplateModal({ t, onClose, onBuy, previewLabel, getItLabel }: { t: Tem
             <div className="space-y-2 mb-6 flex-1">
               {t.features.map(f => (
                 <div key={f} className="flex items-start gap-2 text-sm font-nunito">
-                  <span style={{ color: cs.accent, flexShrink: 0 }}>→</span>
+                  <span style={{ color: t.accent, flexShrink: 0 }}>→</span>
                   <span className="text-gray-300">{f}</span>
                 </div>
               ))}
             </div>
-            <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${cs.border}` }}>
+            <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${border}` }}>
               <div className="text-white font-nunito font-bold text-xl">{formatRp(t.price)}</div>
               <button
                 onClick={onBuy}
                 className="font-nunito font-bold text-sm transition hover:opacity-90"
-                style={{ background: cs.accent, color: '#000', padding: '10px 24px', borderRadius: 9999 }}
+                style={{ background: t.accent, color: '#000', padding: '10px 24px', borderRadius: 9999 }}
               >
                 {getItLabel}
               </button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+interface TrackerCopy { headline1: string; headline2: string; desc: string }
+
+function TemplateCard({ tpl, copy, seeMore, onClick }: { tpl: TemplateInfo; copy: TrackerCopy; seeMore: string; onClick: () => void }) {
+  const featured = !!tpl.featured
+  const border = tpl.accent + '26'
+  const borderHover = tpl.accent + '55'
+  return (
+    <div
+      className={`cursor-pointer overflow-hidden relative ${featured ? 'md:col-span-2 md:row-span-2 min-h-[380px]' : 'min-h-[200px]'}`}
+      style={{
+        background: `linear-gradient(145deg, ${tpl.accent}14 0%, #0A0A12 65%)`,
+        border: `1px solid ${border}`,
+        borderRadius: 16,
+        transition: 'border-color 0.25s',
+      }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = borderHover)}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = border)}
+      onClick={onClick}
+    >
+      <div style={{
+        position: 'absolute',
+        top: featured ? 44 : 20,
+        right: featured ? 48 : 24,
+        fontSize: featured ? 96 : 64,
+        lineHeight: 1,
+        userSelect: 'none',
+        filter: `drop-shadow(0 8px 28px ${tpl.accent}60)`,
+        animation: 'float 3s ease-in-out infinite',
+      }}>
+        {tpl.stages[9].emoji}
+      </div>
+      <div style={{
+        position: 'absolute',
+        bottom: featured ? 44 : 24,
+        left: featured ? 44 : 24,
+        right: featured ? 44 : 24,
+      }}>
+        <h3 style={{
+          fontFamily: 'Playfair Display, serif',
+          fontSize: featured ? 'clamp(34px, 4.5vw, 56px)' : 20,
+          fontWeight: 700,
+          color: 'white',
+          lineHeight: featured ? 1.05 : 1.2,
+          letterSpacing: featured ? '-0.025em' : '-0.01em',
+        }}>
+          {copy.headline1}<br />{copy.headline2}
+        </h3>
+        {featured && (
+          <p className="font-nunito" style={{ color: 'rgba(255,255,255,0.28)', fontSize: 13, marginTop: 10, lineHeight: 1.6 }}>
+            {copy.desc}
+          </p>
+        )}
+        <div className="font-nunito" style={{ color: tpl.accent + 'A6', fontSize: featured ? 13 : 12, marginTop: featured ? 16 : 10 }}>
+          {seeMore}
         </div>
       </div>
     </div>
@@ -309,6 +296,15 @@ export default function Home() {
   const s = t.studios
 
   const go = () => navigate(session ? '/studios/dashboard' : '/studios/login')
+
+  const trackerCount = TEMPLATES.length
+  const heroSubtitle = s.hero.subtitle
+    .replace('{trackers}', String(trackerCount))
+    .replace('{games}', String(trackerCount * 3))
+  const stagesCaption = s.evo.stagesCaption
+    .replace('{stages}', String(trackerCount * 10))
+    .replace('{trackers}', String(trackerCount))
+  const templatesTitle = s.templates.titleLine1.replace('{count}', String(trackerCount))
 
   return (
     <div style={{ background: '#09090F' }}>
@@ -335,7 +331,7 @@ export default function Home() {
               </h1>
 
               <p className="font-nunito text-gray-400 text-lg mb-8 md:mb-12 leading-relaxed" style={{ maxWidth: 420 }}>
-                {s.hero.subtitle}
+                {heroSubtitle}
               </p>
 
               <div className="flex flex-wrap items-center gap-4 md:gap-8">
@@ -373,7 +369,7 @@ export default function Home() {
         borderBottom: '1px solid rgba(167,139,250,0.10)',
       }}>
         <p className="text-center pt-7 pb-4 text-[10px] font-nunito uppercase tracking-[0.25em]" style={{ color: 'rgba(167,139,250,0.45)' }}>
-          {s.evo.stagesCaption}
+          {stagesCaption}
         </p>
         {/* Edge-fade mask + overflow clip */}
         <div
@@ -384,33 +380,19 @@ export default function Home() {
           <div className="marquee-track flex items-end gap-5" style={{ width: 'max-content' }}>
             {[1, 2].map(copy => (
               <div key={copy} className="flex items-end gap-5 flex-shrink-0">
-                {FINANCIAL_STAGES.map((s, i) => (
-                  <span key={`f${copy}-${s.id}`} className="flex-shrink-0 block" style={{
-                    fontSize: 18 + i * 4, lineHeight: 1,
-                    opacity: 0.45 + i * 0.06,
-                    userSelect: 'none',
-                    filter: i >= 7 ? 'drop-shadow(0 0 10px rgba(167,139,250,0.6))' : 'none',
-                  }}>{s.emoji}</span>
+                {TEMPLATES.map(tpl => (
+                  <div key={`${copy}-${tpl.id}`} className="flex items-end gap-5 flex-shrink-0">
+                    {tpl.stages.map((stage, i) => (
+                      <span key={`${copy}-${tpl.id}-${stage.id}`} className="flex-shrink-0 block" style={{
+                        fontSize: 18 + i * 4, lineHeight: 1,
+                        opacity: 0.45 + i * 0.06,
+                        userSelect: 'none',
+                        filter: i >= 7 ? `drop-shadow(0 0 10px ${tpl.accent}99)` : 'none',
+                      }}>{stage.emoji}</span>
+                    ))}
+                    <span className="flex-shrink-0 mx-4 self-center" style={{ color: 'rgba(167,139,250,0.2)', fontSize: 24 }}>·</span>
+                  </div>
                 ))}
-                <span className="flex-shrink-0 mx-4 self-center" style={{ color: 'rgba(167,139,250,0.2)', fontSize: 24 }}>·</span>
-                {TODO_STAGES.map((s, i) => (
-                  <span key={`t${copy}-${s.id}`} className="flex-shrink-0 block" style={{
-                    fontSize: 18 + i * 4, lineHeight: 1,
-                    opacity: 0.45 + i * 0.06,
-                    userSelect: 'none',
-                    filter: i >= 7 ? 'drop-shadow(0 0 10px rgba(74,222,128,0.5))' : 'none',
-                  }}>{s.emoji}</span>
-                ))}
-                <span className="flex-shrink-0 mx-4 self-center" style={{ color: 'rgba(167,139,250,0.2)', fontSize: 24 }}>·</span>
-                {HABIT_STAGES.map((s, i) => (
-                  <span key={`h${copy}-${s.id}`} className="flex-shrink-0 block" style={{
-                    fontSize: 18 + i * 4, lineHeight: 1,
-                    opacity: 0.45 + i * 0.06,
-                    userSelect: 'none',
-                    filter: i >= 7 ? 'drop-shadow(0 0 10px rgba(96,165,250,0.5))' : 'none',
-                  }}>{s.emoji}</span>
-                ))}
-                <span className="flex-shrink-0 mx-6 self-center" style={{ color: 'rgba(167,139,250,0.15)', fontSize: 24 }}>·</span>
               </div>
             ))}
           </div>
@@ -431,148 +413,24 @@ export default function Home() {
                 color: '#0D0D0D',
               }}
             >
-              {s.templates.titleLine1}<br />
+              {templatesTitle}<br />
               <em style={{ fontStyle: 'italic', color: '#7C3AED' }}>{s.templates.titleLine2Em}</em> {s.templates.titleLine3}
             </h2>
             <p className="font-nunito text-gray-400 text-sm hidden md:block" style={{ maxWidth: 180, textAlign: 'right' }}>
-              {formatRp(25000)} {s.templates.priceEach}<br />{s.templates.oneTimePurchase}
+              {formatRp(TRACKER_PRICE_IDR)} {s.templates.priceEach}<br />{s.templates.oneTimePurchase}
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 md:grid-rows-2 gap-3" style={{ minHeight: 560 }}>
-
-            {/* FINANCIAL */}
-            <div
-              className="md:col-span-2 md:row-span-2 cursor-pointer overflow-hidden relative min-h-[380px]"
-              style={{
-                background: 'linear-gradient(145deg, #1C1000 0%, #0E0A00 100%)',
-                border: `1px solid ${CARD_STYLES.financial.border}`,
-                borderRadius: 16,
-                transition: 'border-color 0.25s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(245,158,11,0.3)')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = CARD_STYLES.financial.border)}
-              onClick={() => setModal(TEMPLATES[0])}
-            >
-              <div style={{
-                position: 'absolute',
-                top: 44,
-                right: 48,
-                fontSize: 96,
-                lineHeight: 1,
-                userSelect: 'none',
-                filter: 'drop-shadow(0 8px 32px rgba(245,158,11,0.38))',
-                animation: 'float 3s ease-in-out infinite',
-              }}>
-                {FINANCIAL_STAGES[9].emoji}
-              </div>
-              <div style={{ position: 'absolute', bottom: 44, left: 44, right: 44 }}>
-                <h3 style={{
-                  fontFamily: 'Playfair Display, serif',
-                  fontSize: 'clamp(34px, 4.5vw, 56px)',
-                  fontWeight: 700,
-                  color: 'white',
-                  lineHeight: 1.05,
-                  letterSpacing: '-0.025em',
-                }}>
-                  {s.templates.financial.headline1}<br />{s.templates.financial.headline2}
-                </h3>
-                <p className="font-nunito" style={{ color: 'rgba(255,255,255,0.28)', fontSize: 13, marginTop: 10, lineHeight: 1.6 }}>
-                  {s.templates.financial.desc}
-                </p>
-                <div className="font-nunito" style={{ color: 'rgba(245,158,11,0.65)', fontSize: 13, marginTop: 16, letterSpacing: '0.01em' }}>
-                  {s.templates.seeMore}
-                </div>
-              </div>
-            </div>
-
-            {/* TO-DO */}
-            <div
-              className="cursor-pointer overflow-hidden relative"
-              style={{
-                background: 'linear-gradient(to bottom right, #001A08, #000E06)',
-                border: `1px solid ${CARD_STYLES.todo.border}`,
-                borderRadius: 24,
-                minHeight: 200,
-                transition: 'border-color 0.25s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(74,222,128,0.25)')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = CARD_STYLES.todo.border)}
-              onClick={() => setModal(TEMPLATES[1])}
-            >
-              <div style={{
-                position: 'absolute',
-                left: 20,
-                top: '50%',
-                transform: 'translateY(-55%)',
-                fontSize: 72,
-                lineHeight: 1,
-                userSelect: 'none',
-                filter: 'drop-shadow(0 6px 20px rgba(74,222,128,0.28))',
-                animation: 'float 3.2s ease-in-out infinite 0.4s',
-              }}>
-                {TODO_STAGES[9].emoji}
-              </div>
-              <div style={{ position: 'absolute', bottom: 28, left: 116, right: 20 }}>
-                <h3 style={{
-                  fontFamily: 'Playfair Display, serif',
-                  fontSize: 20,
-                  fontWeight: 700,
-                  color: 'white',
-                  lineHeight: 1.2,
-                  letterSpacing: '-0.01em',
-                }}>
-                  {s.templates.todo.headline1}<br />{s.templates.todo.headline2}
-                </h3>
-                <div className="font-nunito" style={{ color: 'rgba(74,222,128,0.6)', fontSize: 12, marginTop: 10 }}>
-                  {s.templates.seeMore}
-                </div>
-              </div>
-            </div>
-
-            {/* HABIT */}
-            <div
-              className="cursor-pointer overflow-hidden relative"
-              style={{
-                background: 'radial-gradient(ellipse at top right, #001030 0%, #00050F 70%)',
-                border: `1px solid ${CARD_STYLES.habit.border}`,
-                borderRadius: 12,
-                minHeight: 200,
-                transition: 'border-color 0.25s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(96,165,250,0.25)')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = CARD_STYLES.habit.border)}
-              onClick={() => setModal(TEMPLATES[2])}
-            >
-              <div style={{
-                position: 'absolute',
-                top: 20,
-                right: 24,
-                fontSize: 72,
-                lineHeight: 1,
-                userSelect: 'none',
-                filter: 'drop-shadow(0 6px 20px rgba(96,165,250,0.28))',
-                animation: 'float 2.8s ease-in-out infinite 0.8s',
-              }}>
-                {HABIT_STAGES[9].emoji}
-              </div>
-              <div style={{ position: 'absolute', bottom: 28, left: 24, right: 90 }}>
-                <h3 style={{
-                  fontFamily: 'Playfair Display, serif',
-                  fontSize: 20,
-                  fontWeight: 700,
-                  color: 'white',
-                  lineHeight: 1.2,
-                  letterSpacing: '-0.01em',
-                }}>
-                  {s.templates.habit.headline1}<br />{s.templates.habit.headline2}
-                </h3>
-                <div className="font-nunito" style={{ color: 'rgba(96,165,250,0.6)', fontSize: 12, marginTop: 10 }}>
-                  {s.templates.seeMore}
-                </div>
-              </div>
-            </div>
-
+          <div className="grid md:grid-cols-3 gap-3" style={{ gridAutoRows: 'minmax(200px, auto)' }}>
+            {TEMPLATES.map(tpl => (
+              <TemplateCard
+                key={tpl.id}
+                tpl={tpl}
+                copy={s.templates.trackers[tpl.id]}
+                seeMore={s.templates.seeMore}
+                onClick={() => setModal(tpl)}
+              />
+            ))}
           </div>
         </div>
       </section>

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Layout } from './components/layout/Layout'
 import { LocaleProvider } from './i18n'
@@ -11,11 +12,20 @@ import { PaywallGuard } from './novo/pages/Paywall'
 import NovoLogin from './novo/pages/Login'
 import NovoAuthCallback from './novo/pages/AuthCallback'
 import NovoDashboard from './novo/pages/Dashboard'
-import NovoFinancial from './novo/pages/Financial'
-import NovoTodo from './novo/pages/Todo'
-import NovoHabit from './novo/pages/Habit'
 import { NovoLayout } from './novo/components/NovoLayout'
 import { AuthProvider } from './novo/contexts/AuthContext'
+import { TEMPLATES } from './novo/data/templates'
+import type { TemplateId } from './novo/types'
+
+// Lazy per-tracker pages so 12 trackers × (page + 3 games) stay out of the main bundle.
+const TRACKER_PAGES: Record<TemplateId, React.LazyExoticComponent<React.ComponentType>> = {
+  financial: lazy(() => import('./novo/pages/Financial')),
+  todo: lazy(() => import('./novo/pages/Todo')),
+  habit: lazy(() => import('./novo/pages/Habit')),
+  savings: lazy(() => import('./novo/pages/Savings')),
+  study: lazy(() => import('./novo/pages/Study')),
+  mood: lazy(() => import('./novo/pages/Mood')),
+}
 
 export default function App() {
   return (
@@ -44,9 +54,22 @@ export default function App() {
           <Route path="/studios/auth/callback" element={<AuthProvider><NovoAuthCallback /></AuthProvider>} />
           <Route element={<AuthProvider><NovoLayout /></AuthProvider>}>
             <Route path="/studios/dashboard" element={<NovoDashboard />} />
-            <Route path="/studios/app/financial" element={<PaywallGuard trackerId="financial"><NovoFinancial /></PaywallGuard>} />
-            <Route path="/studios/app/todo" element={<PaywallGuard trackerId="todo"><NovoTodo /></PaywallGuard>} />
-            <Route path="/studios/app/habit" element={<PaywallGuard trackerId="habit"><NovoHabit /></PaywallGuard>} />
+            {TEMPLATES.map(t => {
+              const Page = TRACKER_PAGES[t.id]
+              return (
+                <Route
+                  key={t.id}
+                  path={t.route}
+                  element={
+                    <PaywallGuard trackerId={t.id}>
+                      <Suspense fallback={null}>
+                        <Page />
+                      </Suspense>
+                    </PaywallGuard>
+                  }
+                />
+              )
+            })}
           </Route>
         </Routes>
       </LocaleProvider>

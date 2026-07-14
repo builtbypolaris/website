@@ -4,19 +4,6 @@ import { logout } from '../lib/storage'
 import { useAuth } from '../contexts/AuthContext'
 import { TEMPLATES } from '../data/templates'
 import { NovoLogo } from './NovoLogo'
-import type { TemplateId } from '../types'
-
-const ROUTES: Record<TemplateId, string> = {
-  financial: '/studios/app/financial',
-  todo: '/studios/app/todo',
-  habit: '/studios/app/habit',
-}
-
-const ACCENT: Record<TemplateId, string> = {
-  financial: '#B45309',
-  todo: '#16A34A',
-  habit: '#1D4ED8',
-}
 
 export function NovoLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -63,11 +50,11 @@ export function NovoLayout() {
 
           {TEMPLATES.map(t => {
             const isOwned = owned.includes(t.id)
-            const active = isActive(ROUTES[t.id])
+            const active = isActive(t.route)
             return (
               <button
                 key={t.id}
-                onClick={() => { if (isOwned) { navigate(ROUTES[t.id]); close() } }}
+                onClick={() => { if (isOwned) { navigate(t.route); close() } }}
                 disabled={!isOwned}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition
                   ${active ? 'bg-black/8' : isOwned ? 'hover:bg-black/5' : 'opacity-40 cursor-not-allowed'}`}
@@ -76,7 +63,7 @@ export function NovoLayout() {
                 <div>
                   <div className="font-nunito text-sm font-semibold text-[#09090F]">{t.name}</div>
                   {isOwned
-                    ? <div className="text-xs font-nunito" style={{ color: ACCENT[t.id] }}>Unlocked</div>
+                    ? <div className="text-xs font-nunito" style={{ color: t.accent }}>Unlocked</div>
                     : <div className="text-xs text-[#09090F]/40 font-nunito">Locked</div>
                   }
                 </div>

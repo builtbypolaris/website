@@ -1,9 +1,18 @@
-import type { TemplateInfo } from '../types'
+import type { TemplateId, TemplateInfo } from '../types'
+import { FINANCIAL_STAGES, TODO_STAGES, HABIT_STAGES, SAVINGS_STAGES, STUDY_STAGES, MOOD_STAGES } from './creatures'
+
+// Single client-side price source — keep in sync with the Lynk.id product prices.
+export const TRACKER_PRICE_IDR = 29999
+
+// Lynk.id storefront. Per-tracker product links can override this via
+// TemplateInfo.lynkUrl once each product page exists.
+export const LYNK_STORE_URL = 'https://lynk.id/builtbypolaris'
 
 export const TEMPLATES: TemplateInfo[] = [
   {
     id: 'financial',
     name: 'Financial Tracker',
+    shortName: 'Financial',
     emoji: '💰',
     description: 'Track income & expenses, monitor cashflow health, and grow your wealth creature!',
     features: [
@@ -16,11 +25,20 @@ export const TEMPLATES: TemplateInfo[] = [
     ],
     color: '#FDE68A',
     gradient: 'from-yellow-50 to-amber-50',
-    price: 25000,
+    price: TRACKER_PRICE_IDR,
+    route: '/studios/app/financial',
+    accent: '#B45309',
+    cardStyle: { bg: '#FFFFFF', border: '#E5E4E2' },
+    stages: FINANCIAL_STAGES,
+    petMessages: ['Save more, worry less!', 'Money loves company!', 'Track every rupiah!', 'Your wallet is growing!'],
+    category: 'money',
+    previewStats: ['+2.4M income', '18 transactions', 'Net +840K'],
+    featured: true,
   },
   {
     id: 'todo',
     name: 'To-Do List',
+    shortName: 'Todo',
     emoji: '✅',
     description: 'Manage tasks with priority levels, due dates, and watch your task creature evolve!',
     features: [
@@ -33,11 +51,19 @@ export const TEMPLATES: TemplateInfo[] = [
     ],
     color: '#BBF7D0',
     gradient: 'from-green-50 to-emerald-50',
-    price: 25000,
+    price: TRACKER_PRICE_IDR,
+    route: '/studios/app/todo',
+    accent: '#16A34A',
+    cardStyle: { bg: '#FFFFFF', border: '#E5E4E2' },
+    stages: TODO_STAGES,
+    petMessages: ['Tasks done = power gained!', 'Check! Check! Check!', "Let's conquer today!", 'One task at a time!'],
+    category: 'productivity',
+    previewStats: ['12 tasks', '9 done', '75% rate'],
   },
   {
     id: 'habit',
     name: 'Habit Tracker',
+    shortName: 'Habit',
     emoji: '🌱',
     description: 'Build daily and weekly habits, track streaks, and raise your discipline creature!',
     features: [
@@ -50,6 +76,96 @@ export const TEMPLATES: TemplateInfo[] = [
     ],
     color: '#BAE6FD',
     gradient: 'from-sky-50 to-blue-50',
-    price: 25000,
+    price: TRACKER_PRICE_IDR,
+    route: '/studios/app/habit',
+    accent: '#1D4ED8',
+    cardStyle: { bg: '#FFFFFF', border: '#E5E4E2' },
+    stages: HABIT_STAGES,
+    petMessages: ['Consistency is key!', 'Another day, another habit!', 'You are unstoppable!', 'Streaks make champions!'],
+    category: 'wellness',
+    previewStats: ['6 habits', '14-day streak', '92% consistency'],
+  },
+  {
+    id: 'savings',
+    name: 'Nabung & Cicilan',
+    shortName: 'Savings',
+    emoji: '🐖',
+    description: 'Set savings goals, log deposits, and keep every cicilan paid on time — your treasure pet grows with you!',
+    features: [
+      'Savings goals with progress',
+      'Deposit logging',
+      'Cicilan payment schedules',
+      'Overdue & due-day tracking',
+      '3 mini-games to earn XP',
+      'Evolving pet creature (10 stages)',
+    ],
+    color: '#99F6E4',
+    gradient: 'from-teal-50 to-emerald-50',
+    price: TRACKER_PRICE_IDR,
+    route: '/studios/app/savings',
+    accent: '#0D9488',
+    cardStyle: { bg: '#FFFFFF', border: '#E5E4E2' },
+    stages: SAVINGS_STAGES,
+    petMessages: ['Every rupiah counts!', 'Little by little, a hill!', 'Your future self says thanks!', 'Cicilan paid = stress gone!'],
+    category: 'money',
+    previewStats: ['Rp 4.2M saved', '2 goals on track', 'Cicilan 3/12 paid'],
+  },
+  {
+    id: 'study',
+    name: 'Study Tracker',
+    shortName: 'Study',
+    emoji: '📚',
+    description: 'Count down to exams, log study sessions with a built-in timer, and raise your scholar creature!',
+    features: [
+      'Subjects & exam countdowns',
+      'Built-in study timer',
+      'Session logging with notes',
+      'Hours per subject analytics',
+      '3 mini-games to earn XP',
+      'Evolving pet creature (10 stages)',
+    ],
+    color: '#DDD6FE',
+    gradient: 'from-violet-50 to-purple-50',
+    price: TRACKER_PRICE_IDR,
+    route: '/studios/app/study',
+    accent: '#6D28D9',
+    cardStyle: { bg: '#FFFFFF', border: '#E5E4E2' },
+    stages: STUDY_STAGES,
+    petMessages: ['Knowledge is XP!', 'One more page!', 'Future you is proud!', 'Exams fear you now!'],
+    category: 'productivity',
+    previewStats: ['12h this week', 'Exam in 9 days', '5-day streak'],
+  },
+  {
+    id: 'mood',
+    name: 'Mood Tracker',
+    shortName: 'Mood',
+    emoji: '🌤️',
+    description: 'Quick mood check-ins with tags and notes, a calendar heatmap, and trends — your sky pet brightens with you!',
+    features: [
+      'Quick emoji check-ins',
+      'Tags & notes per entry',
+      'Calendar mood heatmap',
+      'Trends & tag insights',
+      '3 mini-games to earn XP',
+      'Evolving pet creature (10 stages)',
+    ],
+    color: '#FBCFE8',
+    gradient: 'from-pink-50 to-rose-50',
+    price: TRACKER_PRICE_IDR,
+    route: '/studios/app/mood',
+    accent: '#DB2777',
+    cardStyle: { bg: '#FFFFFF', border: '#E5E4E2' },
+    stages: MOOD_STAGES,
+    petMessages: ['How are you feeling?', 'Every feeling is valid!', 'Breathe in, breathe out!', 'You showed up today!'],
+    category: 'wellness',
+    previewStats: ['Avg mood 4.2', '21-day streak', '3 check-ins today'],
   },
 ]
+
+export const TEMPLATE_MAP = Object.fromEntries(
+  TEMPLATES.map(t => [t.id, t]),
+) as Record<TemplateId, TemplateInfo>
+
+export function getTemplate(id: TemplateId): TemplateInfo {
+  return TEMPLATE_MAP[id]
+}

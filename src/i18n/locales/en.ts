@@ -696,35 +696,54 @@ export const en = {
       titleLine1: 'Raise your',
       titleLine2Em: 'digital pets.',
       titleLine3: 'Get things done.',
-      subtitle: 'Three productivity trackers. Nine mini-games. Creatures that evolve as you actually build better habits.',
+      subtitle: '{trackers} productivity trackers. {games} mini-games. Creatures that evolve as you actually build better habits.',
       ctaDashboard: 'Open Dashboard',
       ctaGet: 'Get your toolkit',
       ctaSignIn: 'Sign in ↗',
     },
     evo: {
       stageLabel: 'Stage',
-      stagesCaption: '30 evolution stages · 3 trackers',
+      stagesCaption: '{stages} evolution stages · {trackers} trackers',
       evolving: 'evolving into',
     },
     templates: {
-      titleLine1: 'Three trackers.',
+      titleLine1: '{count} trackers.',
       titleLine2Em: 'Infinite',
       titleLine3: 'growth.',
       priceEach: 'each',
       oneTimePurchase: 'one-time purchase',
       seeMore: 'See more ↗',
-      financial: {
-        headline1: 'Log money.',
-        headline2: 'Grow richer.',
-        desc: 'Track spending & income. Your money pet evolves as you hit goals.',
-      },
-      todo: {
-        headline1: 'Tasks that',
-        headline2: 'actually ship.',
-      },
-      habit: {
-        headline1: 'Streaks that',
-        headline2: 'stick.',
+      trackers: {
+        financial: {
+          headline1: 'Log money.',
+          headline2: 'Grow richer.',
+          desc: 'Track spending & income. Your money pet evolves as you hit goals.',
+        },
+        todo: {
+          headline1: 'Tasks that',
+          headline2: 'actually ship.',
+          desc: 'Priorities, due dates, and completion streaks. Your task pet levels up with every done.',
+        },
+        habit: {
+          headline1: 'Streaks that',
+          headline2: 'stick.',
+          desc: 'Daily and weekly habits with heatmaps. Consistency evolves your creature.',
+        },
+        savings: {
+          headline1: 'Save up.',
+          headline2: 'Pay it off.',
+          desc: 'Savings goals and cicilan schedules in one place. Your treasure pet grows with every deposit.',
+        },
+        study: {
+          headline1: 'Study smart.',
+          headline2: 'Ace exams.',
+          desc: 'Exam countdowns, a built-in study timer, and per-subject stats. Your scholar pet levels up as you learn.',
+        },
+        mood: {
+          headline1: 'Feel it.',
+          headline2: 'Track it.',
+          desc: 'Quick mood check-ins with tags, a calendar heatmap, and trends. Your sky pet brightens with you.',
+        },
       },
     },
     modal: {

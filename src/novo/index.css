@@ -78,6 +78,13 @@ body {
   100% { transform: translateY(-70px) rotate(360deg); opacity: 0; }
 }
 
+/* Shake (wrong answer feedback in games) */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
 /* Hover lift - very subtle */
 .hover-lift { transition: transform 0.18s ease; }
 .hover-lift:hover { transform: translateY(-2px); }

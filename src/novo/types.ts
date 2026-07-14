@@ -1,4 +1,4 @@
-export type TemplateId = 'financial' | 'todo' | 'habit'
+export type TemplateId = 'financial' | 'todo' | 'habit' | 'savings' | 'study' | 'mood'
 
 export interface User {
   username: string
@@ -60,6 +60,83 @@ export interface HabitData {
   character: CharacterState
 }
 
+// Savings (nabung & cicilan)
+export interface SavingsDeposit {
+  id: string
+  amount: number
+  note: string
+  date: string
+}
+
+export interface SavingsGoal {
+  id: string
+  name: string
+  emoji: string
+  targetAmount: number
+  deposits: SavingsDeposit[]
+  createdAt: string
+}
+
+export interface InstallmentPayment {
+  month: string  // 'YYYY-MM'
+  paidAt: string
+}
+
+export interface Installment {
+  id: string
+  itemName: string
+  totalAmount: number
+  monthlyAmount: number
+  dueDay: number
+  payments: InstallmentPayment[]
+  createdAt: string
+}
+
+export interface SavingsData {
+  goals: SavingsGoal[]
+  installments: Installment[]
+  character: CharacterState
+}
+
+// Study
+export interface Subject {
+  id: string
+  name: string
+  color: string
+  examDate?: string
+  createdAt: string
+}
+
+export interface StudySession {
+  id: string
+  subjectId: string
+  durationMinutes: number
+  notes: string
+  date: string
+}
+
+export interface StudyData {
+  subjects: Subject[]
+  sessions: StudySession[]
+  character: CharacterState
+}
+
+// Mood
+export type MoodLevel = 1 | 2 | 3 | 4 | 5
+
+export interface MoodEntry {
+  id: string
+  mood: MoodLevel
+  tags: string[]
+  note: string
+  entryAt: string
+}
+
+export interface MoodData {
+  entries: MoodEntry[]
+  character: CharacterState
+}
+
 export interface CreatureStage {
   id: number
   emoji: string
@@ -70,13 +147,25 @@ export interface CreatureStage {
   xpRequired: number
 }
 
+export type TemplateCategory = 'money' | 'productivity' | 'wellness' | 'life'
+
 export interface TemplateInfo {
   id: TemplateId
   name: string
+  shortName: string
   emoji: string
   description: string
   features: string[]
   color: string
   gradient: string
   price: number
+  route: string
+  accent: string
+  cardStyle: { bg: string; border: string }
+  stages: CreatureStage[]
+  petMessages: string[]
+  category: TemplateCategory
+  previewStats: string[]
+  featured?: boolean
+  lynkUrl?: string  // per-tracker Lynk.id product page; falls back to LYNK_STORE_URL
 }

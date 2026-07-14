@@ -580,35 +580,54 @@ export const id: EnTranslations = {
       titleLine1: 'Rawat',
       titleLine2Em: 'peliharaanmu.',
       titleLine3: 'Selesaikan misimu.',
-      subtitle: 'Tiga pelacak produktivitas. Sembilan mini-game. Makhluk yang berevolusi seiring kebiasaanmu.',
+      subtitle: '{trackers} pelacak produktivitas. {games} mini-game. Makhluk yang berevolusi seiring kebiasaanmu.',
       ctaDashboard: 'Buka Dashboard',
       ctaGet: 'Dapatkan toolkit-mu',
       ctaSignIn: 'Masuk ↗',
     },
     evo: {
       stageLabel: 'Tahap',
-      stagesCaption: '30 tahap evolusi · 3 pelacak',
+      stagesCaption: '{stages} tahap evolusi · {trackers} pelacak',
       evolving: 'berevolusi menjadi',
     },
     templates: {
-      titleLine1: 'Tiga pelacak.',
+      titleLine1: '{count} pelacak.',
       titleLine2Em: 'Tanpa batas',
       titleLine3: 'pertumbuhan.',
       priceEach: 'masing-masing',
       oneTimePurchase: 'pembelian sekali',
       seeMore: 'Lihat lebih ↗',
-      financial: {
-        headline1: 'Catat keuangan.',
-        headline2: 'Makin kaya.',
-        desc: 'Lacak pengeluaran & pemasukan. Pet uangmu berevolusi seiring pencapaian.',
-      },
-      todo: {
-        headline1: 'Tugas yang',
-        headline2: 'benar-benar selesai.',
-      },
-      habit: {
-        headline1: 'Streak yang',
-        headline2: 'bertahan.',
+      trackers: {
+        financial: {
+          headline1: 'Catat keuangan.',
+          headline2: 'Makin kaya.',
+          desc: 'Lacak pengeluaran & pemasukan. Pet uangmu berevolusi seiring pencapaian.',
+        },
+        todo: {
+          headline1: 'Tugas yang',
+          headline2: 'benar-benar selesai.',
+          desc: 'Prioritas, tenggat, dan streak penyelesaian. Pet tugasmu naik level tiap tugas selesai.',
+        },
+        habit: {
+          headline1: 'Streak yang',
+          headline2: 'bertahan.',
+          desc: 'Kebiasaan harian & mingguan dengan heatmap. Konsistensi mengevolusi makhlukmu.',
+        },
+        savings: {
+          headline1: 'Nabung rutin.',
+          headline2: 'Cicilan lunas.',
+          desc: 'Target nabung dan jadwal cicilan dalam satu tempat. Pet harta karunmu tumbuh tiap setoran.',
+        },
+        study: {
+          headline1: 'Belajar cerdas.',
+          headline2: 'Taklukkan ujian.',
+          desc: 'Hitung mundur ujian, timer belajar, dan statistik per mapel. Pet cendekiamu naik level seiring belajarmu.',
+        },
+        mood: {
+          headline1: 'Rasakan.',
+          headline2: 'Catat.',
+          desc: 'Check-in mood cepat dengan tag, heatmap kalender, dan tren. Pet langitmu ikut cerah bersamamu.',
+        },
       },
     },
     modal: {
