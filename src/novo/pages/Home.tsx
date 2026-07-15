@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { TEMPLATES, TRACKER_PRICE_IDR } from '../data/templates'
+import { getImpactTotals } from '../lib/gamification'
 import type { TemplateInfo } from '../types'
 import { Constellation } from '../../components/ui/Constellation'
 import { en } from '../../i18n/locales/en'
@@ -249,15 +250,18 @@ function TemplateCard({ tpl, copy, seeMore, onClick, index }: { tpl: TemplateInf
         background: bg,
         border: `1px solid ${border}`,
         borderRadius: 16,
-        transition: 'border-color 0.25s, box-shadow 0.25s',
+        transform: featured ? 'none' : `rotate(${glowRight ? -0.6 : 0.6}deg)`,
+        transition: 'border-color 0.25s, box-shadow 0.25s, transform 0.25s',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.borderColor = borderHover
         e.currentTarget.style.boxShadow = `0 10px 40px ${tpl.accent}30`
+        e.currentTarget.style.transform = 'rotate(0deg) translateY(-4px)'
       }}
       onMouseLeave={e => {
         e.currentTarget.style.borderColor = border
         e.currentTarget.style.boxShadow = 'none'
+        e.currentTarget.style.transform = featured ? 'none' : `rotate(${glowRight ? -0.6 : 0.6}deg)`
       }}
       onClick={onClick}
     >
@@ -306,9 +310,14 @@ export default function Home() {
   const navigate = useNavigate()
   const { session } = useAuth()
   const [modal, setModal] = useState<TemplateInfo | null>(null)
+  const [impact, setImpact] = useState<{ social: number; environment: number } | null>(null)
   // Novo is an English-only product — always use the English copy,
   // regardless of the main site's language switcher.
   const s = en.studios
+
+  useEffect(() => {
+    getImpactTotals().then(setImpact).catch(() => setImpact({ social: 0, environment: 0 }))
+  }, [])
 
   const go = () => navigate(session ? '/studios/dashboard' : '/studios/login')
 
@@ -329,6 +338,31 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 w-full py-14 md:py-24">
           <div className="grid md:grid-cols-5 gap-8 md:gap-16 items-center">
             <div className="md:col-span-3">
+              <div className="flex flex-wrap gap-2.5 mb-7">
+                {[
+                  { text: `${trackerCount} trackers`, bg: '#7C3AED', rot: -2 },
+                  { text: `${trackerCount * 3} mini-games`, bg: '#DB2777', rot: 1.5 },
+                  { text: '👑 missions → real impact', bg: '#16A34A', rot: -1 },
+                ].map(chip => (
+                  <span
+                    key={chip.text}
+                    className="font-nunito font-black uppercase tracking-wide"
+                    style={{
+                      background: chip.bg,
+                      color: '#FFFFFF',
+                      fontSize: 11,
+                      padding: '5px 12px',
+                      borderRadius: 10,
+                      border: '2px solid rgba(255,255,255,0.85)',
+                      boxShadow: '3px 3px 0 rgba(255,255,255,0.25)',
+                      transform: `rotate(${chip.rot}deg)`,
+                      display: 'inline-block',
+                    }}
+                  >
+                    {chip.text}
+                  </span>
+                ))}
+              </div>
               <h1
                 style={{
                   fontFamily: 'Playfair Display, Georgia, serif',
@@ -408,6 +442,83 @@ export default function Home() {
                     <span className="flex-shrink-0 mx-4 self-center" style={{ color: 'rgba(167,139,250,0.2)', fontSize: 24 }}>·</span>
                   </div>
                 ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* IMPACT — missions, crowns, real-world impact */}
+      <section className="py-16 md:py-24 px-6 md:px-12" style={{ background: '#09090F' }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-10 md:mb-14">
+            <span
+              className="inline-block font-nunito font-black uppercase tracking-wide mb-5"
+              style={{
+                background: '#F59E0B',
+                color: '#09090F',
+                fontSize: 11,
+                padding: '5px 12px',
+                borderRadius: 10,
+                border: '2px solid rgba(255,255,255,0.85)',
+                boxShadow: '3px 3px 0 rgba(255,255,255,0.25)',
+                transform: 'rotate(-2deg)',
+              }}
+            >
+              {s.impact.sticker}
+            </span>
+            <h2
+              className="text-white mb-4"
+              style={{
+                fontFamily: 'Playfair Display, serif',
+                fontSize: 'clamp(36px, 5.5vw, 72px)',
+                fontWeight: 700,
+                letterSpacing: '-0.025em',
+                lineHeight: 1.0,
+              }}
+            >
+              {s.impact.titleLine1} <em style={{ color: '#4ADE80' }}>{s.impact.titleLine2Em}</em>
+            </h2>
+            <p className="font-nunito text-gray-400 text-base max-w-md mx-auto leading-relaxed">
+              {s.impact.subtitle}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-10">
+            {[
+              { emoji: '🌱', title: s.impact.envTitle, line: s.impact.envLine, stat: s.impact.envStat, accent: '#4ADE80', count: impact?.environment, rot: -1 },
+              { emoji: '💛', title: s.impact.socialTitle, line: s.impact.socialLine, stat: s.impact.socialStat, accent: '#F472B6', count: impact?.social, rot: 1 },
+            ].map(c => (
+              <div
+                key={c.title}
+                className="rounded-2xl p-6 text-center"
+                style={{
+                  background: `linear-gradient(180deg, color-mix(in srgb, ${c.accent} 14%, #0A0A12) 0%, #0A0A12 90%)`,
+                  border: `1px solid ${c.accent}45`,
+                  transform: `rotate(${c.rot}deg)`,
+                }}
+              >
+                <div style={{ fontSize: 44 }} className="mb-2">{c.emoji}</div>
+                <div className="font-nunito font-black uppercase tracking-wide text-white text-sm mb-1">{c.title}</div>
+                <div className="font-nunito font-bold text-xs mb-4" style={{ color: c.accent }}>{c.line}</div>
+                <div className="font-nunito font-black text-white leading-none" style={{ fontSize: 40 }}>
+                  {c.count === undefined ? '—' : c.count.toLocaleString()}
+                </div>
+                <div className="font-nunito text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>{c.stat}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 md:gap-5">
+            {[s.impact.how1, s.impact.how2, s.impact.how3].map((step, i) => (
+              <div key={step} className="flex items-center gap-3 md:gap-5">
+                <span
+                  className="font-nunito font-bold text-sm px-4 py-2 rounded-full"
+                  style={{ color: 'rgba(255,255,255,0.75)', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.04)' }}
+                >
+                  {step}
+                </span>
+                {i < 2 && <span style={{ color: 'rgba(255,255,255,0.25)' }}>→</span>}
               </div>
             ))}
           </div>

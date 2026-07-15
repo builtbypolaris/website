@@ -7,16 +7,19 @@ import {
   deleteSubject as dbDeleteSubject,
   addStudySession as dbAddSession,
   deleteStudySession as dbDeleteSession,
-  saveStudyCharacter as dbSaveCharacter,
   addXP, todayStr,
 } from '../lib/storage'
+import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { useCelebrations } from '../components/CelebrationLayer'
+import { StreakBadge } from '../components/StreakBadge'
+import { BadgeWall } from '../components/BadgeWall'
 import { useAuth } from '../contexts/AuthContext'
 import { STUDY_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
 import FocusBurst from '../games/FocusBurst'
 import DeadlineDodge from '../games/DeadlineDodge'
 import FlashOrder from '../games/FlashOrder'
-import type { StudyData } from '../types'
+import type { CharacterState, StudyData } from '../types'
 
 const SUBJECT_COLORS = ['#6D28D9', '#0284C7', '#16A34A', '#D97706', '#DC2626', '#DB2777', '#0D9488']
 
@@ -25,7 +28,7 @@ type MainTab = 'overview' | 'study' | 'subjects' | 'games'
 
 const ACCENT = '#6D28D9'
 const CARD_BG = '#FFFFFF'
-const CARD_BORDER = '#E5E4E2'
+const CARD_BORDER = '#09090F'
 const INPUT_BG = '#F0EEE8'
 
 function fmtHours(minutes: number) {
@@ -56,10 +59,15 @@ export default function Study() {
   const [timerSeconds, setTimerSeconds] = useState(0)
   const [timerRunning, setTimerRunning] = useState(false)
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
+  const [dayStreak, setDayStreak] = useState<StreakRow | null>(null)
+  const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const { celebrate, layer } = useCelebrations()
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     if (!userId) return
+    getStreak(userId, 'study').then(setDayStreak)
+    getBadges(userId, 'study').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
     getStudyData(userId).then(setData)
   }, [userId])
 
@@ -75,6 +83,17 @@ export default function Study() {
     setToast({ msg, good })
     setTimeout(() => setToast(null), 2500)
   }
+
+  const runAward = (before: CharacterState, gain: number, kind: 'log' | 'game' = 'log') => {
+    void awardXP(userId, 'study', before, gain, kind).then(r => {
+      setData(d => d ? { ...d, character: r.character } : d)
+      setDayStreak(r.streak)
+      const freshBadges = r.celebrations.flatMap(c => c.type === 'badge' ? [c.badgeId] : [])
+      if (freshBadges.length) setEarnedBadges(s => new Set([...s, ...freshBadges]))
+      celebrate(r.celebrations)
+    })
+  }
+
 
   if (!data) {
     return (
@@ -120,9 +139,9 @@ export default function Study() {
     const xpGain = Math.min(30, Math.floor(minutes / 5)) + (firstToday ? 10 : 0)
     try {
       const sess = await dbAddSession(userId, { subjectId, durationMinutes: minutes, notes, date: todayStr() })
-      const newCharacter = addXP(data.character, xpGain)
-      setData(d => d ? { ...d, sessions: [sess, ...d.sessions], character: newCharacter } : d)
-      dbSaveCharacter(userId, newCharacter)
+      const before = data.character
+      setData(d => d ? { ...d, sessions: [sess, ...d.sessions], character: addXP(before, xpGain) } : d)
+      runAward(before, xpGain)
       showToast(firstToday ? `+${xpGain} XP (first session today!)` : `+${xpGain} XP!`)
       return true
     } catch {
@@ -187,9 +206,9 @@ export default function Study() {
   }
 
   const handleXPEarned = (xp: number) => {
-    const newCharacter = addXP(data.character, xp)
-    setData(d => d ? { ...d, character: newCharacter } : d)
-    dbSaveCharacter(userId, newCharacter)
+    const before = data.character
+    setData(d => d ? { ...d, character: addXP(before, xp) } : d)
+    runAward(before, xp, 'game')
     showToast(`+${xp} XP from game!`)
   }
 
@@ -209,10 +228,12 @@ export default function Study() {
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
 
+      {layer}
+
       {toast && (
         <div
-          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg font-nunito text-white text-sm bounce-in"
-          style={{ background: toast.good ? '#16A34A' : '#DC2626' }}
+          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl font-nunito font-black text-white text-sm bounce-in"
+          style={{ background: toast.good ? '#16A34A' : '#DC2626', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
         >
           {toast.msg}
         </div>
@@ -229,7 +250,7 @@ export default function Study() {
         >
           ←
         </button>
-        <div className="font-nunito font-bold text-[#09090F] text-sm md:text-base">📚 Study Tracker</div>
+        <div className="font-nunito font-black uppercase tracking-wide text-[#09090F] text-sm md:text-base flex items-center gap-2">📚 Study Tracker <StreakBadge streak={dayStreak} /></div>
         <div className="hidden lg:flex items-center gap-1.5 text-xs font-nunito text-[#09090F]/50 bg-black/5 px-2.5 py-1.5 rounded-lg">
           <span>{petStage.emoji}</span>
           <span>{data.character.xp} XP</span>
@@ -241,10 +262,12 @@ export default function Study() {
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
 
           {/* Mobile pet card */}
-          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-            <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+            <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
             {petCard}
           </div>
+
+          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
 
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
@@ -254,15 +277,15 @@ export default function Study() {
               { label: 'Day streak', value: `${streak}🔥`, color: '#D97706' },
               { label: 'Next exam', value: nextExam ? `${daysUntil(nextExam.examDate!)}d` : '—', color: nextExam && daysUntil(nextExam.examDate!) <= 7 ? '#DC2626' : '#16A34A' },
             ].map(m => (
-              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="font-nunito font-bold text-sm md:text-base mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
-                <div className="text-xs text-[#09090F]/50 font-nunito">{m.label}</div>
+              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="font-nunito font-black text-base md:text-xl mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
+                <div className="text-[10px] font-nunito font-black uppercase tracking-widest text-[#09090F]/45">{m.label}</div>
               </div>
             ))}
           </div>
 
           {/* Tabs */}
-          <div className="flex mb-5 overflow-x-auto scrollbar-hidden" style={{ borderBottom: '1px solid #E5E4E2' }}>
+          <div className="flex mb-5 overflow-x-auto scrollbar-hidden gap-1.5 py-1">
             {([
               { key: 'overview', label: '📊 Overview' },
               { key: 'study',    label: '⏱️ Study' },
@@ -272,12 +295,10 @@ export default function Study() {
               <button
                 key={t.key}
                 onClick={() => setMainTab(t.key)}
-                className="px-3 md:px-4 py-2.5 font-nunito text-sm transition border-b-2 -mb-px whitespace-nowrap flex-shrink-0"
-                style={{
-                  borderBottomColor: mainTab === t.key ? ACCENT : 'transparent',
-                  color: mainTab === t.key ? '#09090F' : 'rgba(9,9,15,0.4)',
-                  fontWeight: mainTab === t.key ? 600 : 400,
-                }}
+                className="px-3 md:px-4 py-2 rounded-xl font-nunito text-sm transition whitespace-nowrap flex-shrink-0"
+                style={mainTab === t.key
+                  ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
+                  : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
               >
                 {t.label}
               </button>
@@ -289,8 +310,8 @@ export default function Study() {
             <div className="space-y-4">
 
               {upcomingExams.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                  <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Upcoming Exams</div>
+                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                  <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Upcoming Exams</div>
                   <div className="space-y-2.5">
                     {upcomingExams.map(s => {
                       const days = daysUntil(s.examDate!)
@@ -318,9 +339,9 @@ export default function Study() {
               )}
 
               {recentSessions.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-xs font-nunito font-bold uppercase tracking-widest" style={{ color: ACCENT }}>Recent Sessions</div>
+                    <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Recent Sessions</div>
                     <button onClick={() => setMainTab('study')} className="text-xs font-nunito transition hover:opacity-70" style={{ color: ACCENT }}>
                       Log more →
                     </button>
@@ -346,7 +367,7 @@ export default function Study() {
               )}
 
               {data.subjects.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">📚</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No subjects yet</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Add your subjects in the Subjects tab, then start logging study time</div>
@@ -360,8 +381,8 @@ export default function Study() {
             <div className="space-y-4">
 
               {/* Timer */}
-              <div className="rounded-xl p-4 md:p-5 text-center" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Study Timer</div>
+              <div className="rounded-xl p-4 md:p-5 text-center" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Study Timer</div>
                 <div
                   className="font-nunito font-black mb-4"
                   style={{ fontSize: 56, lineHeight: 1, color: timerRunning ? ACCENT : '#09090F', fontVariantNumeric: 'tabular-nums' }}
@@ -373,7 +394,7 @@ export default function Study() {
                     <button
                       onClick={() => setTimerRunning(true)}
                       className="px-6 py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition active:scale-95"
-                      style={{ background: ACCENT }}
+                      style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                     >
                       ▶ Start
                     </button>
@@ -382,7 +403,7 @@ export default function Study() {
                     <button
                       onClick={() => setTimerRunning(false)}
                       className="px-6 py-2.5 font-nunito font-bold text-sm rounded-lg transition active:scale-95"
-                      style={{ background: INPUT_BG, color: '#09090F', border: `1px solid ${CARD_BORDER}` }}
+                      style={{ background: INPUT_BG, color: '#09090F', border: `3px solid ${CARD_BORDER}` }}
                     >
                       ⏸ Pause
                     </button>
@@ -391,7 +412,7 @@ export default function Study() {
                     <button
                       onClick={() => setTimerRunning(true)}
                       className="px-6 py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition active:scale-95"
-                      style={{ background: ACCENT }}
+                      style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                     >
                       ▶ Resume
                     </button>
@@ -409,8 +430,8 @@ export default function Study() {
               </div>
 
               {/* Log form */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Log Session</div>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Log Session</div>
                 {data.subjects.length === 0 ? (
                   <div className="text-xs text-[#09090F]/40 font-nunito">Add a subject first in the Subjects tab.</div>
                 ) : (
@@ -420,7 +441,7 @@ export default function Study() {
                         value={logForm.subjectId}
                         onChange={e => setLogForm(f => ({ ...f, subjectId: e.target.value }))}
                         className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none"
-                        style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                        style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                       >
                         <option value="">Subject…</option>
                         {data.subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -432,7 +453,7 @@ export default function Study() {
                         onChange={e => setLogForm(f => ({ ...f, minutes: e.target.value }))}
                         onKeyDown={e => e.key === 'Enter' && handleLogManual()}
                         className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                        style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                        style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                       />
                     </div>
                     <div className="flex gap-2">
@@ -443,13 +464,13 @@ export default function Study() {
                         onChange={e => setLogForm(f => ({ ...f, notes: e.target.value }))}
                         onKeyDown={e => e.key === 'Enter' && handleLogManual()}
                         className="flex-1 px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                        style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                        style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                       />
                       <button
                         onClick={handleLogManual}
                         disabled={!logForm.subjectId || !logForm.minutes}
                         className="px-5 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                        style={{ background: ACCENT }}
+                        style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                       >
                         Log
                       </button>
@@ -464,7 +485,7 @@ export default function Study() {
                   {recentSessions.map(sess => {
                     const subj = subjectById(sess.subjectId)
                     return (
-                      <div key={sess.id} className="px-4 py-3 rounded-xl flex items-center gap-3" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                      <div key={sess.id} className="px-4 py-3 rounded-xl flex items-center gap-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: subj?.color ?? '#9CA3AF' }} />
                         <div className="flex-1 min-w-0">
                           <div className="font-nunito font-semibold text-sm text-[#09090F] truncate">{subj?.name ?? 'Unknown'}</div>
@@ -490,8 +511,8 @@ export default function Study() {
             <div className="space-y-4">
 
               {/* Add subject */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>New Subject</div>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>New Subject</div>
                 <div className="flex gap-1.5 mb-2">
                   {SUBJECT_COLORS.map(c => (
                     <button
@@ -510,21 +531,21 @@ export default function Study() {
                     onChange={e => setSubjectForm(f => ({ ...f, name: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleAddSubject()}
                     className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   />
                   <input
                     type="date"
                     value={subjectForm.examDate}
                     onChange={e => setSubjectForm(f => ({ ...f, examDate: e.target.value }))}
                     className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   />
                 </div>
                 <button
                   onClick={handleAddSubject}
                   disabled={!subjectForm.name}
                   className="w-full py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                  style={{ background: ACCENT }}
+                  style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                 >
                   Add Subject
                 </button>
@@ -534,7 +555,7 @@ export default function Study() {
               {data.subjects.map(s => {
                 const mins = minutesFor(s.id)
                 return (
-                  <div key={s.id} className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                  <div key={s.id} className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: s.color }} />
                       <div className="flex-1 min-w-0">
@@ -549,7 +570,7 @@ export default function Study() {
                         value={s.examDate ?? ''}
                         onChange={e => handleSetExamDate(s.id, e.target.value)}
                         className="px-2 py-1.5 rounded-lg font-nunito text-xs text-[#09090F] outline-none flex-shrink-0"
-                        style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                        style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                       />
                       <button
                         onClick={() => handleDeleteSubject(s.id)}
@@ -569,7 +590,7 @@ export default function Study() {
               })}
 
               {data.subjects.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">📚</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No subjects yet</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Add your first subject above to start tracking study time</div>
@@ -580,9 +601,9 @@ export default function Study() {
 
           {/* ── GAMES ────────────────────────────────────────── */}
           {mainTab === 'games' && (
-            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
                 <span className="text-xs text-[#09090F]/50 font-nunito">XP → Study Pet</span>
               </div>
               <div className="flex gap-1.5 mb-5 p-1 rounded-xl" style={{ background: INPUT_BG }}>
@@ -592,7 +613,7 @@ export default function Study() {
                     onClick={() => setGameTab(g)}
                     className="flex-1 py-2 rounded-lg font-nunito text-sm transition"
                     style={gameTab === g
-                      ? { background: CARD_BG, color: '#09090F', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }
+                      ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '2px 2px 0 #09090F' }
                       : { color: 'rgba(9,9,15,0.4)' }}
                   >
                     {g === 'clicker' ? '👆 Clicker' : g === 'arcade' ? '🕹️ Arcade' : '🧩 Puzzle'}
@@ -609,13 +630,14 @@ export default function Study() {
         {/* RIGHT PANEL — desktop only */}
         <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${CARD_BORDER}`, background: '#F5F4F2' }}>
           <div className="p-6 space-y-4">
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-              <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               {petCard}
             </div>
+            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             {nextExam && (
-              <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Next Exam</div>
+              <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Next Exam</div>
                 <div className="font-nunito font-semibold text-sm text-[#09090F]">{nextExam.name}</div>
                 <div className="text-xs text-[#09090F]/50 font-nunito">
                   {nextExam.examDate} · {daysUntil(nextExam.examDate!)} days left

@@ -11,6 +11,8 @@ create table if not exists public.profiles (
   age           integer,
   location      text,
   owned_templates text[] default '{}' not null,
+  cause         text check (cause in ('social', 'environment')),
+  crowns        integer default 0 not null,
   created_at    timestamptz default now()
 );
 
@@ -341,6 +343,54 @@ create table if not exists public.pet_weights (
   created_at timestamptz default now()
 );
 
+-- ── GAMIFICATION: missions / streaks / achievements ─────────
+
+-- Weekly quests; a completed mission = 1 crown (see impact_totals below)
+create table if not exists public.missions (
+  user_id      uuid references auth.users(id) on delete cascade not null,
+  mission_id   text not null,
+  week_start   date not null,
+  tracker_type text,
+  progress     integer default 0 not null,
+  target       integer not null,
+  completed_at timestamptz,
+  created_at   timestamptz default now(),
+  primary key (user_id, mission_id, week_start)
+);
+
+create table if not exists public.streaks (
+  user_id      uuid references auth.users(id) on delete cascade not null,
+  tracker_type text not null,
+  current      integer default 0 not null,
+  best         integer default 0 not null,
+  last_active  date,
+  primary key (user_id, tracker_type)
+);
+
+create table if not exists public.achievements (
+  user_id      uuid references auth.users(id) on delete cascade not null,
+  tracker_type text not null,
+  badge_id     text not null,
+  earned_at    timestamptz default now() not null,
+  primary key (user_id, tracker_type, badge_id)
+);
+
+-- Community impact totals shown on the /studios landing (works logged-out)
+create or replace function public.impact_totals()
+returns table (social bigint, environment bigint)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select
+    coalesce(sum(crowns) filter (where cause = 'social'), 0)      as social,
+    coalesce(sum(crowns) filter (where cause = 'environment'), 0) as environment
+  from public.profiles;
+$$;
+
+grant execute on function public.impact_totals() to anon, authenticated;
+
 -- ============================================================
 -- ROW LEVEL SECURITY  (users can only touch their own rows)
 -- ============================================================
@@ -378,6 +428,9 @@ alter table public.pets             enable row level security;
 alter table public.pet_events       enable row level security;
 alter table public.pet_care_items   enable row level security;
 alter table public.pet_weights      enable row level security;
+alter table public.missions         enable row level security;
+alter table public.streaks          enable row level security;
+alter table public.achievements     enable row level security;
 
 -- profiles
 create policy "profiles: own row" on public.profiles
@@ -463,4 +516,10 @@ create policy "pet_events: own rows" on public.pet_events
 create policy "pet_care_items: own rows" on public.pet_care_items
   for all using (auth.uid() = user_id);
 create policy "pet_weights: own rows" on public.pet_weights
+  for all using (auth.uid() = user_id);
+create policy "missions: own rows" on public.missions
+  for all using (auth.uid() = user_id);
+create policy "streaks: own rows" on public.streaks
+  for all using (auth.uid() = user_id);
+create policy "achievements: own rows" on public.achievements
   for all using (auth.uid() = user_id);

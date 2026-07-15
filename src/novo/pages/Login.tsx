@@ -5,8 +5,10 @@ import {
   mountGoogleButton, createProfile, isUsernameTaken, getProfile,
 } from '../lib/storage'
 import { supabase } from '../lib/supabase'
+import { setCause, type Cause } from '../lib/gamification'
 import { FINANCIAL_STAGES, TODO_STAGES, HABIT_STAGES } from '../data/creatures'
 import { NovoLogo } from '../components/NovoLogo'
+import { CauseCards } from '../components/CausePicker'
 
 type Mode = 'signin' | 'signup'
 
@@ -30,6 +32,8 @@ function OnboardingForm({ userId, onDone }: { userId: string; onDone: () => void
   const [location, setLocation] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [step, setStep] = useState<'details' | 'cause'>('details')
+  const [cause, setCauseChoice] = useState<Cause | null>(null)
 
   const inputCls = "w-full px-0 py-3 bg-transparent border-b-2 border-gray-300 font-nunito text-gray-900 outline-none transition text-base"
   const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.currentTarget.style.borderBottomColor = '#7C3AED')
@@ -56,7 +60,54 @@ function OnboardingForm({ userId, onDone }: { userId: string; onDone: () => void
       location,
     )
     if (err) { setError(err); setLoading(false); return }
+    setLoading(false)
+    setStep('cause')
+  }
+
+  const handleCauseDone = async () => {
+    if (cause) {
+      setLoading(true)
+      await setCause(userId, cause)
+    }
     onDone()
+  }
+
+  if (step === 'cause') {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: '#F5F4F2' }}>
+        <div className="w-full max-w-sm">
+          <div className="mb-2">
+            <NovoLogo size={26} withName />
+          </div>
+          <div className="mb-8 mt-8 text-center">
+            <div className="text-5xl mb-3">👑</div>
+            <h2 className="font-display text-gray-900 mb-2" style={{ fontSize: 'clamp(28px, 4vw, 44px)' }}>
+              Pick your cause.
+            </h2>
+            <p className="text-gray-400 font-nunito text-sm leading-relaxed">
+              Complete weekly missions to earn crowns. For every crown, Polaris makes real impact — you choose where it goes.
+            </p>
+          </div>
+
+          <CauseCards picked={cause} onPick={setCauseChoice} disabled={loading} />
+
+          <button
+            onClick={handleCauseDone}
+            disabled={loading || !cause}
+            className="mt-6 w-full py-4 text-white font-nunito font-bold text-sm rounded-xl transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ background: '#7C3AED' }}
+          >
+            {loading ? 'Saving...' : 'Start playing →'}
+          </button>
+          <button
+            onClick={onDone}
+            className="mt-3 w-full text-xs font-nunito text-gray-400 hover:text-gray-700 transition"
+          >
+            Maybe later
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -109,7 +160,7 @@ function OnboardingForm({ userId, onDone }: { userId: string; onDone: () => void
             className="w-full py-4 text-white font-nunito font-bold text-sm rounded-xl transition hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ background: '#7C3AED' }}
           >
-            {loading ? 'Setting up...' : 'Start playing →'}
+            {loading ? 'Setting up...' : 'Continue →'}
           </button>
         </form>
       </div>

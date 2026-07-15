@@ -5,19 +5,22 @@ import {
   updateTask as dbUpdateTask,
   deleteTask as dbDeleteTask,
   getTodoData,
-  saveTodoCharacter as dbSaveCharacter,
   addXP, todayStr,
 } from '../lib/storage'
+import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { useCelebrations } from '../components/CelebrationLayer'
+import { StreakBadge } from '../components/StreakBadge'
+import { BadgeWall } from '../components/BadgeWall'
 import { useAuth } from '../contexts/AuthContext'
 import Character from '../components/Character'
 import TaskTap from '../games/TaskTap'
 import TaskRush from '../games/TaskRush'
 import PriorityPuzzle from '../games/PriorityPuzzle'
-import type { TodoData, Task, Priority } from '../types'
+import type { CharacterState, TodoData, Task, Priority } from '../types'
 
 const ACCENT = '#16A34A'
 const CARD_BG = '#FFFFFF'
-const CARD_BORDER = '#E5E4E2'
+const CARD_BORDER = '#09090F'
 const INPUT_BG = '#F0EEE8'
 const BAR_MAX_H = 80
 
@@ -46,13 +49,28 @@ export default function Todo() {
   const [newPriority, setNewPriority] = useState<Priority>('medium')
   const [newDue, setNewDue] = useState('')
   const [toast, setToast] = useState('')
+  const [streak, setStreak] = useState<StreakRow | null>(null)
+  const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const { celebrate, layer } = useCelebrations()
 
   useEffect(() => {
     if (!userId) return
+    getStreak(userId, 'todo').then(setStreak)
+    getBadges(userId, 'todo').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
     getTodoData(userId).then(setData)
   }, [userId])
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
+
+  const runAward = (before: CharacterState, gain: number, kind: 'log' | 'game' = 'log') => {
+    void awardXP(userId, 'todo', before, gain, kind).then(r => {
+      setData(d => d ? { ...d, character: r.character } : d)
+      setStreak(r.streak)
+      const freshBadges = r.celebrations.flatMap(c => c.type === 'badge' ? [c.badgeId] : [])
+      if (freshBadges.length) setEarnedBadges(s => new Set([...s, ...freshBadges]))
+      celebrate(r.celebrations)
+    })
+  }
 
   if (!data) {
     return (
@@ -110,27 +128,28 @@ export default function Todo() {
     const nowCompleted = !task.completed
     const completedAt = nowCompleted ? todayStr() : undefined
 
-    let newCharacter = data.character
+    let xpTotal = 0
     if (nowCompleted) {
       const xp = PRIORITY_XP[task.priority]
-      newCharacter = addXP(newCharacter, xp)
+      xpTotal = xp
       const wouldAllDone = data.tasks.every(t => t.id === id || t.completed)
       if (wouldAllDone && data.tasks.length >= 3) {
-        newCharacter = addXP(newCharacter, 30)
+        xpTotal += 30
         showToast(`+${xp} XP! +30 ALL DONE bonus!`)
       } else {
         showToast(`+${xp} XP!`)
       }
     }
 
+    const before = data.character
     setData(d => d ? {
       ...d,
       tasks: d.tasks.map(t => t.id === id ? { ...t, completed: nowCompleted, completedAt } : t),
-      character: newCharacter,
+      character: nowCompleted ? addXP(before, xpTotal) : d.character,
     } : d)
 
     await dbUpdateTask(id, { completed: nowCompleted, completedAt })
-    if (nowCompleted) dbSaveCharacter(userId, newCharacter)
+    if (nowCompleted) runAward(before, xpTotal)
   }
 
   const handleDeleteTask = async (id: string) => {
@@ -139,9 +158,9 @@ export default function Todo() {
   }
 
   const handleXPEarned = (xp: number) => {
-    const newCharacter = addXP(data.character, xp)
-    setData(d => d ? { ...d, character: newCharacter } : d)
-    dbSaveCharacter(userId, newCharacter)
+    const before = data.character
+    setData(d => d ? { ...d, character: addXP(before, xp) } : d)
+    runAward(before, xp, 'game')
     showToast(`+${xp} XP from game!`)
   }
 
@@ -175,7 +194,7 @@ export default function Todo() {
         className="px-4 py-3 rounded-xl flex items-start gap-3 transition"
         style={{
           background: CARD_BG,
-          border: `1px solid ${overdue ? '#FCA5A5' : dueT ? '#86EFAC' : CARD_BORDER}`,
+          border: `3px solid ${overdue ? '#FCA5A5' : dueT ? '#86EFAC' : CARD_BORDER}`,
           opacity: task.completed ? 0.55 : 1,
         }}
       >
@@ -210,8 +229,9 @@ export default function Todo() {
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
+      {layer}
       {toast && (
-        <div className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg font-nunito text-white text-sm bounce-in" style={{ background: '#7C3AED' }}>
+        <div className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl font-nunito font-black text-white text-sm bounce-in" style={{ background: '#7C3AED', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}>
           {toast}
         </div>
       )}
@@ -227,7 +247,7 @@ export default function Todo() {
         >
           ← Dashboard
         </button>
-        <div className="font-nunito font-bold text-[#09090F] text-base">✅ To-Do List</div>
+        <div className="font-nunito font-black uppercase tracking-wide text-[#09090F] text-base flex items-center gap-2">✅ To-Do List <StreakBadge streak={streak} /></div>
         <div className="w-16" />
       </header>
 
@@ -235,8 +255,8 @@ export default function Todo() {
         {/* MAIN */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
           {/* Mobile pet card */}
-          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-            <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+            <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
             <Character
               type="todo"
               xp={data.character.xp}
@@ -245,6 +265,8 @@ export default function Todo() {
             />
           </div>
 
+          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
+
           {/* Metrics */}
           <div className="grid grid-cols-3 gap-2 mb-6">
             {[
@@ -252,24 +274,23 @@ export default function Todo() {
               { label: 'Active', value: String(activeTasks), color: '#B45309' },
               { label: 'Done', value: String(doneTasks), color: ACCENT },
             ].map(m => (
-              <div key={m.label} className="rounded-xl p-3.5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="font-nunito font-bold text-2xl mb-0.5" style={{ color: m.color }}>{m.value}</div>
-                <div className="text-xs text-[#09090F]/50 font-nunito">{m.label}</div>
+              <div key={m.label} className="rounded-xl p-3.5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="font-nunito font-black text-2xl mb-0.5" style={{ color: m.color }}>{m.value}</div>
+                <div className="text-[10px] font-nunito font-black uppercase tracking-widest text-[#09090F]/45">{m.label}</div>
               </div>
             ))}
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-0 mb-6" style={{ borderBottom: '1px solid #E5E4E2' }}>
+          <div className="flex gap-1.5 mb-6 py-1">
             {(['tasks', 'analytics', 'games'] as MainTab[]).map(t => (
               <button
                 key={t}
                 onClick={() => setMainTab(t)}
-                className="px-4 py-2.5 font-nunito text-sm transition border-b-2 -mb-px"
-                style={{
-                  borderBottomColor: mainTab === t ? ACCENT : 'transparent',
-                  color: mainTab === t ? '#09090F' : 'rgba(9,9,15,0.4)',
-                }}
+                className="px-4 py-2 rounded-xl font-nunito text-sm transition"
+                style={mainTab === t
+                  ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
+                  : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
               >
                 {t === 'tasks' ? '📋 Tasks' : t === 'analytics' ? '📊 Analytics' : '🎮 Games'}
               </button>
@@ -280,7 +301,7 @@ export default function Todo() {
           {mainTab === 'tasks' && (
             <div className="space-y-3">
               {/* Add task form */}
-              <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+              <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                 <input
                   type="text"
                   placeholder="What do you need to do?"
@@ -288,14 +309,14 @@ export default function Todo() {
                   onChange={e => setNewTitle(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleAddTask()}
                   className="w-full rounded-lg px-3 py-2.5 font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30 mb-2"
-                  style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                  style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                 />
                 <div className="flex flex-wrap gap-2">
                   <select
                     value={newPriority}
                     onChange={e => setNewPriority(e.target.value as Priority)}
                     className="flex-1 min-w-[130px] px-3 py-2 rounded-lg font-nunito text-sm text-[#09090F] outline-none"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   >
                     <option value="high">🔴 High (+25 XP)</option>
                     <option value="medium">🟡 Medium (+15 XP)</option>
@@ -306,13 +327,13 @@ export default function Todo() {
                     value={newDue}
                     onChange={e => setNewDue(e.target.value)}
                     className="flex-1 min-w-[130px] px-3 py-2 rounded-lg font-nunito text-sm text-[#09090F] outline-none"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   />
                   <button
                     onClick={handleAddTask}
                     disabled={!newTitle.trim()}
                     className="px-5 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40"
-                    style={{ background: ACCENT }}
+                    style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                   >
                     Add
                   </button>
@@ -322,7 +343,7 @@ export default function Todo() {
               {/* Due today pinned section */}
               {dueToday.length > 0 && (
                 <div className="space-y-2">
-                  <div className="text-xs font-nunito font-bold uppercase tracking-widest" style={{ color: ACCENT }}>
+                  <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>
                     📅 Due Today ({dueToday.length})
                   </div>
                   {dueToday.map(renderTask)}
@@ -337,8 +358,8 @@ export default function Todo() {
                     onClick={() => setFilter(f)}
                     className="px-3 py-1.5 rounded-lg font-nunito text-xs font-semibold transition"
                     style={filter === f
-                      ? { background: ACCENT, color: '#fff' }
-                      : { background: CARD_BG, color: 'rgba(9,9,15,0.4)', border: `1px solid ${CARD_BORDER}` }}
+                      ? { background: ACCENT, color: '#fff', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }
+                      : { background: CARD_BG, color: 'rgba(9,9,15,0.4)', border: `3px solid ${CARD_BORDER}` }}
                   >
                     {f === 'all' ? `All (${totalTasks})` : f === 'active' ? `Active (${activeTasks})` : `Done (${doneTasks})`}
                   </button>
@@ -346,7 +367,7 @@ export default function Todo() {
               </div>
 
               {filtered.length === 0 ? (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-4xl mb-3">
                     {filter === 'done' ? '🎯' : totalTasks === 0 ? '✨' : '✅'}
                   </div>
@@ -373,16 +394,16 @@ export default function Todo() {
                   { label: 'Completion Rate', value: `${rate}%`, sub: `${doneTasks} of ${totalTasks} tasks done` },
                   { label: 'Active Tasks', value: String(activeTasks), sub: activeTasks === 0 ? 'All done! 🎉' : `${activeTasks} remaining` },
                 ].map(s => (
-                  <div key={s.label} className="rounded-xl p-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                    <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-1" style={{ color: ACCENT }}>{s.label}</div>
+                  <div key={s.label} className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                    <div className="text-xs font-nunito font-black uppercase tracking-widest mb-1" style={{ color: ACCENT }}>{s.label}</div>
                     <div className="font-nunito font-bold text-3xl text-[#09090F]">{s.value}</div>
                     <div className="text-xs font-nunito text-[#09090F]/50 mt-0.5">{s.sub}</div>
                   </div>
                 ))}
               </div>
 
-              <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
+              <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
                   7-Day Completion
                 </div>
                 {dailyCompleted.every(d => d.count === 0) ? (
@@ -408,8 +429,8 @@ export default function Todo() {
                 )}
               </div>
 
-              <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
+              <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
                   By Priority
                 </div>
                 {priorityDist.length === 0 ? (
@@ -450,9 +471,9 @@ export default function Todo() {
 
           {/* GAMES TAB */}
           {mainTab === 'games' && (
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
                 <span className="text-xs text-[#09090F]/50 font-nunito">XP goes to your Task Pet</span>
               </div>
               <div className="flex gap-1.5 mb-5 p-1 rounded-xl" style={{ background: INPUT_BG }}>
@@ -462,7 +483,7 @@ export default function Todo() {
                     onClick={() => setGameTab(g)}
                     className="flex-1 py-2 rounded-lg font-nunito text-sm transition"
                     style={gameTab === g
-                      ? { background: CARD_BG, color: '#09090F', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }
+                      ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '2px 2px 0 #09090F' }
                       : { color: 'rgba(9,9,15,0.4)' }}
                   >
                     {g === 'clicker' ? '👆 Clicker' : g === 'arcade' ? '🕹️ Arcade' : '🧩 Puzzle'}
@@ -482,8 +503,8 @@ export default function Todo() {
           style={{ borderLeft: `1px solid ${CARD_BORDER}`, background: '#F5F4F2' }}
         >
           <div className="p-6 space-y-4">
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-              <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
+            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
                 Your Pet
               </div>
               <Character
@@ -495,6 +516,7 @@ export default function Todo() {
                 onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`)}
               />
             </div>
+            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             <div className="rounded-xl p-3 text-xs font-nunito leading-relaxed" style={{ background: '#DCFCE7', border: '1px solid #BBF7D0' }}>
               <strong className="text-green-700">Pet tip:</strong>{' '}
               <span className="text-green-800">Complete high-priority tasks for 25 XP each. Finish ALL tasks for +30 bonus XP!</span>

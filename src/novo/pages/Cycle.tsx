@@ -5,9 +5,12 @@ import {
   startPeriod as dbStartPeriod,
   endPeriod as dbEndPeriod,
   upsertCycleLog as dbUpsertLog,
-  saveCycleCharacter as dbSaveCharacter,
   addXP, todayStr,
 } from '../lib/storage'
+import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { useCelebrations } from '../components/CelebrationLayer'
+import { StreakBadge } from '../components/StreakBadge'
+import { BadgeWall } from '../components/BadgeWall'
 import { useAuth } from '../contexts/AuthContext'
 import { CYCLE_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
@@ -31,7 +34,7 @@ type MainTab = 'today' | 'calendar' | 'insights' | 'games'
 
 const ACCENT = '#E11D48'
 const CARD_BG = '#FFFFFF'
-const CARD_BORDER = '#E5E4E2'
+const CARD_BORDER = '#09090F'
 const INPUT_BG = '#F0EEE8'
 const PERIOD_COLOR = '#FB7185'
 const PREDICT_COLOR = '#FDA4AF'
@@ -59,11 +62,16 @@ export default function Cycle() {
   const [viewMonth, setViewMonth] = useState(() => { const d = new Date(); d.setDate(1); return d })
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
+  const [streak, setStreak] = useState<StreakRow | null>(null)
+  const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const { celebrate, layer } = useCelebrations()
 
   const today = todayStr()
 
   useEffect(() => {
     if (!userId) return
+    getStreak(userId, 'cycle').then(setStreak)
+    getBadges(userId, 'cycle').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
     getCycleData(userId).then(d => {
       setData(d)
       const todayLog = d.logs.find(l => l.date === todayStr())
@@ -130,10 +138,16 @@ export default function Cycle() {
     .filter(s => s.count > 0)
     .sort((a, b) => b.count - a.count)
 
-  const applyXP = (xpGain: number, patch: Partial<CycleData>) => {
-    const newCharacter = addXP(data.character, xpGain)
-    setData(d => d ? { ...d, ...patch, character: newCharacter } : d)
-    dbSaveCharacter(userId, newCharacter)
+  const applyXP = (xpGain: number, patch: Partial<CycleData>, kind: 'log' | 'game' = 'log') => {
+    const before = data.character
+    setData(d => d ? { ...d, ...patch, character: addXP(before, xpGain) } : d)
+    void awardXP(userId, 'cycle', before, xpGain, kind).then(r => {
+      setData(d => d ? { ...d, character: r.character } : d)
+      setStreak(r.streak)
+      const freshBadges = r.celebrations.flatMap(c => c.type === 'badge' ? [c.badgeId] : [])
+      if (freshBadges.length) setEarnedBadges(s => new Set([...s, ...freshBadges]))
+      celebrate(r.celebrations)
+    })
   }
 
   // ── Actions ───────────────────────────────────────────────
@@ -181,9 +195,7 @@ export default function Cycle() {
   }
 
   const handleXPEarned = (xp: number) => {
-    const newCharacter = addXP(data.character, xp)
-    setData(d => d ? { ...d, character: newCharacter } : d)
-    dbSaveCharacter(userId, newCharacter)
+    applyXP(xp, {}, 'game')
     showToast(`+${xp} XP from game!`)
   }
 
@@ -217,10 +229,12 @@ export default function Cycle() {
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
 
+      {layer}
+
       {toast && (
         <div
-          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg font-nunito text-white text-sm bounce-in"
-          style={{ background: toast.good ? '#16A34A' : '#DC2626' }}
+          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl font-nunito font-black text-white text-sm bounce-in"
+          style={{ background: toast.good ? '#16A34A' : '#DC2626', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
         >
           {toast.msg}
         </div>
@@ -237,7 +251,7 @@ export default function Cycle() {
         >
           ←
         </button>
-        <div className="font-nunito font-bold text-[#09090F] text-sm md:text-base">🌸 Cycle Tracker</div>
+        <div className="font-nunito font-black uppercase tracking-wide text-[#09090F] text-sm md:text-base flex items-center gap-2">🌸 Cycle Tracker <StreakBadge streak={streak} /></div>
         <div className="hidden lg:flex items-center gap-1.5 text-xs font-nunito text-[#09090F]/50 bg-black/5 px-2.5 py-1.5 rounded-lg">
           <span>{petStage.emoji}</span>
           <span>{data.character.xp} XP</span>
@@ -249,10 +263,12 @@ export default function Cycle() {
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
 
           {/* Mobile pet card */}
-          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-            <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+            <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
             {petCard}
           </div>
+
+          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
 
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
@@ -262,15 +278,15 @@ export default function Cycle() {
               { label: 'Avg cycle', value: `${avgCycle}d`, color: '#09090F' },
               { label: 'Avg period', value: `${avgPeriodLen}d`, color: '#09090F' },
             ].map(m => (
-              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="font-nunito font-bold text-sm md:text-base mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
-                <div className="text-xs text-[#09090F]/50 font-nunito">{m.label}</div>
+              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="font-nunito font-black text-base md:text-xl mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
+                <div className="text-[10px] font-nunito font-black uppercase tracking-widest text-[#09090F]/45">{m.label}</div>
               </div>
             ))}
           </div>
 
           {/* Tabs */}
-          <div className="flex mb-5 overflow-x-auto scrollbar-hidden" style={{ borderBottom: '1px solid #E5E4E2' }}>
+          <div className="flex mb-5 overflow-x-auto scrollbar-hidden gap-1.5 py-1">
             {([
               { key: 'today',    label: '🌷 Today' },
               { key: 'calendar', label: '📆 Calendar' },
@@ -280,12 +296,10 @@ export default function Cycle() {
               <button
                 key={t.key}
                 onClick={() => setMainTab(t.key)}
-                className="px-3 md:px-4 py-2.5 font-nunito text-sm transition border-b-2 -mb-px whitespace-nowrap flex-shrink-0"
-                style={{
-                  borderBottomColor: mainTab === t.key ? ACCENT : 'transparent',
-                  color: mainTab === t.key ? '#09090F' : 'rgba(9,9,15,0.4)',
-                  fontWeight: mainTab === t.key ? 600 : 400,
-                }}
+                className="px-3 md:px-4 py-2 rounded-xl font-nunito text-sm transition whitespace-nowrap flex-shrink-0"
+                style={mainTab === t.key
+                  ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
+                  : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
               >
                 {t.label}
               </button>
@@ -297,7 +311,7 @@ export default function Cycle() {
             <div className="space-y-4">
 
               {/* Phase + period buttons */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                 <div className="flex items-center gap-4 mb-4">
                   <div className="flex-1">
                     <div className="font-nunito font-bold text-lg text-[#09090F]">
@@ -318,7 +332,7 @@ export default function Cycle() {
                       onClick={handleStartPeriod}
                       disabled={lastStart === today}
                       className="px-4 py-2.5 text-white font-nunito font-bold text-sm rounded-xl transition active:scale-95 disabled:opacity-40"
-                      style={{ background: ACCENT }}
+                      style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                     >
                       Period started today
                     </button>
@@ -333,8 +347,8 @@ export default function Cycle() {
               </div>
 
               {/* Daily log */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>How's today?</div>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>How's today?</div>
 
                 <div className="text-xs text-[#09090F]/50 font-nunito mb-2">Flow</div>
                 <div className="flex gap-1.5 mb-4">
@@ -344,8 +358,8 @@ export default function Cycle() {
                       onClick={() => setLogForm(prev => ({ ...prev, flow: f.value }))}
                       className="flex-1 py-2 rounded-lg font-nunito text-xs font-semibold transition"
                       style={logForm.flow === f.value
-                        ? { background: ACCENT + '18', color: ACCENT, border: `1px solid ${ACCENT}` }
-                        : { background: INPUT_BG, color: 'rgba(9,9,15,0.4)', border: `1px solid ${CARD_BORDER}` }}
+                        ? { background: ACCENT + '18', color: ACCENT, border: `3px solid ${ACCENT}` }
+                        : { background: INPUT_BG, color: 'rgba(9,9,15,0.4)', border: `3px solid ${CARD_BORDER}` }}
                     >
                       {f.label}
                     </button>
@@ -360,8 +374,8 @@ export default function Cycle() {
                       onClick={() => toggleSymptom(s)}
                       className="px-3 py-1.5 rounded-full font-nunito text-xs font-semibold transition"
                       style={logForm.symptoms.includes(s)
-                        ? { background: ACCENT + '18', color: ACCENT, border: `1px solid ${ACCENT}` }
-                        : { background: INPUT_BG, color: 'rgba(9,9,15,0.45)', border: `1px solid ${CARD_BORDER}` }}
+                        ? { background: ACCENT + '18', color: ACCENT, border: `3px solid ${ACCENT}` }
+                        : { background: INPUT_BG, color: 'rgba(9,9,15,0.45)', border: `3px solid ${CARD_BORDER}` }}
                     >
                       {s}
                     </button>
@@ -374,12 +388,12 @@ export default function Cycle() {
                     onChange={e => setLogForm(f => ({ ...f, note: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && saveLog(today, logForm)}
                     className="flex-1 px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   />
                   <button
                     onClick={() => saveLog(today, logForm)}
                     className="px-5 py-2 text-white font-nunito font-bold text-sm rounded-lg transition active:scale-95"
-                    style={{ background: ACCENT }}
+                    style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                   >
                     Save
                   </button>
@@ -395,7 +409,7 @@ export default function Cycle() {
           {/* ── CALENDAR ─────────────────────────────────────── */}
           {mainTab === 'calendar' && (
             <div className="space-y-4">
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                 <div className="flex items-center justify-between mb-4">
                   <button
                     onClick={() => setViewMonth(m => { const d = new Date(m); d.setMonth(d.getMonth() - 1); return d })}
@@ -459,8 +473,8 @@ export default function Cycle() {
               </div>
 
               {selectedDay && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                  <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>{selectedDay}</div>
+                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                  <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>{selectedDay}</div>
                   {selectedLog ? (
                     <div className="space-y-1.5">
                       <div className="font-nunito text-sm text-[#09090F]">
@@ -483,7 +497,7 @@ export default function Cycle() {
           {mainTab === 'insights' && (
             <div className="space-y-4">
               {starts.length < 2 ? (
-                <div className="text-center py-14 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-14 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-4xl mb-3">🌷</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">Not enough data yet</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Log at least two periods to unlock cycle insights</div>
@@ -497,15 +511,15 @@ export default function Cycle() {
                       { label: 'Cycles tracked', value: String(gaps.length), color: '#09090F' },
                       { label: 'Daily logs', value: String(data.logs.length), color: '#09090F' },
                     ].map(s => (
-                      <div key={s.label} className="rounded-xl p-3.5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                      <div key={s.label} className="rounded-xl p-3.5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                         <div className="font-nunito font-bold text-lg mb-0.5" style={{ color: s.color }}>{s.value}</div>
                         <div className="text-xs text-[#09090F]/50 font-nunito">{s.label}</div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                    <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Recent Cycles</div>
+                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                    <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Recent Cycles</div>
                     <div className="space-y-2.5">
                       {recentStarts.slice(0, -1).map((s, i) => {
                         const len = diffDays(s, recentStarts[i + 1])
@@ -523,8 +537,8 @@ export default function Cycle() {
                   </div>
 
                   {symptomCounts.length > 0 && (
-                    <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                      <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Most Common Symptoms</div>
+                    <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                      <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Most Common Symptoms</div>
                       <div className="space-y-3">
                         {symptomCounts.slice(0, 5).map(s => (
                           <div key={s.symptom}>
@@ -553,9 +567,9 @@ export default function Cycle() {
 
           {/* ── GAMES ────────────────────────────────────────── */}
           {mainTab === 'games' && (
-            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
                 <span className="text-xs text-[#09090F]/50 font-nunito">XP → Cycle Pet</span>
               </div>
               <div className="flex gap-1.5 mb-5 p-1 rounded-xl" style={{ background: INPUT_BG }}>
@@ -565,7 +579,7 @@ export default function Cycle() {
                     onClick={() => setGameTab(g)}
                     className="flex-1 py-2 rounded-lg font-nunito text-sm transition"
                     style={gameTab === g
-                      ? { background: CARD_BG, color: '#09090F', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }
+                      ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '2px 2px 0 #09090F' }
                       : { color: 'rgba(9,9,15,0.4)' }}
                   >
                     {g === 'clicker' ? '👆 Clicker' : g === 'arcade' ? '🕹️ Arcade' : '🧩 Puzzle'}
@@ -582,13 +596,14 @@ export default function Cycle() {
         {/* RIGHT PANEL — desktop only */}
         <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${CARD_BORDER}`, background: '#F5F4F2' }}>
           <div className="p-6 space-y-4">
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-              <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               {petCard}
             </div>
+            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             {cycleDay !== null && (
-              <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Current Phase</div>
+              <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Current Phase</div>
                 <div className="font-nunito font-bold text-lg text-[#09090F]">{phase}</div>
                 <div className="text-xs text-[#09090F]/50 font-nunito">Day {cycleDay} of ~{avgCycle}</div>
               </div>

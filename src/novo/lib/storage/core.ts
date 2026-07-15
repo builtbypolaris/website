@@ -98,6 +98,8 @@ export interface Profile {
   age: number | null
   location: string | null
   owned_templates: string[]
+  cause: 'social' | 'environment' | null
+  crowns: number
 }
 
 export async function getProfile(userId: string): Promise<Profile | null> {

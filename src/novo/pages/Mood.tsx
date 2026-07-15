@@ -4,16 +4,19 @@ import {
   getMoodData,
   addMoodEntry as dbAddEntry,
   deleteMoodEntry as dbDeleteEntry,
-  saveMoodCharacter as dbSaveCharacter,
   addXP, todayStr,
 } from '../lib/storage'
+import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { useCelebrations } from '../components/CelebrationLayer'
+import { StreakBadge } from '../components/StreakBadge'
+import { BadgeWall } from '../components/BadgeWall'
 import { useAuth } from '../contexts/AuthContext'
 import { MOOD_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
 import ZenPop from '../games/ZenPop'
 import CloudGlide from '../games/CloudGlide'
 import EmojiFlow from '../games/EmojiFlow'
-import type { MoodData, MoodEntry, MoodLevel } from '../types'
+import type { CharacterState, MoodData, MoodEntry, MoodLevel } from '../types'
 
 const MOOD_META: { level: MoodLevel; emoji: string; label: string; color: string }[] = [
   { level: 1, emoji: '😢', label: 'Awful', color: '#DC2626' },
@@ -32,7 +35,7 @@ type MainTab = 'overview' | 'history' | 'trends' | 'games'
 
 const ACCENT = '#DB2777'
 const CARD_BG = '#FFFFFF'
-const CARD_BORDER = '#E5E4E2'
+const CARD_BORDER = '#09090F'
 const INPUT_BG = '#F0EEE8'
 
 function entryDate(e: MoodEntry) { return e.entryAt.slice(0, 10) }
@@ -55,9 +58,14 @@ export default function Mood() {
   const [checkin, setCheckin] = useState<{ mood: MoodLevel | null; tags: string[]; note: string }>({ mood: null, tags: [], note: '' })
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
+  const [dayStreak, setDayStreak] = useState<StreakRow | null>(null)
+  const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const { celebrate, layer } = useCelebrations()
 
   useEffect(() => {
     if (!userId) return
+    getStreak(userId, 'mood').then(setDayStreak)
+    getBadges(userId, 'mood').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
     getMoodData(userId).then(setData)
   }, [userId])
 
@@ -65,6 +73,17 @@ export default function Mood() {
     setToast({ msg, good })
     setTimeout(() => setToast(null), 2500)
   }
+
+  const runAward = (before: CharacterState, gain: number, kind: 'log' | 'game' = 'log') => {
+    void awardXP(userId, 'mood', before, gain, kind).then(r => {
+      setData(d => d ? { ...d, character: r.character } : d)
+      setDayStreak(r.streak)
+      const freshBadges = r.celebrations.flatMap(c => c.type === 'badge' ? [c.badgeId] : [])
+      if (freshBadges.length) setEarnedBadges(s => new Set([...s, ...freshBadges]))
+      celebrate(r.celebrations)
+    })
+  }
+
 
   if (!data) {
     return (
@@ -150,9 +169,9 @@ export default function Mood() {
     const xpGain = (xpEligible ? 10 : 0) + (firstToday ? 5 : 0)
     try {
       const entry = await dbAddEntry(userId, { mood: checkin.mood, tags: checkin.tags, note: checkin.note })
-      const newCharacter = xpGain > 0 ? addXP(data.character, xpGain) : data.character
-      setData(d => d ? { ...d, entries: [entry, ...d.entries], character: newCharacter } : d)
-      if (xpGain > 0) dbSaveCharacter(userId, newCharacter)
+      const before = data.character
+      setData(d => d ? { ...d, entries: [entry, ...d.entries], character: xpGain > 0 ? addXP(before, xpGain) : d.character } : d)
+      if (xpGain > 0) runAward(before, xpGain)
       setCheckin({ mood: null, tags: [], note: '' })
       showToast(xpGain > 0 ? `Checked in! +${xpGain} XP` : 'Checked in! (daily XP cap reached)')
     } catch {
@@ -166,9 +185,9 @@ export default function Mood() {
   }
 
   const handleXPEarned = (xp: number) => {
-    const newCharacter = addXP(data.character, xp)
-    setData(d => d ? { ...d, character: newCharacter } : d)
-    dbSaveCharacter(userId, newCharacter)
+    const before = data.character
+    setData(d => d ? { ...d, character: addXP(before, xp) } : d)
+    runAward(before, xp, 'game')
     showToast(`+${xp} XP from game!`)
   }
 
@@ -180,7 +199,7 @@ export default function Mood() {
   const entryRow = (e: MoodEntry) => {
     const meta = moodMeta(e.mood)
     return (
-      <div key={e.id} className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+      <div key={e.id} className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
         <div className="text-2xl flex-shrink-0">{meta.emoji}</div>
         <div className="flex-1 min-w-0">
           <div className="font-nunito font-semibold text-sm" style={{ color: meta.color }}>
@@ -217,10 +236,12 @@ export default function Mood() {
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
 
+      {layer}
+
       {toast && (
         <div
-          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg font-nunito text-white text-sm bounce-in"
-          style={{ background: toast.good ? '#16A34A' : '#DC2626' }}
+          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl font-nunito font-black text-white text-sm bounce-in"
+          style={{ background: toast.good ? '#16A34A' : '#DC2626', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
         >
           {toast.msg}
         </div>
@@ -237,7 +258,7 @@ export default function Mood() {
         >
           ←
         </button>
-        <div className="font-nunito font-bold text-[#09090F] text-sm md:text-base">🌤️ Mood Tracker</div>
+        <div className="font-nunito font-black uppercase tracking-wide text-[#09090F] text-sm md:text-base flex items-center gap-2">🌤️ Mood Tracker <StreakBadge streak={dayStreak} /></div>
         <div className="hidden lg:flex items-center gap-1.5 text-xs font-nunito text-[#09090F]/50 bg-black/5 px-2.5 py-1.5 rounded-lg">
           <span>{petStage.emoji}</span>
           <span>{data.character.xp} XP</span>
@@ -249,10 +270,12 @@ export default function Mood() {
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
 
           {/* Mobile pet card */}
-          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-            <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+            <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
             {petCard}
           </div>
+
+          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
 
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
@@ -262,15 +285,15 @@ export default function Mood() {
               { label: 'Today', value: `${todayEntries.length} check-in${todayEntries.length === 1 ? '' : 's'}`, color: ACCENT },
               { label: 'Total entries', value: String(data.entries.length), color: '#09090F' },
             ].map(m => (
-              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="font-nunito font-bold text-sm md:text-base mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
-                <div className="text-xs text-[#09090F]/50 font-nunito">{m.label}</div>
+              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="font-nunito font-black text-base md:text-xl mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
+                <div className="text-[10px] font-nunito font-black uppercase tracking-widest text-[#09090F]/45">{m.label}</div>
               </div>
             ))}
           </div>
 
           {/* Tabs */}
-          <div className="flex mb-5 overflow-x-auto scrollbar-hidden" style={{ borderBottom: '1px solid #E5E4E2' }}>
+          <div className="flex mb-5 overflow-x-auto scrollbar-hidden gap-1.5 py-1">
             {([
               { key: 'overview', label: '☀️ Check-in' },
               { key: 'history',  label: '📆 History' },
@@ -280,12 +303,10 @@ export default function Mood() {
               <button
                 key={t.key}
                 onClick={() => setMainTab(t.key)}
-                className="px-3 md:px-4 py-2.5 font-nunito text-sm transition border-b-2 -mb-px whitespace-nowrap flex-shrink-0"
-                style={{
-                  borderBottomColor: mainTab === t.key ? ACCENT : 'transparent',
-                  color: mainTab === t.key ? '#09090F' : 'rgba(9,9,15,0.4)',
-                  fontWeight: mainTab === t.key ? 600 : 400,
-                }}
+                className="px-3 md:px-4 py-2 rounded-xl font-nunito text-sm transition whitespace-nowrap flex-shrink-0"
+                style={mainTab === t.key
+                  ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
+                  : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
               >
                 {t.label}
               </button>
@@ -296,8 +317,8 @@ export default function Mood() {
           {mainTab === 'overview' && (
             <div className="space-y-4">
 
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>How are you feeling?</div>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>How are you feeling?</div>
 
                 <div className="flex justify-between gap-1 mb-4 max-w-sm mx-auto">
                   {MOOD_META.map(m => (
@@ -326,8 +347,8 @@ export default function Mood() {
                       onClick={() => toggleTag(tag)}
                       className="px-3 py-1.5 rounded-full font-nunito text-xs font-semibold transition"
                       style={checkin.tags.includes(tag)
-                        ? { background: ACCENT + '18', color: ACCENT, border: `1px solid ${ACCENT}` }
-                        : { background: INPUT_BG, color: 'rgba(9,9,15,0.45)', border: `1px solid ${CARD_BORDER}` }}
+                        ? { background: ACCENT + '18', color: ACCENT, border: `3px solid ${ACCENT}` }
+                        : { background: INPUT_BG, color: 'rgba(9,9,15,0.45)', border: `3px solid ${CARD_BORDER}` }}
                     >
                       #{tag}
                     </button>
@@ -342,13 +363,13 @@ export default function Mood() {
                     onChange={e => setCheckin(c => ({ ...c, note: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleCheckin()}
                     className="flex-1 px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   />
                   <button
                     onClick={handleCheckin}
                     disabled={!checkin.mood}
                     className="px-5 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                    style={{ background: ACCENT }}
+                    style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                   >
                     Check in
                   </button>
@@ -362,13 +383,13 @@ export default function Mood() {
 
               {todayEntries.length > 0 && (
                 <div>
-                  <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-2 px-1" style={{ color: ACCENT }}>Today</div>
+                  <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2 px-1" style={{ color: ACCENT }}>Today</div>
                   <div className="space-y-2">{todayEntries.map(entryRow)}</div>
                 </div>
               )}
 
               {data.entries.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">🌤️</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No check-ins yet</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Tap an emoji above and log your first mood — your sky pet is waiting!</div>
@@ -380,8 +401,8 @@ export default function Mood() {
           {/* ── HISTORY (heatmap) ────────────────────────────── */}
           {mainTab === 'history' && (
             <div className="space-y-4">
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
                   Last 12 Weeks
                 </div>
                 <div className="flex gap-1 overflow-x-auto pb-1">
@@ -426,13 +447,13 @@ export default function Mood() {
 
               {selectedDay && (
                 <div>
-                  <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-2 px-1" style={{ color: ACCENT }}>
+                  <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2 px-1" style={{ color: ACCENT }}>
                     {selectedDay}
                   </div>
                   {selectedDayEntries.length > 0
                     ? <div className="space-y-2">{selectedDayEntries.map(entryRow)}</div>
                     : (
-                      <div className="text-center py-8 rounded-xl text-xs text-[#09090F]/40 font-nunito" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                      <div className="text-center py-8 rounded-xl text-xs text-[#09090F]/40 font-nunito" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                         No check-ins on this day
                       </div>
                     )}
@@ -449,7 +470,7 @@ export default function Mood() {
           {mainTab === 'trends' && (
             <div className="space-y-4">
               {data.entries.length === 0 ? (
-                <div className="text-center py-14 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-14 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-4xl mb-3">📈</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No data yet</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Check in a few times to unlock trends</div>
@@ -463,15 +484,15 @@ export default function Mood() {
                       { label: 'Best day', value: bestDay ? `${bestDay.label} (${bestDay.avg!.toFixed(1)})` : '—', color: '#16A34A' },
                       { label: 'Toughest day', value: worstDay ? `${worstDay.label} (${worstDay.avg!.toFixed(1)})` : '—', color: '#DC2626' },
                     ].map(s => (
-                      <div key={s.label} className="rounded-xl p-3.5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                      <div key={s.label} className="rounded-xl p-3.5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                         <div className="font-nunito font-bold text-lg mb-0.5" style={{ color: s.color }}>{s.value}</div>
                         <div className="text-xs text-[#09090F]/50 font-nunito">{s.label}</div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                    <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
+                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                    <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
                       Mood by Weekday
                     </div>
                     <div className="space-y-3">
@@ -498,8 +519,8 @@ export default function Mood() {
                   </div>
 
                   {tagAvgs.length > 0 && (
-                    <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                      <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
+                    <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                      <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
                         Mood by Tag
                       </div>
                       <div className="space-y-3">
@@ -529,9 +550,9 @@ export default function Mood() {
 
           {/* ── GAMES ────────────────────────────────────────── */}
           {mainTab === 'games' && (
-            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
                 <span className="text-xs text-[#09090F]/50 font-nunito">XP → Mood Pet</span>
               </div>
               <div className="flex gap-1.5 mb-5 p-1 rounded-xl" style={{ background: INPUT_BG }}>
@@ -541,7 +562,7 @@ export default function Mood() {
                     onClick={() => setGameTab(g)}
                     className="flex-1 py-2 rounded-lg font-nunito text-sm transition"
                     style={gameTab === g
-                      ? { background: CARD_BG, color: '#09090F', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }
+                      ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '2px 2px 0 #09090F' }
                       : { color: 'rgba(9,9,15,0.4)' }}
                   >
                     {g === 'clicker' ? '👆 Clicker' : g === 'arcade' ? '🕹️ Arcade' : '🧩 Puzzle'}
@@ -558,12 +579,13 @@ export default function Mood() {
         {/* RIGHT PANEL — desktop only */}
         <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${CARD_BORDER}`, background: '#F5F4F2' }}>
           <div className="p-6 space-y-4">
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-              <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               {petCard}
             </div>
-            <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-              <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Streak</div>
+            <BadgeWall earned={earnedBadges} accent={ACCENT} />
+            <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Streak</div>
               <div className="font-nunito font-bold text-2xl text-[#09090F]">{streak} day{streak === 1 ? '' : 's'} 🔥</div>
               <div className="text-xs text-[#09090F]/50 font-nunito">Check in daily to keep it going</div>
             </div>

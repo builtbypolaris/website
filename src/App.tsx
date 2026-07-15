@@ -12,6 +12,7 @@ import { PaywallGuard } from './novo/pages/Paywall'
 import NovoLogin from './novo/pages/Login'
 import NovoAuthCallback from './novo/pages/AuthCallback'
 import NovoDashboard from './novo/pages/Dashboard'
+import NovoImpact from './novo/pages/Impact'
 import { NovoLayout } from './novo/components/NovoLayout'
 import { AuthProvider } from './novo/contexts/AuthContext'
 import { TEMPLATES } from './novo/data/templates'
@@ -60,6 +61,7 @@ export default function App() {
           <Route path="/studios/auth/callback" element={<AuthProvider><NovoAuthCallback /></AuthProvider>} />
           <Route element={<AuthProvider><NovoLayout /></AuthProvider>}>
             <Route path="/studios/dashboard" element={<NovoDashboard />} />
+            <Route path="/studios/impact" element={<NovoImpact />} />
             {TEMPLATES.map(t => {
               const Page = TRACKER_PAGES[t.id]
               return (

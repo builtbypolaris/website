@@ -8,9 +8,12 @@ import {
   addInstallment as dbAddInstallment,
   deleteInstallment as dbDeleteInstallment,
   setInstallmentMonthPaid as dbSetMonthPaid,
-  saveSavingsCharacter as dbSaveCharacter,
   addXP, todayStr,
 } from '../lib/storage'
+import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { useCelebrations } from '../components/CelebrationLayer'
+import { StreakBadge } from '../components/StreakBadge'
+import { BadgeWall } from '../components/BadgeWall'
 import { useAuth } from '../contexts/AuthContext'
 import { SAVINGS_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
@@ -26,7 +29,7 @@ type MainTab = 'overview' | 'goals' | 'installments' | 'games'
 
 const ACCENT = '#0D9488'
 const CARD_BG = '#FFFFFF'
-const CARD_BORDER = '#E5E4E2'
+const CARD_BORDER = '#09090F'
 const INPUT_BG = '#F0EEE8'
 const GOOD_COLOR = '#16A34A'
 const BAD_COLOR = '#DC2626'
@@ -62,10 +65,15 @@ export default function Savings() {
   const [depositFor, setDepositFor] = useState<string | null>(null)
   const [depositForm, setDepositForm] = useState({ amount: '', note: '' })
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
+  const [streak, setStreak] = useState<StreakRow | null>(null)
+  const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const { celebrate, layer } = useCelebrations()
 
   useEffect(() => {
     if (!userId) return
     getSavingsData(userId).then(setData)
+    getStreak(userId, 'savings').then(setStreak)
+    getBadges(userId, 'savings').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
   }, [userId])
 
   const showToast = (msg: string, good = true) => {
@@ -95,10 +103,16 @@ export default function Savings() {
     .filter(i => !isPaidThisMonth(i))
     .sort((a, b) => a.dueDay - b.dueDay)[0]
 
-  const applyXP = (xpGain: number, next: SavingsData) => {
-    const newCharacter = addXP(next.character, xpGain)
-    setData({ ...next, character: newCharacter })
-    dbSaveCharacter(userId, newCharacter)
+  const applyXP = (xpGain: number, next: SavingsData, kind: 'log' | 'game' = 'log') => {
+    const before = next.character
+    setData({ ...next, character: addXP(before, xpGain) })
+    void awardXP(userId, 'savings', before, xpGain, kind).then(r => {
+      setData(d => d ? { ...d, character: r.character } : d)
+      setStreak(r.streak)
+      const freshBadges = r.celebrations.flatMap(c => c.type === 'badge' ? [c.badgeId] : [])
+      if (freshBadges.length) setEarnedBadges(s => new Set([...s, ...freshBadges]))
+      celebrate(r.celebrations)
+    })
   }
 
   // ── Actions ───────────────────────────────────────────────
@@ -190,9 +204,7 @@ export default function Savings() {
   }
 
   const handleXPEarned = (xp: number) => {
-    const newCharacter = addXP(data.character, xp)
-    setData(d => d ? { ...d, character: newCharacter } : d)
-    dbSaveCharacter(userId, newCharacter)
+    applyXP(xp, data, 'game')
     showToast(`+${xp} XP from game!`)
   }
 
@@ -210,10 +222,12 @@ export default function Savings() {
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
 
+      {layer}
+
       {toast && (
         <div
-          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg font-nunito text-white text-sm bounce-in"
-          style={{ background: toast.good ? '#16A34A' : '#DC2626' }}
+          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl font-nunito font-black text-white text-sm bounce-in"
+          style={{ background: toast.good ? '#16A34A' : '#DC2626', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
         >
           {toast.msg}
         </div>
@@ -230,7 +244,7 @@ export default function Savings() {
         >
           ←
         </button>
-        <div className="font-nunito font-bold text-[#09090F] text-sm md:text-base">🐖 Savings & Installments</div>
+        <div className="font-nunito font-black uppercase tracking-wide text-[#09090F] text-sm md:text-base flex items-center gap-2">🐖 Savings & Installments <StreakBadge streak={streak} /></div>
         <div className="hidden lg:flex items-center gap-1.5 text-xs font-nunito text-[#09090F]/50 bg-black/5 px-2.5 py-1.5 rounded-lg">
           <span>{petStage.emoji}</span>
           <span>{data.character.xp} XP</span>
@@ -242,10 +256,12 @@ export default function Savings() {
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
 
           {/* Mobile pet card */}
-          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-            <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+            <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
             {petCard}
           </div>
+
+          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
 
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
@@ -255,15 +271,15 @@ export default function Savings() {
               { label: 'Monthly payments', value: formatRp(monthlyCommit), color: '#09090F' },
               { label: 'Remaining debt', value: formatRp(totalDebt), color: totalDebt > 0 ? BAD_COLOR : GOOD_COLOR },
             ].map(m => (
-              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="font-nunito font-bold text-sm md:text-base mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
-                <div className="text-xs text-[#09090F]/50 font-nunito">{m.label}</div>
+              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="font-nunito font-black text-base md:text-xl mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
+                <div className="text-[10px] font-nunito font-black uppercase tracking-widest text-[#09090F]/45">{m.label}</div>
               </div>
             ))}
           </div>
 
           {/* Tabs */}
-          <div className="flex mb-5 overflow-x-auto scrollbar-hidden" style={{ borderBottom: '1px solid #E5E4E2' }}>
+          <div className="flex mb-5 overflow-x-auto scrollbar-hidden gap-1.5 py-1">
             {([
               { key: 'overview', label: '📊 Overview' },
               { key: 'goals',    label: '🎯 Goals' },
@@ -273,12 +289,10 @@ export default function Savings() {
               <button
                 key={t.key}
                 onClick={() => setMainTab(t.key)}
-                className="px-3 md:px-4 py-2.5 font-nunito text-sm transition border-b-2 -mb-px whitespace-nowrap flex-shrink-0"
-                style={{
-                  borderBottomColor: mainTab === t.key ? ACCENT : 'transparent',
-                  color: mainTab === t.key ? '#09090F' : 'rgba(9,9,15,0.4)',
-                  fontWeight: mainTab === t.key ? 600 : 400,
-                }}
+                className="px-3 md:px-4 py-2 rounded-xl font-nunito text-sm transition whitespace-nowrap flex-shrink-0"
+                style={mainTab === t.key
+                  ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
+                  : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
               >
                 {t.label}
               </button>
@@ -294,7 +308,7 @@ export default function Savings() {
                   className="rounded-xl p-4 md:p-5 flex items-center gap-3"
                   style={{
                     background: isOverdue(nextDue) ? '#FEE2E2' : CARD_BG,
-                    border: `1px solid ${isOverdue(nextDue) ? '#FCA5A5' : CARD_BORDER}`,
+                    border: `3px solid ${isOverdue(nextDue) ? '#FCA5A5' : CARD_BORDER}`,
                   }}
                 >
                   <div className="text-2xl">{isOverdue(nextDue) ? '⚠️' : '📅'}</div>
@@ -311,7 +325,7 @@ export default function Savings() {
                   <button
                     onClick={() => handleToggleMonth(nextDue)}
                     className="px-4 py-2 text-white font-nunito font-bold text-xs rounded-lg transition active:scale-95 flex-shrink-0"
-                    style={{ background: ACCENT }}
+                    style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                   >
                     Mark paid
                   </button>
@@ -319,9 +333,9 @@ export default function Savings() {
               )}
 
               {data.goals.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-xs font-nunito font-bold uppercase tracking-widest" style={{ color: ACCENT }}>Goal Progress</div>
+                    <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Goal Progress</div>
                     <button onClick={() => setMainTab('goals')} className="text-xs font-nunito transition hover:opacity-70" style={{ color: ACCENT }}>
                       See all →
                     </button>
@@ -354,7 +368,7 @@ export default function Savings() {
               )}
 
               {data.goals.length === 0 && data.installments.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">🐖</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">Nothing here yet</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Create a savings goal or add an installment to get started</div>
@@ -368,8 +382,8 @@ export default function Savings() {
             <div className="space-y-4">
 
               {/* Add goal */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>New Savings Goal</div>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>New Savings Goal</div>
                 <div className="flex gap-1.5 mb-2 flex-wrap">
                   {GOAL_EMOJIS.map(e => (
                     <button
@@ -377,8 +391,8 @@ export default function Savings() {
                       onClick={() => setGoalForm(f => ({ ...f, emoji: e }))}
                       className="w-9 h-9 rounded-lg text-lg transition"
                       style={goalForm.emoji === e
-                        ? { background: ACCENT + '20', border: `1px solid ${ACCENT}` }
-                        : { background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                        ? { background: ACCENT + '20', border: `3px solid ${ACCENT}` }
+                        : { background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                     >
                       {e}
                     </button>
@@ -391,7 +405,7 @@ export default function Savings() {
                     value={goalForm.name}
                     onChange={e => setGoalForm(f => ({ ...f, name: e.target.value }))}
                     className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   />
                   <input
                     type="number"
@@ -400,14 +414,14 @@ export default function Savings() {
                     onChange={e => setGoalForm(f => ({ ...f, target: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleAddGoal()}
                     className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   />
                 </div>
                 <button
                   onClick={handleAddGoal}
                   disabled={!goalForm.name || !goalForm.target}
                   className="w-full py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                  style={{ background: ACCENT }}
+                  style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                 >
                   Create Goal
                 </button>
@@ -418,7 +432,7 @@ export default function Savings() {
                 const pct = Math.min(100, (saved / g.targetAmount) * 100)
                 const complete = saved >= g.targetAmount
                 return (
-                  <div key={g.id} className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${complete ? GOOD_COLOR + '60' : CARD_BORDER}` }}>
+                  <div key={g.id} className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${complete ? GOOD_COLOR + '60' : CARD_BORDER}` }}>
                     <div className="flex items-center gap-3 mb-3">
                       <div className="text-2xl">{g.emoji}</div>
                       <div className="flex-1 min-w-0">
@@ -430,7 +444,7 @@ export default function Savings() {
                       <button
                         onClick={() => { setDepositFor(depositFor === g.id ? null : g.id); setDepositForm({ amount: '', note: '' }) }}
                         className="px-3 py-1.5 font-nunito font-bold text-xs rounded-lg transition active:scale-95"
-                        style={{ background: ACCENT + '15', color: ACCENT, border: `1px solid ${ACCENT}40` }}
+                        style={{ background: ACCENT + '15', color: ACCENT, border: `3px solid ${ACCENT}40` }}
                       >
                         + Deposit
                       </button>
@@ -457,7 +471,7 @@ export default function Savings() {
                           onChange={e => setDepositForm(f => ({ ...f, amount: e.target.value }))}
                           onKeyDown={e => e.key === 'Enter' && handleAddDeposit(g)}
                           className="flex-1 px-3 py-2 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                          style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                          style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                         />
                         <input
                           type="text"
@@ -466,13 +480,13 @@ export default function Savings() {
                           onChange={e => setDepositForm(f => ({ ...f, note: e.target.value }))}
                           onKeyDown={e => e.key === 'Enter' && handleAddDeposit(g)}
                           className="flex-1 px-3 py-2 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                          style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                          style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                         />
                         <button
                           onClick={() => handleAddDeposit(g)}
                           disabled={!depositForm.amount}
                           className="px-4 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                          style={{ background: ACCENT }}
+                          style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                         >
                           Save
                         </button>
@@ -497,7 +511,7 @@ export default function Savings() {
               })}
 
               {data.goals.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">🎯</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No goals yet</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Create your first savings goal above — every deposit feeds your pet!</div>
@@ -511,8 +525,8 @@ export default function Savings() {
             <div className="space-y-4">
 
               {/* Add installment */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>New Installment</div>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>New Installment</div>
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   <input
                     type="text"
@@ -520,7 +534,7 @@ export default function Savings() {
                     value={instForm.item}
                     onChange={e => setInstForm(f => ({ ...f, item: e.target.value }))}
                     className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   />
                   <input
                     type="number"
@@ -528,7 +542,7 @@ export default function Savings() {
                     value={instForm.total}
                     onChange={e => setInstForm(f => ({ ...f, total: e.target.value }))}
                     className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   />
                   <input
                     type="number"
@@ -536,7 +550,7 @@ export default function Savings() {
                     value={instForm.monthly}
                     onChange={e => setInstForm(f => ({ ...f, monthly: e.target.value }))}
                     className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   />
                   <input
                     type="number"
@@ -547,14 +561,14 @@ export default function Savings() {
                     onChange={e => setInstForm(f => ({ ...f, dueDay: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleAddInstallment()}
                     className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   />
                 </div>
                 <button
                   onClick={handleAddInstallment}
                   disabled={!instForm.item || !instForm.total || !instForm.monthly}
                   className="w-full py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                  style={{ background: ACCENT }}
+                  style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                 >
                   Add Installment
                 </button>
@@ -573,7 +587,7 @@ export default function Savings() {
                     className="rounded-xl p-4 md:p-5"
                     style={{
                       background: CARD_BG,
-                      border: `1px solid ${lunas ? GOOD_COLOR + '60' : overdue ? '#FCA5A5' : CARD_BORDER}`,
+                      border: `3px solid ${lunas ? GOOD_COLOR + '60' : overdue ? '#FCA5A5' : CARD_BORDER}`,
                     }}
                   >
                     <div className="flex items-center gap-3 mb-3">
@@ -592,8 +606,8 @@ export default function Savings() {
                           onClick={() => handleToggleMonth(inst)}
                           className="px-3 py-2 font-nunito font-bold text-xs rounded-lg transition active:scale-95 flex-shrink-0"
                           style={paidThisMonth
-                            ? { background: '#DCFCE7', color: GOOD_COLOR, border: `1px solid ${GOOD_COLOR}40` }
-                            : { background: ACCENT, color: '#fff' }}
+                            ? { background: '#DCFCE7', color: GOOD_COLOR, border: `3px solid ${GOOD_COLOR}40` }
+                            : { background: ACCENT, color: '#fff', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                         >
                           {paidThisMonth ? '✓ Paid this month' : 'Mark paid'}
                         </button>
@@ -621,7 +635,7 @@ export default function Savings() {
               })}
 
               {data.installments.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">📅</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No installments yet</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Add an installment plan above — paying on time earns bonus XP!</div>
@@ -632,9 +646,9 @@ export default function Savings() {
 
           {/* ── GAMES ────────────────────────────────────────── */}
           {mainTab === 'games' && (
-            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
                 <span className="text-xs text-[#09090F]/50 font-nunito">XP → Savings Pet</span>
               </div>
               <div className="flex gap-1.5 mb-5 p-1 rounded-xl" style={{ background: INPUT_BG }}>
@@ -644,7 +658,7 @@ export default function Savings() {
                     onClick={() => setGameTab(g)}
                     className="flex-1 py-2 rounded-lg font-nunito text-sm transition"
                     style={gameTab === g
-                      ? { background: CARD_BG, color: '#09090F', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }
+                      ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '2px 2px 0 #09090F' }
                       : { color: 'rgba(9,9,15,0.4)' }}
                   >
                     {g === 'clicker' ? '👆 Clicker' : g === 'arcade' ? '🕹️ Arcade' : '🧩 Puzzle'}
@@ -661,13 +675,14 @@ export default function Savings() {
         {/* RIGHT PANEL — desktop only */}
         <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${CARD_BORDER}`, background: '#F5F4F2' }}>
           <div className="p-6 space-y-4">
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-              <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               {petCard}
             </div>
+            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             {nextDue && (
-              <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Next Due</div>
+              <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Next Due</div>
                 <div className="font-nunito font-semibold text-sm text-[#09090F]">{nextDue.itemName}</div>
                 <div className="text-xs text-[#09090F]/50 font-nunito">
                   {formatRp(nextDue.monthlyAmount)} · day {nextDue.dueDay}

@@ -8,9 +8,12 @@ import {
   addWeightLog as dbAddWeight,
   deleteWeightLog as dbDeleteWeight,
   saveHealthGoals as dbSaveGoals,
-  saveHealthCharacter as dbSaveCharacter,
   addXP, todayStr,
 } from '../lib/storage'
+import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { useCelebrations } from '../components/CelebrationLayer'
+import { StreakBadge } from '../components/StreakBadge'
+import { BadgeWall } from '../components/BadgeWall'
 import { useAuth } from '../contexts/AuthContext'
 import { HEALTH_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
@@ -33,7 +36,7 @@ type MainTab = 'today' | 'meals' | 'body' | 'games'
 
 const ACCENT = '#65A30D'
 const CARD_BG = '#FFFFFF'
-const CARD_BORDER = '#E5E4E2'
+const CARD_BORDER = '#09090F'
 const INPUT_BG = '#F0EEE8'
 const GOOD_COLOR = '#16A34A'
 const BAD_COLOR = '#DC2626'
@@ -50,10 +53,15 @@ export default function Health() {
   const [weightForm, setWeightForm] = useState('')
   const [goalsForm, setGoalsForm] = useState({ calories: '', water: '' })
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
+  const [dayStreak, setDayStreak] = useState<StreakRow | null>(null)
+  const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const { celebrate, layer } = useCelebrations()
   const waterXPAwarded = useRef(0)  // highest glass count XP was awarded for today (per session)
 
   useEffect(() => {
     if (!userId) return
+    getStreak(userId, 'health').then(setDayStreak)
+    getBadges(userId, 'health').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
     getHealthData(userId).then(d => {
       setData(d)
       setGoalsForm({ calories: String(d.goals.calorieTarget), water: String(d.goals.waterTarget) })
@@ -105,10 +113,16 @@ export default function Health() {
     return `${x},${y}`
   }).join(' ')
 
-  const applyXP = (xpGain: number, patch: Partial<HealthData>) => {
-    const newCharacter = addXP(data.character, xpGain)
-    setData(d => d ? { ...d, ...patch, character: newCharacter } : d)
-    dbSaveCharacter(userId, newCharacter)
+  const applyXP = (xpGain: number, patch: Partial<HealthData>, kind: 'log' | 'game' = 'log') => {
+    const before = data.character
+    setData(d => d ? { ...d, ...patch, character: addXP(before, xpGain) } : d)
+    void awardXP(userId, 'health', before, xpGain, kind).then(r => {
+      setData(d => d ? { ...d, character: r.character } : d)
+      setDayStreak(r.streak)
+      const freshBadges = r.celebrations.flatMap(c => c.type === 'badge' ? [c.badgeId] : [])
+      if (freshBadges.length) setEarnedBadges(s => new Set([...s, ...freshBadges]))
+      celebrate(r.celebrations)
+    })
   }
 
   // ── Actions ───────────────────────────────────────────────
@@ -197,9 +211,7 @@ export default function Health() {
   }
 
   const handleXPEarned = (xp: number) => {
-    const newCharacter = addXP(data.character, xp)
-    setData(d => d ? { ...d, character: newCharacter } : d)
-    dbSaveCharacter(userId, newCharacter)
+    applyXP(xp, {}, 'game')
     showToast(`+${xp} XP from game!`)
   }
 
@@ -217,15 +229,17 @@ export default function Health() {
     />
   )
 
-  const inputStyle = { background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }
+  const inputStyle = { background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
 
+      {layer}
+
       {toast && (
         <div
-          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg font-nunito text-white text-sm bounce-in"
-          style={{ background: toast.good ? '#16A34A' : '#DC2626' }}
+          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl font-nunito font-black text-white text-sm bounce-in"
+          style={{ background: toast.good ? '#16A34A' : '#DC2626', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
         >
           {toast.msg}
         </div>
@@ -242,7 +256,7 @@ export default function Health() {
         >
           ←
         </button>
-        <div className="font-nunito font-bold text-[#09090F] text-sm md:text-base">🥗 Health & Meals</div>
+        <div className="font-nunito font-black uppercase tracking-wide text-[#09090F] text-sm md:text-base flex items-center gap-2">🥗 Health & Meals <StreakBadge streak={dayStreak} /></div>
         <div className="hidden lg:flex items-center gap-1.5 text-xs font-nunito text-[#09090F]/50 bg-black/5 px-2.5 py-1.5 rounded-lg">
           <span>{petStage.emoji}</span>
           <span>{data.character.xp} XP</span>
@@ -254,10 +268,12 @@ export default function Health() {
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
 
           {/* Mobile pet card */}
-          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-            <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+            <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
             {petCard}
           </div>
+
+          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
 
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
@@ -267,15 +283,15 @@ export default function Health() {
               { label: 'Weight', value: latestWeight ? `${latestWeight.weightKg} kg` : '—', color: '#09090F' },
               { label: 'Meal streak', value: `${streak}🔥`, color: '#D97706' },
             ].map(m => (
-              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="font-nunito font-bold text-sm md:text-base mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
-                <div className="text-xs text-[#09090F]/50 font-nunito">{m.label}</div>
+              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="font-nunito font-black text-base md:text-xl mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
+                <div className="text-[10px] font-nunito font-black uppercase tracking-widest text-[#09090F]/45">{m.label}</div>
               </div>
             ))}
           </div>
 
           {/* Tabs */}
-          <div className="flex mb-5 overflow-x-auto scrollbar-hidden" style={{ borderBottom: '1px solid #E5E4E2' }}>
+          <div className="flex mb-5 overflow-x-auto scrollbar-hidden gap-1.5 py-1">
             {([
               { key: 'today', label: '☀️ Today' },
               { key: 'meals', label: '🍽️ Meals' },
@@ -285,12 +301,10 @@ export default function Health() {
               <button
                 key={t.key}
                 onClick={() => setMainTab(t.key)}
-                className="px-3 md:px-4 py-2.5 font-nunito text-sm transition border-b-2 -mb-px whitespace-nowrap flex-shrink-0"
-                style={{
-                  borderBottomColor: mainTab === t.key ? ACCENT : 'transparent',
-                  color: mainTab === t.key ? '#09090F' : 'rgba(9,9,15,0.4)',
-                  fontWeight: mainTab === t.key ? 600 : 400,
-                }}
+                className="px-3 md:px-4 py-2 rounded-xl font-nunito text-sm transition whitespace-nowrap flex-shrink-0"
+                style={mainTab === t.key
+                  ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
+                  : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
               >
                 {t.label}
               </button>
@@ -302,8 +316,8 @@ export default function Health() {
             <div className="space-y-4">
 
               {/* Log meal */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Log a Meal</div>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Log a Meal</div>
                 <div className="flex gap-1.5 mb-3">
                   {MEAL_TYPES.map(mt => (
                     <button
@@ -311,8 +325,8 @@ export default function Health() {
                       onClick={() => setMealForm(f => ({ ...f, mealType: mt.key }))}
                       className="flex-1 py-2 rounded-lg font-nunito text-xs font-semibold transition flex flex-col items-center gap-0.5"
                       style={mealForm.mealType === mt.key
-                        ? { background: ACCENT + '18', color: ACCENT, border: `1px solid ${ACCENT}` }
-                        : { background: INPUT_BG, color: 'rgba(9,9,15,0.4)', border: `1px solid ${CARD_BORDER}` }}
+                        ? { background: ACCENT + '18', color: ACCENT, border: `3px solid ${ACCENT}` }
+                        : { background: INPUT_BG, color: 'rgba(9,9,15,0.4)', border: `3px solid ${CARD_BORDER}` }}
                     >
                       <span className="text-base">{mt.emoji}</span>
                       {mt.label}
@@ -338,7 +352,7 @@ export default function Health() {
                     onClick={handleAddMeal}
                     disabled={!mealForm.food}
                     className="px-5 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                    style={{ background: ACCENT }}
+                    style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                   >
                     Log
                   </button>
@@ -362,14 +376,14 @@ export default function Health() {
               </div>
 
               {/* Water */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Water</div>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Water</div>
                 <div className="flex items-center gap-4">
                   <button
                     onClick={() => handleWater(-1)}
                     disabled={waterToday === 0}
                     className="w-10 h-10 rounded-xl font-nunito font-bold text-lg transition disabled:opacity-30 active:scale-95"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   >
                     −
                   </button>
@@ -393,8 +407,8 @@ export default function Health() {
 
               {/* Today's meals */}
               {todayMeals.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                  <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Today's Meals</div>
+                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                  <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Today's Meals</div>
                   <div className="space-y-2.5">
                     {todayMeals.map(m => {
                       const mt = MEAL_TYPES.find(t => t.key === m.mealType)!
@@ -427,7 +441,7 @@ export default function Health() {
           {mainTab === 'meals' && (
             <div className="space-y-4">
               {mealDays.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">🍽️</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No meals yet</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Log your first meal in the Today tab</div>
@@ -437,9 +451,9 @@ export default function Health() {
                 const meals = data.meals.filter(m => m.date === day)
                 const kcal = meals.reduce((s, m) => s + (m.calories ?? 0), 0)
                 return (
-                  <div key={day} className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                  <div key={day} className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                     <div className="flex items-center justify-between mb-3">
-                      <div className="text-xs font-nunito font-bold uppercase tracking-widest" style={{ color: ACCENT }}>
+                      <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>
                         {day === today ? 'Today' : day}
                       </div>
                       <span className="text-xs font-nunito text-[#09090F]/50">{kcal} kcal</span>
@@ -473,8 +487,8 @@ export default function Health() {
             <div className="space-y-4">
 
               {/* Log weight */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Log Weight</div>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Log Weight</div>
                 <div className="flex gap-2">
                   <input
                     type="number" step="0.1" placeholder="Weight (kg)" value={weightForm}
@@ -487,7 +501,7 @@ export default function Health() {
                     onClick={handleAddWeight}
                     disabled={!weightForm}
                     className="px-5 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                    style={{ background: ACCENT }}
+                    style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                   >
                     Log
                   </button>
@@ -496,9 +510,9 @@ export default function Health() {
 
               {/* Trend */}
               {trendWeights.length >= 2 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-xs font-nunito font-bold uppercase tracking-widest" style={{ color: ACCENT }}>Weight Trend</div>
+                    <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Weight Trend</div>
                     <span className="text-xs font-nunito text-[#09090F]/50">
                       {trendWeights[0].weightKg} → {trendWeights[trendWeights.length - 1].weightKg} kg
                     </span>
@@ -523,8 +537,8 @@ export default function Health() {
 
               {/* Weight entries */}
               {data.weights.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                  <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Entries</div>
+                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                  <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Entries</div>
                   <div className="space-y-2">
                     {[...data.weights].reverse().slice(0, 10).map(w => (
                       <div key={w.id} className="flex items-center gap-3">
@@ -543,8 +557,8 @@ export default function Health() {
               )}
 
               {/* Targets */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Daily Targets</div>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Daily Targets</div>
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   <div>
                     <div className="text-xs text-[#09090F]/50 font-nunito mb-1">Calories (kcal)</div>
@@ -568,7 +582,7 @@ export default function Health() {
                 <button
                   onClick={handleSaveGoals}
                   className="w-full py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition active:scale-95"
-                  style={{ background: ACCENT }}
+                  style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                 >
                   Save Targets
                 </button>
@@ -578,9 +592,9 @@ export default function Health() {
 
           {/* ── GAMES ────────────────────────────────────────── */}
           {mainTab === 'games' && (
-            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
                 <span className="text-xs text-[#09090F]/50 font-nunito">XP → Health Pet</span>
               </div>
               <div className="flex gap-1.5 mb-5 p-1 rounded-xl" style={{ background: INPUT_BG }}>
@@ -590,7 +604,7 @@ export default function Health() {
                     onClick={() => setGameTab(g)}
                     className="flex-1 py-2 rounded-lg font-nunito text-sm transition"
                     style={gameTab === g
-                      ? { background: CARD_BG, color: '#09090F', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }
+                      ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '2px 2px 0 #09090F' }
                       : { color: 'rgba(9,9,15,0.4)' }}
                   >
                     {g === 'clicker' ? '👆 Clicker' : g === 'arcade' ? '🕹️ Arcade' : '🧩 Puzzle'}
@@ -607,12 +621,13 @@ export default function Health() {
         {/* RIGHT PANEL — desktop only */}
         <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${CARD_BORDER}`, background: '#F5F4F2' }}>
           <div className="p-6 space-y-4">
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-              <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               {petCard}
             </div>
-            <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-              <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Today</div>
+            <BadgeWall earned={earnedBadges} accent={ACCENT} />
+            <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Today</div>
               <div className="h-2 rounded-full overflow-hidden mb-2" style={{ background: '#E5E4E2' }}>
                 <div className="h-full rounded-full transition-all duration-700" style={{ width: `${kcalPct}%`, background: overTarget ? BAD_COLOR : ACCENT }} />
               </div>

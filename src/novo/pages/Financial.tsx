@@ -4,16 +4,19 @@ import {
   addTransaction as dbAddTransaction,
   deleteTransaction as dbDeleteTransaction,
   getFinancialData,
-  saveFinancialCharacter as dbSaveCharacter,
   addXP, todayStr,
 } from '../lib/storage'
+import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { useCelebrations } from '../components/CelebrationLayer'
+import { StreakBadge } from '../components/StreakBadge'
+import { BadgeWall } from '../components/BadgeWall'
 import { useAuth } from '../contexts/AuthContext'
 import { FINANCIAL_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
 import MoneyRain from '../games/MoneyRain'
 import BudgetDodge from '../games/BudgetDodge'
 import MoneyMatch from '../games/MoneyMatch'
-import type { FinancialData } from '../types'
+import type { CharacterState, FinancialData } from '../types'
 
 const INCOME_CATS = ['Salary', 'Freelance', 'Investment', 'Gift', 'Other']
 const EXPENSE_CATS = ['Food', 'Transport', 'Shopping', 'Health', 'Bills', 'Entertainment', 'Other']
@@ -25,7 +28,7 @@ type MainTab = 'overview' | 'log' | 'analytics' | 'games'
 
 const ACCENT = '#B45309'
 const CARD_BG = '#FFFFFF'
-const CARD_BORDER = '#E5E4E2'
+const CARD_BORDER = '#09090F'
 const INPUT_BG = '#F0EEE8'
 const INCOME_COLOR = '#16A34A'
 const EXPENSE_COLOR = '#DC2626'
@@ -48,15 +51,30 @@ export default function Financial() {
   const [form, setForm] = useState({ type: 'income' as 'income' | 'expense', amount: '', category: INCOME_CATS[0], description: '' })
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all')
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
+  const [streak, setStreak] = useState<StreakRow | null>(null)
+  const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const { celebrate, layer } = useCelebrations()
 
   useEffect(() => {
     if (!userId) return
+    getStreak(userId, 'financial').then(setStreak)
+    getBadges(userId, 'financial').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
     getFinancialData(userId).then(setData)
   }, [userId])
 
   const showToast = (msg: string, good = true) => {
     setToast({ msg, good })
     setTimeout(() => setToast(null), 2500)
+  }
+
+  const runAward = (before: CharacterState, gain: number, kind: 'log' | 'game' = 'log') => {
+    void awardXP(userId, 'financial', before, gain, kind).then(r => {
+      setData(d => d ? { ...d, character: r.character } : d)
+      setStreak(r.streak)
+      const freshBadges = r.celebrations.flatMap(c => c.type === 'badge' ? [c.badgeId] : [])
+      if (freshBadges.length) setEarnedBadges(s => new Set([...s, ...freshBadges]))
+      celebrate(r.celebrations)
+    })
   }
 
   if (!data) {
@@ -136,7 +154,7 @@ export default function Financial() {
         date: todayStr(),
       })
       setData(d => d ? { ...d, transactions: [tx, ...d.transactions], character: newCharacter } : d)
-      dbSaveCharacter(userId, newCharacter)
+      runAward(data.character, xpGain)
       setForm(f => ({ ...f, amount: '', description: '' }))
       if (xpGain > 0) showToast(`+${xpGain} XP!`, true)
       else showToast(`${xpGain} XP — watch your cashflow!`, false)
@@ -151,9 +169,9 @@ export default function Financial() {
   }
 
   const handleXPEarned = (xp: number) => {
-    const newCharacter = addXP(data.character, xp)
-    setData(d => d ? { ...d, character: newCharacter } : d)
-    dbSaveCharacter(userId, newCharacter)
+    const before = data.character
+    setData(d => d ? { ...d, character: addXP(before, xp) } : d)
+    runAward(before, xp, 'game')
     showToast(`+${xp} XP from game!`)
   }
 
@@ -167,10 +185,12 @@ export default function Financial() {
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
 
+      {layer}
+
       {toast && (
         <div
-          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg font-nunito text-white text-sm bounce-in"
-          style={{ background: toast.good ? '#16A34A' : '#DC2626' }}
+          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl font-nunito font-black text-white text-sm bounce-in"
+          style={{ background: toast.good ? '#16A34A' : '#DC2626', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
         >
           {toast.msg}
         </div>
@@ -187,7 +207,7 @@ export default function Financial() {
         >
           ←
         </button>
-        <div className="font-nunito font-bold text-[#09090F] text-sm md:text-base">💰 Financial Tracker</div>
+        <div className="font-nunito font-black uppercase tracking-wide text-[#09090F] text-sm md:text-base flex items-center gap-2">💰 Financial Tracker <StreakBadge streak={streak} /></div>
         <div className="hidden lg:flex items-center gap-1.5 text-xs font-nunito text-[#09090F]/50 bg-black/5 px-2.5 py-1.5 rounded-lg">
           <span>{petStage.emoji}</span>
           <span>{data.character.xp} XP</span>
@@ -199,10 +219,12 @@ export default function Financial() {
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
 
           {/* Mobile pet card */}
-          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-            <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+            <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
             <Character type="financial" xp={data.character.xp} happiness={data.character.happiness} prestige={data.character.prestige} onEvolution={s => showToast(`Evolved to ${s.name}!`, true)} onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`, true)} />
           </div>
+
+          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
 
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
@@ -212,15 +234,15 @@ export default function Financial() {
               { label: 'Net',      value: `${net >= 0 ? '+' : ''}${formatRp(net)}`, color: net >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
               { label: 'Savings',  value: `${savingsRate}%`,      color: healthColor },
             ].map(m => (
-              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="font-nunito font-bold text-sm md:text-base mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
-                <div className="text-xs text-[#09090F]/50 font-nunito">{m.label}</div>
+              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="font-nunito font-black text-base md:text-xl mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
+                <div className="text-[10px] font-nunito font-black uppercase tracking-widest text-[#09090F]/45">{m.label}</div>
               </div>
             ))}
           </div>
 
           {/* Tabs */}
-          <div className="flex mb-5 overflow-x-auto scrollbar-hidden" style={{ borderBottom: '1px solid #E5E4E2' }}>
+          <div className="flex mb-5 overflow-x-auto scrollbar-hidden gap-1.5 py-1">
             {([
               { key: 'overview',  label: '📊 Overview' },
               { key: 'log',       label: '📋 Log' },
@@ -230,12 +252,10 @@ export default function Financial() {
               <button
                 key={t.key}
                 onClick={() => setMainTab(t.key)}
-                className="px-3 md:px-4 py-2.5 font-nunito text-sm transition border-b-2 -mb-px whitespace-nowrap flex-shrink-0"
-                style={{
-                  borderBottomColor: mainTab === t.key ? ACCENT : 'transparent',
-                  color: mainTab === t.key ? '#09090F' : 'rgba(9,9,15,0.4)',
-                  fontWeight: mainTab === t.key ? 600 : 400,
-                }}
+                className="px-3 md:px-4 py-2 rounded-xl font-nunito text-sm transition whitespace-nowrap flex-shrink-0"
+                style={mainTab === t.key
+                  ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
+                  : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
               >
                 {t.label}
               </button>
@@ -247,8 +267,8 @@ export default function Financial() {
             <div className="space-y-4">
 
               {/* Add transaction */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
                   Add Transaction
                 </div>
                 <div className="flex gap-2 mb-3">
@@ -259,7 +279,7 @@ export default function Financial() {
                       className="flex-1 py-2 rounded-lg font-nunito text-sm font-semibold transition"
                       style={form.type === t
                         ? { background: t === 'income' ? '#DCFCE7' : '#FEE2E2', color: t === 'income' ? INCOME_COLOR : EXPENSE_COLOR }
-                        : { background: INPUT_BG, color: 'rgba(9,9,15,0.4)', border: `1px solid ${CARD_BORDER}` }}
+                        : { background: INPUT_BG, color: 'rgba(9,9,15,0.4)', border: `3px solid ${CARD_BORDER}` }}
                     >
                       {t === 'income' ? '+ Income' : '− Expense'}
                     </button>
@@ -273,13 +293,13 @@ export default function Financial() {
                     onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleAddTransaction()}
                     className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   />
                   <select
                     value={form.category}
                     onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
                     className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   >
                     {cats.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -292,13 +312,13 @@ export default function Financial() {
                     onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleAddTransaction()}
                     className="flex-1 px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                   />
                   <button
                     onClick={handleAddTransaction}
                     disabled={!form.amount}
                     className="px-5 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                    style={{ background: ACCENT }}
+                    style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                   >
                     Add
                   </button>
@@ -307,8 +327,8 @@ export default function Financial() {
 
               {/* Cashflow health */}
               {data.transactions.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                  <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Cashflow Health</div>
+                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                  <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Cashflow Health</div>
                   <div className="flex items-center gap-4 mb-3">
                     <div className="text-4xl font-nunito font-black leading-none" style={{ color: healthColor }}>{healthScore}</div>
                     <div className="flex-1">
@@ -328,9 +348,9 @@ export default function Financial() {
 
               {/* Recent transactions */}
               {recent3.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-xs font-nunito font-bold uppercase tracking-widest" style={{ color: ACCENT }}>Recent</div>
+                    <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Recent</div>
                     <button onClick={() => setMainTab('log')} className="text-xs font-nunito transition hover:opacity-70" style={{ color: ACCENT }}>
                       See all →
                     </button>
@@ -358,7 +378,7 @@ export default function Financial() {
               )}
 
               {data.transactions.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">💰</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No transactions yet</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Add your first income or expense above to start tracking</div>
@@ -377,8 +397,8 @@ export default function Financial() {
                     onClick={() => setFilter(f)}
                     className="px-3 py-1.5 rounded-lg font-nunito text-xs font-semibold transition"
                     style={filter === f
-                      ? { background: ACCENT, color: '#fff' }
-                      : { background: CARD_BG, color: 'rgba(9,9,15,0.4)', border: `1px solid ${CARD_BORDER}` }}
+                      ? { background: ACCENT, color: '#fff', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }
+                      : { background: CARD_BG, color: 'rgba(9,9,15,0.4)', border: `3px solid ${CARD_BORDER}` }}
                   >
                     {f === 'all' ? `All (${data.transactions.length})` : f === 'income' ? '+ Income' : '− Expense'}
                   </button>
@@ -386,7 +406,7 @@ export default function Financial() {
               </div>
 
               {filtered.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-3xl mb-2">🗒️</div>
                   <div className="text-sm text-[#09090F]/50 font-nunito">
                     {data.transactions.length === 0 ? 'No transactions yet — add one in Overview' : 'No transactions match this filter'}
@@ -395,7 +415,7 @@ export default function Financial() {
               )}
 
               {filtered.map(tx => (
-                <div key={tx.id} className="px-4 py-3 rounded-xl flex items-center gap-3" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div key={tx.id} className="px-4 py-3 rounded-xl flex items-center gap-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div
                     className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0"
                     style={{ background: tx.type === 'income' ? '#DCFCE7' : '#FEE2E2', color: tx.type === 'income' ? INCOME_COLOR : EXPENSE_COLOR }}
@@ -424,7 +444,7 @@ export default function Financial() {
           {mainTab === 'analytics' && (
             <div className="space-y-4">
               {data.transactions.length === 0 ? (
-                <div className="text-center py-14 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-14 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-4xl mb-3">📈</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No data yet</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Add some transactions to unlock analytics</div>
@@ -438,15 +458,15 @@ export default function Financial() {
                       { label: 'Net balance',     value: `${net >= 0 ? '+' : ''}${shortRp(net)}`, color: net >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
                       { label: 'Health score',    value: `${healthScore} / 100`,             color: healthColor },
                     ].map(s => (
-                      <div key={s.label} className="rounded-xl p-3.5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                      <div key={s.label} className="rounded-xl p-3.5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                         <div className="font-nunito font-bold text-lg mb-0.5" style={{ color: s.color }}>{s.value}</div>
                         <div className="text-xs text-[#09090F]/50 font-nunito">{s.label}</div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                    <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
+                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                    <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
                       Income vs Expenses · Last 6 Months
                     </div>
                     <div className="flex items-end gap-2" style={{ height: BAR_MAX_H + 8 }}>
@@ -481,8 +501,8 @@ export default function Financial() {
                   </div>
 
                   {topExpenses.length > 0 && (
-                    <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                      <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
+                    <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                      <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
                         Top Spending Categories
                       </div>
                       <div className="space-y-3">
@@ -509,8 +529,8 @@ export default function Financial() {
                   )}
 
                   {incomeSources.length > 0 && (
-                    <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                      <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
+                    <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                      <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
                         Income Sources
                       </div>
                       <div className="space-y-3">
@@ -540,9 +560,9 @@ export default function Financial() {
 
           {/* ── GAMES ────────────────────────────────────────── */}
           {mainTab === 'games' && (
-            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
                 <span className="text-xs text-[#09090F]/50 font-nunito">XP → Financial Pet</span>
               </div>
               <div className="flex gap-1.5 mb-5 p-1 rounded-xl" style={{ background: INPUT_BG }}>
@@ -552,7 +572,7 @@ export default function Financial() {
                     onClick={() => setGameTab(g)}
                     className="flex-1 py-2 rounded-lg font-nunito text-sm transition"
                     style={gameTab === g
-                      ? { background: CARD_BG, color: '#09090F', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }
+                      ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '2px 2px 0 #09090F' }
                       : { color: 'rgba(9,9,15,0.4)' }}
                   >
                     {g === 'clicker' ? '👆 Clicker' : g === 'arcade' ? '🕹️ Arcade' : '🧩 Puzzle'}
@@ -569,12 +589,13 @@ export default function Financial() {
         {/* RIGHT PANEL — desktop only */}
         <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${CARD_BORDER}`, background: '#F5F4F2' }}>
           <div className="p-6 space-y-4">
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-              <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               <Character type="financial" xp={data.character.xp} happiness={data.character.happiness} prestige={data.character.prestige} onEvolution={s => showToast(`Evolved to ${s.name}!`, true)} onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`, true)} />
             </div>
-            <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-              <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Cashflow Health</div>
+            <BadgeWall earned={earnedBadges} accent={ACCENT} />
+            <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Cashflow Health</div>
               <div className="h-2 rounded-full overflow-hidden mb-2" style={{ background: '#E5E4E2' }}>
                 <div className="h-full rounded-full transition-all duration-700" style={{ width: `${healthScore}%`, background: healthColor }} />
               </div>

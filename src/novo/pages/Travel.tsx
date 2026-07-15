@@ -8,9 +8,12 @@ import {
   deleteItineraryItem as dbDeleteItem,
   addTripExpense as dbAddExpense,
   deleteTripExpense as dbDeleteExpense,
-  saveTravelCharacter as dbSaveCharacter,
   addXP, todayStr,
 } from '../lib/storage'
+import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { useCelebrations } from '../components/CelebrationLayer'
+import { StreakBadge } from '../components/StreakBadge'
+import { BadgeWall } from '../components/BadgeWall'
 import { useAuth } from '../contexts/AuthContext'
 import { TRAVEL_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
@@ -37,7 +40,7 @@ type MainTab = 'trips' | 'itinerary' | 'budget' | 'games'
 
 const ACCENT = '#EA580C'
 const CARD_BG = '#FFFFFF'
-const CARD_BORDER = '#E5E4E2'
+const CARD_BORDER = '#09090F'
 const INPUT_BG = '#F0EEE8'
 const GOOD_COLOR = '#16A34A'
 const BAD_COLOR = '#DC2626'
@@ -61,11 +64,16 @@ export default function Travel() {
   const [itemForm, setItemForm] = useState({ day: '', time: '', title: '', location: '' })
   const [expenseForm, setExpenseForm] = useState({ amount: '', category: EXPENSE_CATS[0].key, note: '' })
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
+  const [streak, setStreak] = useState<StreakRow | null>(null)
+  const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const { celebrate, layer } = useCelebrations()
 
   const today = todayStr()
 
   useEffect(() => {
     if (!userId) return
+    getStreak(userId, 'travel').then(setStreak)
+    getBadges(userId, 'travel').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
     getTravelData(userId).then(d => {
       setData(d)
       const upcoming = d.trips.filter(t => t.endDate >= todayStr()).sort((a, b) => a.startDate.localeCompare(b.startDate))[0]
@@ -85,9 +93,7 @@ export default function Travel() {
       totalXP += trip.budget > 0 && spent <= trip.budget ? 50 : 25
     }
     localStorage.setItem(XP_AWARDED_KEY, JSON.stringify([...awarded, ...finished.map(t => t.id)]))
-    const newCharacter = addXP(data.character, totalXP)
-    setData(d => d ? { ...d, character: newCharacter } : d)
-    dbSaveCharacter(userId, newCharacter)
+    applyXP(totalXP, {})
     showToast(`+${totalXP} XP — trip${finished.length > 1 ? 's' : ''} completed! 🎉`)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data === null])
@@ -125,10 +131,16 @@ export default function Travel() {
     .filter(c => c.total > 0)
     .sort((a, b) => b.total - a.total)
 
-  const applyXP = (xpGain: number, patch: Partial<TravelData>) => {
-    const newCharacter = addXP(data.character, xpGain)
-    setData(d => d ? { ...d, ...patch, character: newCharacter } : d)
-    dbSaveCharacter(userId, newCharacter)
+  const applyXP = (xpGain: number, patch: Partial<TravelData>, kind: 'log' | 'game' = 'log') => {
+    const before = data.character
+    setData(d => d ? { ...d, ...patch, character: addXP(before, xpGain) } : d)
+    void awardXP(userId, 'travel', before, xpGain, kind).then(r => {
+      setData(d => d ? { ...d, character: r.character } : d)
+      setStreak(r.streak)
+      const freshBadges = r.celebrations.flatMap(c => c.type === 'badge' ? [c.badgeId] : [])
+      if (freshBadges.length) setEarnedBadges(s => new Set([...s, ...freshBadges]))
+      celebrate(r.celebrations)
+    })
   }
 
   // ── Actions ───────────────────────────────────────────────
@@ -216,9 +228,7 @@ export default function Travel() {
   }
 
   const handleXPEarned = (xp: number) => {
-    const newCharacter = addXP(data.character, xp)
-    setData(d => d ? { ...d, character: newCharacter } : d)
-    dbSaveCharacter(userId, newCharacter)
+    applyXP(xp, {}, 'game')
     showToast(`+${xp} XP from game!`)
   }
 
@@ -233,7 +243,7 @@ export default function Travel() {
     />
   )
 
-  const inputStyle = { background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }
+  const inputStyle = { background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }
 
   const tripStatus = (t: Trip) => {
     if (t.endDate < today) return { label: 'Completed', color: '#9CA3AF' }
@@ -244,10 +254,12 @@ export default function Travel() {
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
 
+      {layer}
+
       {toast && (
         <div
-          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg font-nunito text-white text-sm bounce-in"
-          style={{ background: toast.good ? '#16A34A' : '#DC2626' }}
+          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl font-nunito font-black text-white text-sm bounce-in"
+          style={{ background: toast.good ? '#16A34A' : '#DC2626', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
         >
           {toast.msg}
         </div>
@@ -264,7 +276,7 @@ export default function Travel() {
         >
           ←
         </button>
-        <div className="font-nunito font-bold text-[#09090F] text-sm md:text-base">✈️ Travel Planner</div>
+        <div className="font-nunito font-black uppercase tracking-wide text-[#09090F] text-sm md:text-base flex items-center gap-2">✈️ Travel Planner <StreakBadge streak={streak} /></div>
         <div className="hidden lg:flex items-center gap-1.5 text-xs font-nunito text-[#09090F]/50 bg-black/5 px-2.5 py-1.5 rounded-lg">
           <span>{petStage.emoji}</span>
           <span>{data.character.xp} XP</span>
@@ -276,10 +288,12 @@ export default function Travel() {
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
 
           {/* Mobile pet card */}
-          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-            <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+            <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
             {petCard}
           </div>
+
+          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
 
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
@@ -289,15 +303,15 @@ export default function Travel() {
               { label: 'Total budget', value: formatRp(totalBudget), color: '#09090F' },
               { label: 'Total spent', value: formatRp(totalSpent), color: totalSpent > totalBudget && totalBudget > 0 ? BAD_COLOR : GOOD_COLOR },
             ].map(m => (
-              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="font-nunito font-bold text-sm md:text-base mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
-                <div className="text-xs text-[#09090F]/50 font-nunito">{m.label}</div>
+              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="font-nunito font-black text-base md:text-xl mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
+                <div className="text-[10px] font-nunito font-black uppercase tracking-widest text-[#09090F]/45">{m.label}</div>
               </div>
             ))}
           </div>
 
           {/* Tabs */}
-          <div className="flex mb-5 overflow-x-auto scrollbar-hidden" style={{ borderBottom: '1px solid #E5E4E2' }}>
+          <div className="flex mb-5 overflow-x-auto scrollbar-hidden gap-1.5 py-1">
             {([
               { key: 'trips',     label: '🌍 Trips' },
               { key: 'itinerary', label: '🗓️ Itinerary' },
@@ -307,12 +321,10 @@ export default function Travel() {
               <button
                 key={t.key}
                 onClick={() => setMainTab(t.key)}
-                className="px-3 md:px-4 py-2.5 font-nunito text-sm transition border-b-2 -mb-px whitespace-nowrap flex-shrink-0"
-                style={{
-                  borderBottomColor: mainTab === t.key ? ACCENT : 'transparent',
-                  color: mainTab === t.key ? '#09090F' : 'rgba(9,9,15,0.4)',
-                  fontWeight: mainTab === t.key ? 600 : 400,
-                }}
+                className="px-3 md:px-4 py-2 rounded-xl font-nunito text-sm transition whitespace-nowrap flex-shrink-0"
+                style={mainTab === t.key
+                  ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
+                  : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
               >
                 {t.label}
               </button>
@@ -324,8 +336,8 @@ export default function Travel() {
             <div className="space-y-4">
 
               {/* Add trip */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Plan a Trip</div>
+              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Plan a Trip</div>
                 <div className="flex gap-1.5 mb-2 flex-wrap">
                   {TRIP_EMOJIS.map(e => (
                     <button
@@ -333,8 +345,8 @@ export default function Travel() {
                       onClick={() => setTripForm(f => ({ ...f, emoji: e }))}
                       className="w-9 h-9 rounded-lg text-lg transition"
                       style={tripForm.emoji === e
-                        ? { background: ACCENT + '20', border: `1px solid ${ACCENT}` }
-                        : { background: INPUT_BG, border: `1px solid ${CARD_BORDER}` }}
+                        ? { background: ACCENT + '20', border: `3px solid ${ACCENT}` }
+                        : { background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
                     >
                       {e}
                     </button>
@@ -376,7 +388,7 @@ export default function Travel() {
                   onClick={handleAddTrip}
                   disabled={!tripForm.destination || !tripForm.startDate || !tripForm.endDate}
                   className="w-full py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                  style={{ background: ACCENT }}
+                  style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                 >
                   Create Trip (+20 XP)
                 </button>
@@ -431,7 +443,7 @@ export default function Travel() {
               })}
 
               {data.trips.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">🌍</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No trips yet</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Plan your first adventure above — finishing a trip under budget earns +50 XP!</div>
@@ -444,15 +456,15 @@ export default function Travel() {
           {mainTab === 'itinerary' && (
             <div className="space-y-4">
               {!selectedTrip ? (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">🗓️</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No trip selected</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Create or select a trip in the Trips tab first</div>
                 </div>
               ) : (
                 <>
-                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                    <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
+                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                    <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
                       Add to {selectedTrip.emoji} {selectedTrip.destination}
                     </div>
                     <div className="grid grid-cols-2 gap-2 mb-2">
@@ -487,15 +499,15 @@ export default function Travel() {
                       onClick={handleAddItem}
                       disabled={!itemForm.day || !itemForm.title}
                       className="w-full py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                      style={{ background: ACCENT }}
+                      style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                     >
                       Add to Itinerary
                     </button>
                   </div>
 
                   {itemDays.map(day => (
-                    <div key={day} className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                      <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
+                    <div key={day} className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                      <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
                         {day} {day === today && '· Today'}
                       </div>
                       <div className="space-y-2">
@@ -519,7 +531,7 @@ export default function Travel() {
                   ))}
 
                   {selectedItems.length === 0 && (
-                    <div className="text-center py-8 rounded-xl text-xs text-[#09090F]/40 font-nunito" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                    <div className="text-center py-8 rounded-xl text-xs text-[#09090F]/40 font-nunito" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                       No itinerary items yet — plan your days above
                     </div>
                   )}
@@ -532,7 +544,7 @@ export default function Travel() {
           {mainTab === 'budget' && (
             <div className="space-y-4">
               {!selectedTrip ? (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">💰</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No trip selected</div>
                   <div className="text-xs text-[#09090F]/40 font-nunito">Create or select a trip in the Trips tab first</div>
@@ -540,8 +552,8 @@ export default function Travel() {
               ) : (
                 <>
                   {/* Budget bar */}
-                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                    <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
+                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                    <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
                       {selectedTrip.emoji} {selectedTrip.destination} Budget
                     </div>
                     <div className="flex items-baseline gap-2 mb-2">
@@ -564,8 +576,8 @@ export default function Travel() {
                   </div>
 
                   {/* Log expense */}
-                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                    <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Log Expense</div>
+                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                    <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Log Expense</div>
                     <div className="flex gap-1.5 mb-2 flex-wrap">
                       {EXPENSE_CATS.map(c => (
                         <button
@@ -573,8 +585,8 @@ export default function Travel() {
                           onClick={() => setExpenseForm(f => ({ ...f, category: c.key }))}
                           className="px-3 py-1.5 rounded-full font-nunito text-xs font-semibold transition"
                           style={expenseForm.category === c.key
-                            ? { background: ACCENT + '18', color: ACCENT, border: `1px solid ${ACCENT}` }
-                            : { background: INPUT_BG, color: 'rgba(9,9,15,0.45)', border: `1px solid ${CARD_BORDER}` }}
+                            ? { background: ACCENT + '18', color: ACCENT, border: `3px solid ${ACCENT}` }
+                            : { background: INPUT_BG, color: 'rgba(9,9,15,0.45)', border: `3px solid ${CARD_BORDER}` }}
                         >
                           {c.emoji} {c.label}
                         </button>
@@ -599,7 +611,7 @@ export default function Travel() {
                         onClick={handleAddExpense}
                         disabled={!expenseForm.amount}
                         className="px-5 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                        style={{ background: ACCENT }}
+                        style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
                       >
                         Log
                       </button>
@@ -608,8 +620,8 @@ export default function Travel() {
 
                   {/* Category breakdown */}
                   {catTotals.length > 0 && (
-                    <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                      <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>By Category</div>
+                    <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                      <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>By Category</div>
                       <div className="space-y-3">
                         {catTotals.map(c => (
                           <div key={c.key}>
@@ -635,7 +647,7 @@ export default function Travel() {
                   {selectedExpenses.map(e => {
                     const cat = EXPENSE_CATS.find(c => c.key === e.category)
                     return (
-                      <div key={e.id} className="px-4 py-3 rounded-xl flex items-center gap-3" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+                      <div key={e.id} className="px-4 py-3 rounded-xl flex items-center gap-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                         <span className="text-lg flex-shrink-0">{cat?.emoji ?? '📦'}</span>
                         <div className="flex-1 min-w-0">
                           <div className="font-nunito font-semibold text-sm text-[#09090F] truncate">{e.note || cat?.label || e.category}</div>
@@ -658,9 +670,9 @@ export default function Travel() {
 
           {/* ── GAMES ────────────────────────────────────────── */}
           {mainTab === 'games' && (
-            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
+            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
                 <span className="text-xs text-[#09090F]/50 font-nunito">XP → Travel Pet</span>
               </div>
               <div className="flex gap-1.5 mb-5 p-1 rounded-xl" style={{ background: INPUT_BG }}>
@@ -670,7 +682,7 @@ export default function Travel() {
                     onClick={() => setGameTab(g)}
                     className="flex-1 py-2 rounded-lg font-nunito text-sm transition"
                     style={gameTab === g
-                      ? { background: CARD_BG, color: '#09090F', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }
+                      ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '2px 2px 0 #09090F' }
                       : { color: 'rgba(9,9,15,0.4)' }}
                   >
                     {g === 'clicker' ? '👆 Clicker' : g === 'arcade' ? '🕹️ Arcade' : '🧩 Puzzle'}
@@ -687,13 +699,14 @@ export default function Travel() {
         {/* RIGHT PANEL — desktop only */}
         <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${CARD_BORDER}`, background: '#F5F4F2' }}>
           <div className="p-6 space-y-4">
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-              <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
+            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               {petCard}
             </div>
+            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             {upcomingTrip && (
-              <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}>
-                <div className="text-xs font-nunito font-bold uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Next Adventure</div>
+              <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Next Adventure</div>
                 <div className="font-nunito font-semibold text-sm text-[#09090F]">{upcomingTrip.emoji} {upcomingTrip.destination}</div>
                 <div className="text-xs text-[#09090F]/50 font-nunito">
                   {upcomingTrip.startDate <= today ? 'Happening now!' : `${daysUntil(upcomingTrip.startDate)} days to go`}

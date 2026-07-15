@@ -1,15 +1,24 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { logout } from '../lib/storage'
+import { ensureWeeklyMissions } from '../lib/gamification'
 import { useAuth } from '../contexts/AuthContext'
 import { TEMPLATES } from '../data/templates'
 import { NovoLogo } from './NovoLogo'
+import type { TemplateId } from '../types'
 
 export function NovoLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const { session, profile, loading } = useAuth()
+
+  // Provision this week's missions once per session so tracker pages can
+  // progress them even when the user skips the dashboard.
+  useEffect(() => {
+    if (!session?.user || !profile) return
+    ensureWeeklyMissions(session.user.id, (profile.owned_templates ?? []) as TemplateId[])
+  }, [session?.user?.id, profile?.owned_templates?.length])
 
   if (loading) {
     return (
@@ -46,6 +55,19 @@ export function NovoLayout() {
           >
             <span className="text-base">🏠</span>
             <span className="font-nunito text-sm font-semibold text-[#09090F]">Dashboard</span>
+          </button>
+
+          <button
+            onClick={() => { navigate('/studios/impact'); close() }}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${isActive('/studios/impact') ? 'bg-black/8' : 'hover:bg-black/5'}`}
+          >
+            <span className="text-base">👑</span>
+            <div>
+              <span className="font-nunito text-sm font-semibold text-[#09090F]">Impact</span>
+              {(profile?.crowns ?? 0) > 0 && (
+                <span className="ml-2 text-xs font-nunito font-bold" style={{ color: '#7C3AED' }}>{profile?.crowns}</span>
+              )}
+            </div>
           </button>
 
           {TEMPLATES.map(t => {
