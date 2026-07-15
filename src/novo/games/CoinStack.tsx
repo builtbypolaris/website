@@ -46,7 +46,7 @@ export default function CoinStack({ onXPEarned }: Props) {
     return () => clearInterval(interval)
   }, [playing])
 
-  // Move coins down; a coin that hits the floor is a miss — combo resets and the tower topples a bit
+  // Move coins down; a coin that hits the floor is a miss. Combo resets and the tower topples a bit
   useEffect(() => {
     if (!playing) return
     const interval = setInterval(() => {
@@ -121,7 +121,7 @@ export default function CoinStack({ onXPEarned }: Props) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="text-5xl">🪙</div>
             <div className="font-fredoka text-xl text-gray-700">Coin Stack!</div>
-            <p className="text-sm text-gray-500 text-center px-4">Catch coins to build your tower — a dropped coin topples it!</p>
+            <p className="text-sm text-gray-500 text-center px-4">Catch coins to build your tower. A dropped coin topples it!</p>
             <button onClick={start} className="px-6 py-2 bg-teal-400 hover:bg-teal-500 text-white font-fredoka text-lg rounded-full shadow transition">
               Play! 🎮
             </button>

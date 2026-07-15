@@ -135,7 +135,7 @@ export default function BellyRubs({ onXPEarned }: Props) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="text-5xl">🐕</div>
             <div className="font-fredoka text-xl text-gray-700">Belly Rubs!</div>
-            <p className="text-sm text-gray-500 text-center px-4">Pets pop up asking for care — hit the right button before they wander off!</p>
+            <p className="text-sm text-gray-500 text-center px-4">Pets pop up asking for care. Hit the right button before they wander off!</p>
             <button onClick={start} className="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-fredoka text-lg rounded-full shadow transition">
               Play! 🎮
             </button>

@@ -116,7 +116,7 @@ function EvoDemo({ stageLabel, evolvingLabel }: { stageLabel: string; evolvingLa
   )
 }
 
-/** Generic preview built entirely from registry data — no bespoke mockup per tracker. */
+/** Generic preview built entirely from registry data, no bespoke mockup per tracker. */
 function TrackerPreview({ t }: { t: TemplateInfo }) {
   const previewStages = [0, 3, 6, 9].map(i => t.stages[i])
   return (
@@ -424,12 +424,6 @@ export default function Home() {
       <section className="py-16 md:py-24 px-6 md:px-12" style={{ background: '#09090F' }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10 md:mb-14">
-            <span
-              className="inline-block font-nunito font-bold uppercase tracking-[0.2em] mb-5 text-[10px] px-3 py-1.5 rounded-full"
-              style={{ color: '#F59E0B', border: '1px solid rgba(245,158,11,0.35)', background: 'rgba(245,158,11,0.08)' }}
-            >
-              👑 {s.impact.sticker}
-            </span>
             <h2
               className="text-white mb-4"
               style={{

@@ -87,7 +87,7 @@ export default function LullabyKeys({ onXPEarned }: Props) {
         })
         return prev.filter(n => n.id !== target.id)
       }
-      // Pressed with nothing there — wakes the baby a little
+      // Pressed with nothing there. Wakes the baby a little
       setStreak(0)
       setScore(s => Math.max(0, s - 3))
       return prev
@@ -117,7 +117,7 @@ export default function LullabyKeys({ onXPEarned }: Props) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="text-5xl">🎹</div>
             <div className="font-fredoka text-xl text-gray-700">Lullaby Keys!</div>
-            <p className="text-sm text-gray-500 text-center px-4">Tap the key when a note reaches the line — keep the lullaby flowing!</p>
+            <p className="text-sm text-gray-500 text-center px-4">Tap the key when a note reaches the line. Keep the lullaby flowing!</p>
             <button onClick={start} className="px-6 py-2 bg-fuchsia-400 hover:bg-fuchsia-500 text-white font-fredoka text-lg rounded-full shadow transition">
               Play! 🎮
             </button>

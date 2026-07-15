@@ -73,7 +73,7 @@ export default function BaggageDrop({ onXPEarned }: Props) {
         for (const s of prev) {
           const ny = s.y + 4
           if (ny >= 72) {
-            // Landed — did it hit a cart?
+            // Landed. Did it hit a cart?
             setCarts(current => {
               const hit = current.find(c => Math.abs(c.x - s.x) < 10)
               if (hit) {
@@ -142,7 +142,7 @@ export default function BaggageDrop({ onXPEarned }: Props) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="text-5xl">🧳</div>
             <div className="font-fredoka text-xl text-gray-700">Baggage Drop!</div>
-            <p className="text-sm text-gray-500 text-center px-4">The claw sweeps on its own — tap to drop suitcases onto the moving carts!</p>
+            <p className="text-sm text-gray-500 text-center px-4">The claw sweeps on its own. Tap to drop suitcases onto the moving carts!</p>
             <button onClick={e => { e.stopPropagation(); start() }} className="px-6 py-2 bg-orange-400 hover:bg-orange-500 text-white font-fredoka text-lg rounded-full shadow transition">
               Play! 🎮
             </button>

@@ -99,7 +99,7 @@ export default function CalorieBalance({ onXPEarned }: Props) {
     setFoods(prev => prev.filter(x => x.id !== f.id))
     if (f.junk) setScore(s => s + 10)
     else {
-      // Knocked away good food — small penalty
+      // Knocked away good food. Small penalty
       setScore(s => Math.max(0, s - 5))
     }
   }

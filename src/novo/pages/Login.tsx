@@ -85,7 +85,7 @@ function OnboardingForm({ userId, onDone }: { userId: string; onDone: () => void
               Pick your cause.
             </h2>
             <p className="text-gray-400 font-nunito text-sm leading-relaxed">
-              Raise a pet through all 10 stages to earn a crown. For every crown, Polaris makes real impact — you choose where it goes.
+              Raise a pet through all 10 stages to earn a crown. For every crown, Polaris makes real impact. You choose where it goes.
             </p>
           </div>
 
@@ -221,7 +221,7 @@ export default function Login() {
         // signUp with an already-registered email returns a stub user with no
         // identities (Supabase hides account existence) — send them to sign in
         setMode('signin')
-        setError('This email is already registered — sign in with your password below.')
+        setError('This email is already registered. Sign in with your password below.')
         setLoading(false)
       } else {
         // Email confirmation required (signUp returns a user but no session)
@@ -328,7 +328,7 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Google button — our visual layer on top, Google's real button underneath */}
+          {/* Google button: our visual layer on top, Google's real button underneath */}
           <div className="relative mb-6" style={{ minHeight: '44px' }}>
             <div ref={googleDivRef} className="overflow-hidden rounded-xl" />
             <div

@@ -66,7 +66,7 @@ export default function ExactChange({ onXPEarned }: Props) {
       setFlash('hit')
       setTimeout(() => setFlash(null), 350)
     } else if (next > target) {
-      // Bust — lose points, hand resets
+      // Bust. Lose points, hand resets
       setScore(s => Math.max(0, s - 10))
       setCurrent(0)
       setFlash('bust')
@@ -100,7 +100,7 @@ export default function ExactChange({ onXPEarned }: Props) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="text-5xl">💵</div>
             <div className="font-fredoka text-xl text-gray-700">Exact Change!</div>
-            <p className="text-sm text-gray-500 text-center px-4">Hit the target amount exactly — going over busts your hand!</p>
+            <p className="text-sm text-gray-500 text-center px-4">Hit the target amount exactly. Going over busts your hand!</p>
             <button onClick={start} className="px-6 py-2 bg-teal-400 hover:bg-teal-500 text-white font-fredoka text-lg rounded-full shadow transition">
               Play! 🎮
             </button>

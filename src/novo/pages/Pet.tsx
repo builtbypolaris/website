@@ -224,11 +224,11 @@ export default function Pet() {
         const onTime = item.dueDate >= today
         const xpGain = onTime ? 20 : 5
         applyXP(xpGain, { careItems: nextItems })
-        showToast(onTime ? `+${xpGain} XP — done on time!` : `+${xpGain} XP — done late, watch those due dates`)
+        showToast(onTime ? `+${xpGain} XP, done on time!` : `+${xpGain} XP. Done late, watch those due dates`)
       } else {
         // Un-ticking takes back the reward (anti-farming)
         applyXP(-15, { careItems: nextItems })
-        showToast('−15 XP — care item unchecked', false)
+        showToast('−15 XP, care item unchecked', false)
       }
     } catch {
       showToast('Failed to update', false)
@@ -249,7 +249,7 @@ export default function Pet() {
       const nextWeights = [...data.weights, entry].sort((a, b) => a.date.localeCompare(b.date))
       applyXP(10, { weights: nextWeights })
       setWeightForm('')
-      showToast('+10 XP — weight logged!')
+      showToast('+10 XP, weight logged!')
     } catch {
       showToast('Failed to log weight', false)
     }
@@ -267,7 +267,7 @@ export default function Pet() {
 
   const handleClaimChallenge = (xp: number, title: string) => {
     applyXP(xp, {})
-    showToast(`${title} — +${xp} XP!`)
+    showToast(`${title}: +${xp} XP!`)
   }
 
   const todayEvents = petEvents.filter(e => e.eventAt.startsWith(today))
@@ -466,7 +466,7 @@ export default function Pet() {
                   {/* Quick log */}
                   <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                     <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
-                      Quick Log — {pet.emoji} {pet.name}
+                      Quick Log: {pet.emoji} {pet.name}
                     </div>
                     <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5 mb-3">
                       {EVENT_META.map(m => (
@@ -532,7 +532,7 @@ export default function Pet() {
                   {/* Add care item */}
                   <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                     <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
-                      New Reminder — {pet.emoji} {pet.name}
+                      New Reminder: {pet.emoji} {pet.name}
                     </div>
                     <div className="flex gap-2">
                       <input
@@ -583,7 +583,7 @@ export default function Pet() {
                             {itemPet?.emoji ?? '🐾'} {item.title}
                           </div>
                           <div className="text-xs font-nunito" style={{ color: overdue ? BAD_COLOR : 'rgba(9,9,15,0.5)' }}>
-                            {overdue ? `Overdue — was due ${item.dueDate}` : `Due ${item.dueDate}${!item.done && item.dueDate >= today ? ` (${daysUntil(item.dueDate)}d)` : ''}`}
+                            {overdue ? `Overdue, was due ${item.dueDate}` : `Due ${item.dueDate}${!item.done && item.dueDate >= today ? ` (${daysUntil(item.dueDate)}d)` : ''}`}
                           </div>
                         </div>
                         <button
@@ -598,7 +598,7 @@ export default function Pet() {
 
                   {data.careItems.length === 0 && (
                     <div className="text-center py-8 rounded-xl text-xs text-[#09090F]/40 font-nunito" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                      No reminders yet — never miss a vaccine again
+                      No reminders yet, never miss a vaccine again
                     </div>
                   )}
                 </>
@@ -619,7 +619,7 @@ export default function Pet() {
                 <>
                   <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                     <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
-                      Log Weight — {pet.emoji} {pet.name}
+                      Log Weight: {pet.emoji} {pet.name}
                     </div>
                     <div className="flex gap-2">
                       <input

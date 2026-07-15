@@ -119,7 +119,7 @@ export default function InboxZero({ onXPEarned }: Props) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="text-5xl">📥</div>
             <div className="font-fredoka text-xl text-gray-700">Inbox Zero!</div>
-            <p className="text-sm text-gray-500 text-center px-4">Open client offers, trash the spam — never touch the scams!</p>
+            <p className="text-sm text-gray-500 text-center px-4">Open client offers, trash the spam. Never touch the scams!</p>
             <button onClick={start} className="px-6 py-2 bg-sky-400 hover:bg-sky-500 text-white font-fredoka text-lg rounded-full shadow transition">
               Play! 🎮
             </button>

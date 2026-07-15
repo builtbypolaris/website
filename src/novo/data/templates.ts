@@ -6,7 +6,7 @@ import {
   TRAVEL_STAGES, BABY_STAGES, PET_STAGES,
 } from './creatures'
 
-// Single client-side price source — keep in sync with the Lynk.id product prices.
+// Single client-side price source. Keep in sync with the Lynk.id product prices.
 export const TRACKER_PRICE_IDR = 29999
 
 // Lynk.id storefront. Per-tracker product links can override this via
@@ -95,7 +95,7 @@ export const TEMPLATES: TemplateInfo[] = [
     name: 'Savings & Installments',
     shortName: 'Savings',
     emoji: '🐖',
-    description: 'Set savings goals, log deposits, and keep every installment paid on time — your treasure pet grows with you!',
+    description: 'Set savings goals, log deposits, and keep every installment paid on time. Your treasure pet grows with you!',
     features: [
       'Savings goals with progress',
       'Deposit logging',
@@ -145,7 +145,7 @@ export const TEMPLATES: TemplateInfo[] = [
     name: 'Mood Tracker',
     shortName: 'Mood',
     emoji: '🌤️',
-    description: 'Quick mood check-ins with tags and notes, a calendar heatmap, and trends — your sky pet brightens with you!',
+    description: 'Quick mood check-ins with tags and notes, a calendar heatmap, and trends. Your sky pet brightens with you!',
     features: [
       'Quick emoji check-ins',
       'Tags & notes per entry',
@@ -170,7 +170,7 @@ export const TEMPLATES: TemplateInfo[] = [
     name: 'Freelance Hub',
     shortName: 'Freelance',
     emoji: '💼',
-    description: 'Clients, projects, deadlines and earnings in one hub — your hustle pet grows with every gig!',
+    description: 'Clients, projects, deadlines and earnings in one hub. Your hustle pet grows with every gig!',
     features: [
       'Clients & projects',
       'Deadline countdowns',
@@ -195,7 +195,7 @@ export const TEMPLATES: TemplateInfo[] = [
     name: 'Health & Meals',
     shortName: 'Health',
     emoji: '🥗',
-    description: 'Meals, calories, water and weight in one gentle daily loop — your vitality pet thrives as you do!',
+    description: 'Meals, calories, water and weight in one gentle daily loop. Your vitality pet thrives as you do!',
     features: [
       'Meal & calorie logging',
       'Daily water counter',
@@ -220,7 +220,7 @@ export const TEMPLATES: TemplateInfo[] = [
     name: 'Cycle Tracker',
     shortName: 'Cycle',
     emoji: '🌸',
-    description: 'Periods, symptoms and gentle predictions on a private calendar — your bloom pet grows with your rhythm!',
+    description: 'Periods, symptoms and gentle predictions on a private calendar. Your bloom pet grows with your rhythm!',
     features: [
       'Period logging',
       'Daily flow & symptoms',
@@ -245,7 +245,7 @@ export const TEMPLATES: TemplateInfo[] = [
     name: 'Travel Planner',
     shortName: 'Travel',
     emoji: '✈️',
-    description: 'Itineraries and travel budgets side by side — your voyager pet earns its wings with every trip!',
+    description: 'Itineraries and travel budgets side by side. Your voyager pet earns its wings with every trip!',
     features: [
       'Trips with countdowns',
       'Day-by-day itinerary',
@@ -270,7 +270,7 @@ export const TEMPLATES: TemplateInfo[] = [
     name: 'Baby Tracker',
     shortName: 'Baby',
     emoji: '👶',
-    description: 'Feeds, sleep, diapers, growth and milestones — logged in two taps, your nursery pet grows alongside!',
+    description: 'Feeds, sleep, diapers, growth and milestones. Logged in two taps, your nursery pet grows alongside!',
     features: [
       'Two-tap event logging',
       'Feeds, sleep & diapers',
@@ -295,7 +295,7 @@ export const TEMPLATES: TemplateInfo[] = [
     name: 'Pet Care',
     shortName: 'Pet',
     emoji: '🐾',
-    description: 'Daily care logs, vet reminders and weight tracking per pet — your companion pet joins the pack!',
+    description: 'Daily care logs, vet reminders and weight tracking per pet. Your companion pet joins the pack!',
     features: [
       'Multiple pets',
       'Quick care logging',

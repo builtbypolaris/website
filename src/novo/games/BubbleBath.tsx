@@ -85,7 +85,7 @@ export default function BubbleBath({ onXPEarned }: Props) {
     setHolding(false)
     setSurging(false)
     if (pressure >= 70) {
-      // A good fill — the higher the braver
+      // A good fill. The higher the braver
       const bonus = pressure >= 90 ? 30 : 20
       setScore(s => s + bonus)
       setFills(f => f + 1)
@@ -123,7 +123,7 @@ export default function BubbleBath({ onXPEarned }: Props) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="text-5xl">🛁</div>
             <div className="font-fredoka text-xl text-gray-700">Bubble Bath!</div>
-            <p className="text-sm text-gray-500 text-center px-4">Hold to fill the tub — release before it overflows! Watch for surges!</p>
+            <p className="text-sm text-gray-500 text-center px-4">Hold to fill the tub. Release before it overflows! Watch for surges!</p>
             <button onClick={e => { e.stopPropagation(); start() }} className="px-6 py-2 bg-fuchsia-400 hover:bg-fuchsia-500 text-white font-fredoka text-lg rounded-full shadow transition">
               Play! 🎮
             </button>

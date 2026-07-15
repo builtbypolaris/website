@@ -207,7 +207,7 @@ export default function Mood() {
     const before = data.character
     setData(d => d ? { ...d, character: addXP(before, xp) } : d)
     runAward(before, xp)
-    showToast(`${title} — +${xp} XP!`)
+    showToast(`${title}: +${xp} XP!`)
   }
 
   const toggleTag = (tag: string) =>
@@ -401,7 +401,7 @@ export default function Mood() {
                 </div>
                 {todayEntries.length >= XP_CHECKINS_PER_DAY && (
                   <div className="text-xs text-[#09090F]/30 font-nunito mt-2">
-                    Daily XP cap reached ({XP_CHECKINS_PER_DAY} check-ins) — more check-ins still count, just no XP.
+                    Daily XP cap reached ({XP_CHECKINS_PER_DAY} check-ins). More check-ins still count, just no XP.
                   </div>
                 )}
               </div>
@@ -417,7 +417,7 @@ export default function Mood() {
                 <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">🌤️</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No check-ins yet</div>
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Tap an emoji above and log your first mood — your sky pet is waiting!</div>
+                  <div className="text-xs text-[#09090F]/40 font-nunito">Tap an emoji above and log your first mood, your sky pet is waiting!</div>
                 </div>
               )}
             </div>

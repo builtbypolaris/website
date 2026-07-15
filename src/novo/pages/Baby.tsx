@@ -222,7 +222,7 @@ export default function Baby() {
       const entry = await dbAddGrowth(userId, { babyId: baby.id, date: today, weightKg, heightCm })
       applyXP(15, { growth: [...data.growth, entry] })
       setGrowthForm({ weight: '', height: '' })
-      showToast('+15 XP — growing strong! 🌱')
+      showToast('+15 XP, growing strong! 🌱')
     } catch {
       showToast('Failed to log growth', false)
     }
@@ -239,7 +239,7 @@ export default function Baby() {
       const milestone = await dbAddMilestone(userId, { babyId: baby.id, title: milestoneForm, date: today })
       applyXP(25, { milestones: [milestone, ...data.milestones] })
       setMilestoneForm('')
-      showToast('+25 XP — milestone unlocked! 🎉')
+      showToast('+25 XP, milestone unlocked! 🎉')
     } catch {
       showToast('Failed to add milestone', false)
     }
@@ -257,7 +257,7 @@ export default function Baby() {
 
   const handleClaimChallenge = (xp: number, title: string) => {
     applyXP(xp, {})
-    showToast(`${title} — +${xp} XP!`)
+    showToast(`${title}: +${xp} XP!`)
   }
 
   // Events grouped by day for history
@@ -457,7 +457,7 @@ export default function Baby() {
                   {/* Quick log */}
                   <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                     <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
-                      Quick Log — {baby.emoji} {baby.name}
+                      Quick Log: {baby.emoji} {baby.name}
                     </div>
                     <div className="grid grid-cols-5 gap-1.5 mb-3">
                       {EVENT_META.map(m => (
@@ -570,7 +570,7 @@ export default function Baby() {
                   {/* Log growth */}
                   <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                     <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
-                      Growth Entry — {baby.emoji} {baby.name}
+                      Growth Entry: {baby.emoji} {baby.name}
                     </div>
                     <div className="flex gap-2">
                       <input
@@ -656,7 +656,7 @@ export default function Baby() {
                         </div>
                       ))}
                       {babyMilestones.length === 0 && (
-                        <div className="text-xs text-[#09090F]/40 font-nunito">No milestones yet — every first counts!</div>
+                        <div className="text-xs text-[#09090F]/40 font-nunito">No milestones yet, every first counts!</div>
                       )}
                     </div>
                   </div>

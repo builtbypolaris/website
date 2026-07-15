@@ -75,7 +75,7 @@ export function CauseModal({ userId, onDone, onSkip }: {
             Pick your cause
           </h2>
           <p className="font-nunito font-bold text-sm leading-relaxed" style={{ color: `${INK}99` }}>
-            Raise a pet through all 10 stages to earn a crown. For every crown, Polaris makes real impact — you choose where it goes.
+            Raise a pet through all 10 stages to earn a crown. For every crown, Polaris makes real impact. You choose where it goes.
           </p>
         </div>
 

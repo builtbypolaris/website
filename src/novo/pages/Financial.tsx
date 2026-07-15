@@ -169,7 +169,7 @@ export default function Financial() {
       runAward(data.character, xpGain)
       setForm(f => ({ ...f, amount: '', description: '' }))
       if (xpGain > 0) showToast(`+${xpGain} XP!`, true)
-      else showToast(`${xpGain} XP — watch your cashflow!`, false)
+      else showToast(`${xpGain} XP. Watch your cashflow!`, false)
     } catch {
       showToast('Failed to save transaction', false)
     }
@@ -191,7 +191,7 @@ export default function Financial() {
     const before = data.character
     setData(d => d ? { ...d, character: addXP(before, xp) } : d)
     runAward(before, xp)
-    showToast(`${title} — +${xp} XP!`)
+    showToast(`${title}: +${xp} XP!`)
   }
 
   const cats     = form.type === 'income' ? INCOME_CATS : EXPENSE_CATS
@@ -434,7 +434,7 @@ export default function Financial() {
                 <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-3xl mb-2">🗒️</div>
                   <div className="text-sm text-[#09090F]/50 font-nunito">
-                    {data.transactions.length === 0 ? 'No transactions yet — add one in Overview' : 'No transactions match this filter'}
+                    {data.transactions.length === 0 ? 'No transactions yet. Add one in Overview' : 'No transactions match this filter'}
                   </div>
                 </div>
               )}

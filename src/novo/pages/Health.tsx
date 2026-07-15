@@ -158,8 +158,8 @@ export default function Health() {
       if (xpGain !== 0) {
         applyXP(xpGain, { meals: [meal, ...data.meals] })
         showToast(
-          xpGain < 0 ? `${xpGain} XP — that's over 120% of your calorie target`
-          : xpGain >= 23 ? `+${xpGain} XP — all 3 meals logged! 🎉`
+          xpGain < 0 ? `${xpGain} XP. That's over 120% of your calorie target`
+          : xpGain >= 23 ? `+${xpGain} XP, all 3 meals logged! 🎉`
           : `+${xpGain} XP!`,
           xpGain > 0,
         )
@@ -186,7 +186,7 @@ export default function Health() {
       if (xpEligible) {
         waterXPAwarded.current = next
         applyXP(2, { waterByDate: { ...data.waterByDate, [today]: next } })
-        showToast(next === data.goals.waterTarget ? '+2 XP — hydration goal hit! 💧' : '+2 XP!')
+        showToast(next === data.goals.waterTarget ? '+2 XP, hydration goal hit! 💧' : '+2 XP!')
       } else {
         setData(d => d ? { ...d, waterByDate: { ...d.waterByDate, [today]: next } } : d)
       }
@@ -204,7 +204,7 @@ export default function Health() {
       const nextWeights = [...data.weights, entry].sort((a, b) => a.date.localeCompare(b.date))
       if (!alreadyToday) {
         applyXP(10, { weights: nextWeights })
-        showToast('+10 XP — weight logged!')
+        showToast('+10 XP, weight logged!')
       } else {
         setData(d => d ? { ...d, weights: nextWeights } : d)
         showToast('Weight logged!')
@@ -239,7 +239,7 @@ export default function Health() {
 
   const handleClaimChallenge = (xp: number, title: string) => {
     applyXP(xp, {})
-    showToast(`${title} — +${xp} XP!`)
+    showToast(`${title}: +${xp} XP!`)
   }
 
   // Meals grouped by day (latest 14 days present in data)
@@ -396,7 +396,7 @@ export default function Health() {
                   <div className="flex justify-between text-xs font-nunito mb-1.5">
                     <span className="text-[#09090F]/60">Calories</span>
                     <span style={{ color: overTarget ? BAD_COLOR : ACCENT }}>
-                      {kcalToday} / {data.goals.calorieTarget} kcal{overTarget ? ' — over target' : ''}
+                      {kcalToday} / {data.goals.calorieTarget} kcal{overTarget ? ', over target' : ''}
                     </span>
                   </div>
                   <div className="h-2 rounded-full overflow-hidden" style={{ background: '#E5E4E2' }}>

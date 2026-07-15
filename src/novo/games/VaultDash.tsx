@@ -37,7 +37,7 @@ export default function VaultDash({ onXPEarned }: Props) {
     setPlaying(true)
   }
 
-  // Spawn items — speed of the game comes from a shrinking spawn interval feel via elapsed time
+  // Spawn items. Speed of the game comes from a shrinking spawn interval feel via elapsed time
   useEffect(() => {
     if (!playing) return
     const interval = setInterval(() => {
@@ -121,7 +121,7 @@ export default function VaultDash({ onXPEarned }: Props) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="text-5xl">🐖</div>
             <div className="font-fredoka text-xl text-gray-700">Vault Dash!</div>
-            <p className="text-sm text-gray-500 text-center px-4">Slide between lanes — collect coins, dodge the shopping carts!</p>
+            <p className="text-sm text-gray-500 text-center px-4">Slide between lanes. Collect coins, dodge the shopping carts!</p>
             <button onClick={start} className="px-6 py-2 bg-teal-400 hover:bg-teal-500 text-white font-fredoka text-lg rounded-full shadow transition">
               Play! 🎮
             </button>

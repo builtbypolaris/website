@@ -130,7 +130,7 @@ export default function DeadlineDodge({ onXPEarned }: Props) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="text-5xl">📓</div>
             <div className="font-fredoka text-xl text-gray-700">Deadline Dodge!</div>
-            <p className="text-sm text-gray-500 text-center px-4">Slide your notebook to catch papers — dodge the phone notifications!</p>
+            <p className="text-sm text-gray-500 text-center px-4">Slide your notebook to catch papers. Dodge the phone notifications!</p>
             <button onClick={start} className="px-6 py-2 bg-violet-400 hover:bg-violet-500 text-white font-fredoka text-lg rounded-full shadow transition">
               Play! 🎮
             </button>

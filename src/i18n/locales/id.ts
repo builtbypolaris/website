@@ -651,7 +651,7 @@ export const id: EnTranslations = {
         baby: {
           headline1: 'Setiap menyusu.',
           headline2: 'Setiap momen.',
-          desc: 'Menyusu, tidur, popok, tumbuh kembang, dan milestone — dicatat dua ketukan. Pet mungilmu ikut bertumbuh.',
+          desc: 'Menyusu, tidur, popok, tumbuh kembang, dan milestone, dicatat dua ketukan. Pet mungilmu ikut bertumbuh.',
         },
         pet: {
           headline1: 'Peliharaan bahagia.',
@@ -665,10 +665,9 @@ export const id: EnTranslations = {
       getIt: 'Dapatkan',
     },
     impact: {
-      sticker: 'Mahkota · Dampak nyata',
       titleLine1: 'Kamu melacak.',
-      titleLine2Em: 'Kami menanam.',
-      subtitle: 'Besarkan pet melewati 10 tahap penuh dan ia mendapat mahkota 👑. Pilih tujuanmu, dan Polaris mengubah setiap mahkota jadi dampak nyata — dipenuhi tiap bulan.',
+      titleLine2Em: 'Kami berbagi.',
+      subtitle: 'Besarkan pet melewati 10 tahap penuh dan ia mendapat mahkota 👑. Pilih tujuanmu, dan Polaris mengubah setiap mahkota jadi dampak nyata: tanaman ditanam atau bantuan untuk yang membutuhkan, dipenuhi tiap bulan.',
       envTitle: 'Tim Lingkungan',
       envLine: '1 mahkota = 1 tanaman ditanam',
       envStat: 'tanaman ditanam sejauh ini',

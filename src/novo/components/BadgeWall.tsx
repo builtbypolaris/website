@@ -22,7 +22,7 @@ export function BadgeWall({ earned, accent }: { earned: Set<string>; accent: str
             <div
               key={b.id}
               className="rounded-xl p-2 text-center"
-              title={`${b.label} — ${b.description}`}
+              title={`${b.label}: ${b.description}`}
               style={{
                 background: has ? `${accent}18` : '#F0EEE8',
                 border: `2.5px solid ${has ? INK : `${INK}22`}`,

@@ -122,7 +122,7 @@ export default function GigJuggler({ onXPEarned }: Props) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="text-5xl">🤹</div>
             <div className="font-fredoka text-xl text-gray-700">Gig Juggler!</div>
-            <p className="text-sm text-gray-500 text-center px-4">Four projects, one you. Tap a project to work on it — let none hit zero!</p>
+            <p className="text-sm text-gray-500 text-center px-4">Four projects, one you. Tap a project to work on it. Let none hit zero!</p>
             <button onClick={start} className="px-6 py-2 bg-sky-400 hover:bg-sky-500 text-white font-fredoka text-lg rounded-full shadow transition">
               Play! 🎮
             </button>

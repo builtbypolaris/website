@@ -102,7 +102,7 @@ export default function FoodPuzzle({ onXPEarned }: Props) {
     setSelectedFood(null)
 
     if (nextPets.every(p => p.assigned !== null)) {
-      // Everyone fed with no conflicts — round solved
+      // Everyone fed with no conflicts. Round solved
       const gained = 30 + (petCount - 3) * 15
       setScore(s => s + gained)
       const newSolved = solved + 1
@@ -148,7 +148,7 @@ export default function FoodPuzzle({ onXPEarned }: Props) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="text-5xl">🍽️</div>
             <div className="font-fredoka text-xl text-gray-700">Food Puzzle!</div>
-            <p className="text-sm text-gray-500 text-center px-4">Pick a bowl, then serve it to a pet — respect every like and dislike!</p>
+            <p className="text-sm text-gray-500 text-center px-4">Pick a bowl, then serve it to a pet. Respect every like and dislike!</p>
             <button onClick={start} className="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-fredoka text-lg rounded-full shadow transition">
               Play! 🎮
             </button>

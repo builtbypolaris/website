@@ -102,7 +102,7 @@ export default function EmojiFlow({ onXPEarned }: Props) {
       setScore(s => s + 20)
       setSelected(null)
       if (next.every(c => c === null)) {
-        // Board cleared — bigger board, bonus points and bonus time
+        // Board cleared. Bigger board, bonus points and bonus time
         const nextCols = Math.min(6, cols + 1)
         setBoardsCleared(n => n + 1)
         setScore(s => s + 50)

@@ -150,7 +150,7 @@ export default function Todo() {
         xpTotal += 30
         showToast(`+${xp} XP! +30 ALL DONE bonus!`)
       } else {
-        showToast(overdue ? `+${xp} XP — it was overdue, finish on time for more!` : `+${xp} XP!`)
+        showToast(overdue ? `+${xp} XP. It was overdue, finish on time for more!` : `+${xp} XP!`)
       }
     }
 
@@ -177,7 +177,7 @@ export default function Todo() {
     await dbDeleteTask(id)
     if (abandoned) {
       runAward(before, -5)
-      showToast('−5 XP — task abandoned')
+      showToast('−5 XP, task abandoned')
     }
   }
 
@@ -192,7 +192,7 @@ export default function Todo() {
     const before = data.character
     setData(d => d ? { ...d, character: addXP(before, xp) } : d)
     runAward(before, xp)
-    showToast(`${title} — +${xp} XP!`)
+    showToast(`${title}: +${xp} XP!`)
   }
 
   const isOverdue = (t: Task) => !!(t.dueDate && !t.completed && t.dueDate < todayStr())

@@ -168,7 +168,7 @@ export default function Cycle() {
     try {
       const period = await dbStartPeriod(userId, today)
       applyXP(15, { periods: [...data.periods, period] })
-      showToast('+15 XP — period logged. Take care of yourself 💗')
+      showToast('+15 XP, period logged. Take care of yourself 💗')
     } catch {
       showToast('Failed to log period', false)
     }
@@ -180,7 +180,7 @@ export default function Cycle() {
       await dbEndPeriod(ongoing.id, today)
       const nextPeriods = data.periods.map(p => p.id === ongoing.id ? { ...p, endDate: today } : p)
       applyXP(10, { periods: nextPeriods })
-      showToast('+10 XP — period ended')
+      showToast('+10 XP, period ended')
     } catch {
       showToast('Failed to update period', false)
     }
@@ -196,7 +196,7 @@ export default function Cycle() {
       const nextLogs = [log, ...data.logs.filter(l => l.date !== date)]
       if (xpGain > 0) {
         applyXP(xpGain, { logs: nextLogs })
-        showToast(hasYesterday ? `+${xpGain} XP — daily streak!` : `+${xpGain} XP!`)
+        showToast(hasYesterday ? `+${xpGain} XP, daily streak!` : `+${xpGain} XP!`)
       } else {
         setData(d => d ? { ...d, logs: nextLogs } : d)
         showToast('Log updated!')
@@ -213,7 +213,7 @@ export default function Cycle() {
 
   const handleClaimChallenge = (xp: number, title: string) => {
     applyXP(xp, {})
-    showToast(`${title} — +${xp} XP!`)
+    showToast(`${title}: +${xp} XP!`)
   }
 
   const toggleSymptom = (s: string) =>
@@ -424,7 +424,7 @@ export default function Cycle() {
               </div>
 
               <p className="text-center text-xs font-nunito text-[#09090F]/30">
-                Predictions are estimates based on your logged cycles — not medical advice.
+                Predictions are estimates based on your logged cycles. Not medical advice.
               </p>
             </div>
           )}
@@ -583,7 +583,7 @@ export default function Cycle() {
                 </>
               )}
               <p className="text-center text-xs font-nunito text-[#09090F]/30">
-                Estimates only — cycles vary. This is not medical advice.
+                Estimates only, cycles vary. This is not medical advice.
               </p>
             </div>
           )}

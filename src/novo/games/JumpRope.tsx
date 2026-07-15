@@ -44,7 +44,7 @@ export default function JumpRope({ onXPEarned }: Props) {
           setFlash('miss')
           setTimeout(() => setFlash(null), 250)
         }
-        if (a > next) jumpedThisPass.current = false  // wrapped past 0 — new pass
+        if (a > next) jumpedThisPass.current = false  // wrapped past 0. New pass
         return next
       })
     }, 30)

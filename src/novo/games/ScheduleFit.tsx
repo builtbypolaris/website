@@ -97,7 +97,7 @@ export default function ScheduleFit({ onXPEarned }: Props) {
 
     const nextShape = randomShape()
     if (!anyFit(nextShape.cells, next)) {
-      // Week is packed — fresh week, bonus
+      // Week is packed. Fresh week, bonus
       setScore(s => s + 20)
       setBoard(Array(COLS * ROWS).fill(null))
     } else {
@@ -137,7 +137,7 @@ export default function ScheduleFit({ onXPEarned }: Props) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="text-5xl">🗓️</div>
             <div className="font-fredoka text-xl text-gray-700">Schedule Fit!</div>
-            <p className="text-sm text-gray-500 text-center px-4">Pack jobs into your week — tap where the block's top-left corner goes!</p>
+            <p className="text-sm text-gray-500 text-center px-4">Pack jobs into your week. Tap where the block's top-left corner goes!</p>
             <button onClick={start} className="px-6 py-2 bg-sky-400 hover:bg-sky-500 text-white font-fredoka text-lg rounded-full shadow transition">
               Play! 🎮
             </button>
@@ -180,7 +180,7 @@ export default function ScheduleFit({ onXPEarned }: Props) {
                 />
               ))}
             </div>
-            <div className="font-nunito text-[10px] text-gray-400">Mon — Fri · 4 slots a day</div>
+            <div className="font-nunito text-[10px] text-gray-400">Mon-Fri · 4 slots a day</div>
           </div>
         )}
 

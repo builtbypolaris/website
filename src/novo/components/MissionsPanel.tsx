@@ -42,7 +42,7 @@ export function MissionsPanel({ missions, accent = '#7C3AED', title = 'Weekly mi
         })}
       </div>
       <div className="mt-3 font-nunito font-bold text-[11px]" style={{ color: `${INK}66` }}>
-        Missions pay bonus XP toward your pet's cycle. Full cycles earn crowns 👑 — 1 crown = 1 plant or 1 person helped. Resets every Monday.
+        Missions pay bonus XP toward your pet's cycle. Full cycles earn crowns 👑, and 1 crown = 1 plant or 1 person helped. Resets every Monday.
       </div>
     </NCard>
   )

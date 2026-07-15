@@ -29,7 +29,7 @@ export default function FocusBurst({ onXPEarned }: Props) {
     dirRef.current = 1
   }
 
-  // Oscillate the focus marker — speeds up with streak
+  // Oscillate the focus marker. Speeds up with streak
   useEffect(() => {
     if (!playing) return
     const interval = setInterval(() => {
@@ -107,7 +107,7 @@ export default function FocusBurst({ onXPEarned }: Props) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="text-5xl">🎯</div>
             <div className="font-fredoka text-xl text-gray-700">Focus Burst!</div>
-            <p className="text-sm text-gray-500 text-center px-4">Tap when the marker is inside the focus zone — streaks multiply your score!</p>
+            <p className="text-sm text-gray-500 text-center px-4">Tap when the marker is inside the focus zone. Streaks multiply your score!</p>
             <button onClick={start} className="px-6 py-2 bg-violet-400 hover:bg-violet-500 text-white font-fredoka text-lg rounded-full shadow transition">
               Play! 🎮
             </button>

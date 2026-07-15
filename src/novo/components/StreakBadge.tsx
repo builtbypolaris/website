@@ -19,7 +19,7 @@ export function StreakBadge({ streak }: { streak: StreakRow | null }) {
         color: INK,
         opacity: litToday ? 1 : 0.55,
       }}
-      title={litToday ? `${days}-day streak` : `${days}-day streak — log today to keep it!`}
+      title={litToday ? `${days}-day streak` : `${days}-day streak. Log today to keep it!`}
     >
       🔥 {days}
     </span>

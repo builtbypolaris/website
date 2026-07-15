@@ -149,7 +149,7 @@ export default function Savings() {
     const abandoned = !!goal && goal.deposits.length > 0 && goalSaved(goal) < goal.targetAmount
     if (abandoned) {
       applyXP(-10, { ...data, goals: data.goals.filter(g => g.id !== id) })
-      showToast('−10 XP — goal abandoned before finishing', false)
+      showToast('−10 XP, goal abandoned before finishing', false)
     } else {
       setData(d => d ? { ...d, goals: d.goals.filter(g => g.id !== id) } : d)
     }
@@ -213,7 +213,7 @@ export default function Savings() {
         applyXP(xpGain, { ...data, installments: nextInsts })
         showToast(
           daysLate <= 0 ? `Paid on time! +${xpGain} XP!`
-          : daysLate > 7 ? `${xpGain} XP — over a week late. Pay by day ${inst.dueDay} for +25!`
+          : daysLate > 7 ? `${xpGain} XP. Over a week late, pay by day ${inst.dueDay} for +25!`
           : `Paid! +${xpGain} XP`,
           xpGain > 0,
         )
@@ -222,7 +222,7 @@ export default function Savings() {
         const nextInsts = data.installments.map(i =>
           i.id === inst.id ? { ...i, payments: i.payments.filter(p => p.month !== month) } : i)
         applyXP(-25, { ...data, installments: nextInsts })
-        showToast('−25 XP — payment unmarked', false)
+        showToast('−25 XP, payment unmarked', false)
       }
     } catch {
       showToast('Failed to update payment', false)
@@ -236,7 +236,7 @@ export default function Savings() {
 
   const handleClaimChallenge = (xp: number, title: string) => {
     applyXP(xp, data)
-    showToast(`${title} — +${xp} XP!`)
+    showToast(`${title}: +${xp} XP!`)
   }
 
   const petCard = (
@@ -351,7 +351,7 @@ export default function Savings() {
                   <div className="text-2xl">{isOverdue(nextDue) ? '⚠️' : '📅'}</div>
                   <div className="flex-1 min-w-0">
                     <div className="font-nunito font-semibold text-sm text-[#09090F] truncate">
-                      {nextDue.itemName} — {formatRp(nextDue.monthlyAmount)}
+                      {nextDue.itemName}: {formatRp(nextDue.monthlyAmount)}
                     </div>
                     <div className="text-xs text-[#09090F]/50 font-nunito">
                       {isOverdue(nextDue)
@@ -551,7 +551,7 @@ export default function Savings() {
                 <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">🎯</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No goals yet</div>
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Create your first savings goal above — every deposit feeds your pet!</div>
+                  <div className="text-xs text-[#09090F]/40 font-nunito">Create your first savings goal above. Every deposit feeds your pet!</div>
                 </div>
               )}
             </div>
@@ -675,7 +675,7 @@ export default function Savings() {
                 <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">📅</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No installments yet</div>
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Add an installment plan above — paying on time earns bonus XP!</div>
+                  <div className="text-xs text-[#09090F]/40 font-nunito">Add an installment plan above. Paying on time earns bonus XP!</div>
                 </div>
               )}
             </div>

@@ -103,7 +103,7 @@ export function PetRoom({
             {character.happiness >= 80
               ? 'Thriving pets earn 25% bonus XP!'
               : character.happiness <= 30
-                ? 'A neglected pet earns 25% less XP — log daily or give it some care.'
+                ? 'A neglected pet earns 25% less XP. Log daily or give it some care.'
                 : 'Keep happiness at 80+ for a 25% XP bonus.'}
           </div>
         </div>
@@ -141,7 +141,7 @@ export function PetRoom({
         </div>
         <NProgress pct={cyclePct} accent="#F59E0B" height={14} />
         <div className="font-nunito font-bold text-[11px] mt-2" style={{ color: `${INK}66` }}>
-          {character.xp.toLocaleString()} / {PRESTIGE_XP.toLocaleString()} XP — finish the full 10-stage cycle to earn a crown.
+          {character.xp.toLocaleString()} / {PRESTIGE_XP.toLocaleString()} XP. Finish the full 10-stage cycle to earn a crown.
           Every crown = 1 plant planted or 1 person helped.
         </div>
 
@@ -153,7 +153,7 @@ export function PetRoom({
             return (
               <div
                 key={st.id}
-                title={`${st.name} — ${st.xpRequired.toLocaleString()} XP`}
+                title={`${st.name}: ${st.xpRequired.toLocaleString()} XP`}
                 className="rounded-xl p-1.5 text-center"
                 style={{
                   background: isCurrent ? `${accent}20` : reached ? '#FFFFFF' : '#F0EEE8',
@@ -189,7 +189,7 @@ export function PetRoom({
           </div>
           <div className="flex-1 self-center font-nunito font-bold text-[11px]" style={{ color: `${INK}66` }}>
             {streak?.lastActive === todayStr()
-              ? 'Logged today — streak safe!'
+              ? 'Logged today, streak safe!'
               : 'Log anything today to keep the flame alive.'}
           </div>
         </div>

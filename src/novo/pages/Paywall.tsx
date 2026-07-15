@@ -66,7 +66,7 @@ function PaywallUI({ trackerId }: { trackerId: TemplateId }) {
           <span className="text-[#09090F]/60">
             Complete your purchase on Lynk.id and include your Novo account email
             {email && <> (<span className="font-semibold text-[#09090F]">{email}</span>)</>}{' '}
-            in the checkout note. Your tracker is unlocked shortly after — usually within a few hours.
+            in the checkout note. Your tracker is unlocked shortly after, usually within a few hours.
           </span>
         </div>
 
@@ -76,7 +76,7 @@ function PaywallUI({ trackerId }: { trackerId: TemplateId }) {
           className="w-full mt-3 py-2.5 rounded-xl font-nunito text-sm text-[#09090F]/60 hover:text-[#09090F] transition disabled:opacity-50"
           style={{ background: 'transparent', border: '1px solid #E5E4E2' }}
         >
-          {checking ? 'Checking…' : checked ? 'Not unlocked yet — check back soon!' : "I've paid — check again"}
+          {checking ? 'Checking…' : checked ? 'Not unlocked yet, check back soon!' : "I've paid, check again"}
         </button>
 
         <p className="mt-6 text-center text-xs font-nunito text-[#09090F]/30">

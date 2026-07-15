@@ -106,7 +106,7 @@ export default function Travel() {
     }
     localStorage.setItem(XP_AWARDED_KEY, JSON.stringify([...awarded, ...finished.map(t => t.id)]))
     applyXP(totalXP, {})
-    showToast(`+${totalXP} XP — trip${finished.length > 1 ? 's' : ''} completed! 🎉`)
+    showToast(`+${totalXP} XP, trip${finished.length > 1 ? 's' : ''} completed! 🎉`)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data === null])
 
@@ -166,7 +166,7 @@ export default function Travel() {
       applyXP(20, { trips: [...data.trips, trip] })
       setSelectedTripId(trip.id)
       setTripForm({ destination: '', emoji: TRIP_EMOJIS[0], startDate: '', endDate: '', budget: '' })
-      showToast('+20 XP — trip planned! ✈️')
+      showToast('+20 XP, trip planned! ✈️')
     } catch {
       showToast('Failed to create trip', false)
     }
@@ -232,7 +232,7 @@ export default function Travel() {
       const overBudget = selectedTrip.budget > 0 && spentAfter > selectedTrip.budget
       applyXP(overBudget ? -5 : 8, { expenses: [expense, ...data.expenses] })
       setExpenseForm(f => ({ ...f, amount: '', note: '' }))
-      showToast(overBudget ? '−5 XP — this trip is over budget now' : '+8 XP!', !overBudget)
+      showToast(overBudget ? '−5 XP, this trip is over budget now' : '+8 XP!', !overBudget)
     } catch {
       showToast('Failed to log expense', false)
     }
@@ -250,7 +250,7 @@ export default function Travel() {
 
   const handleClaimChallenge = (xp: number, title: string) => {
     applyXP(xp, {})
-    showToast(`${title} — +${xp} XP!`)
+    showToast(`${title}: +${xp} XP!`)
   }
 
   const petCard = (
@@ -473,7 +473,7 @@ export default function Travel() {
                 <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">🌍</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No trips yet</div>
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Plan your first adventure above — finishing a trip under budget earns +50 XP!</div>
+                  <div className="text-xs text-[#09090F]/40 font-nunito">Plan your first adventure above, finishing a trip under budget earns +50 XP!</div>
                 </div>
               )}
             </div>
@@ -559,7 +559,7 @@ export default function Travel() {
 
                   {selectedItems.length === 0 && (
                     <div className="text-center py-8 rounded-xl text-xs text-[#09090F]/40 font-nunito" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                      No itinerary items yet — plan your days above
+                      No itinerary items yet, plan your days above
                     </div>
                   )}
                 </>

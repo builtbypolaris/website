@@ -131,7 +131,7 @@ export default function Freelance() {
       const client = await dbAddClient(userId, clientForm)
       applyXP(5, { clients: [...data.clients, client] })
       setClientForm({ name: '', contact: '' })
-      showToast('+5 XP — client added!')
+      showToast('+5 XP, client added!')
     } catch {
       showToast('Failed to add client', false)
     }
@@ -158,7 +158,7 @@ export default function Freelance() {
       })
       applyXP(5, { projects: [...data.projects, project] })
       setProjectForm({ clientId: '', name: '', deadline: '', rateType: 'fixed', rate: '' })
-      showToast('+5 XP — project added!')
+      showToast('+5 XP, project added!')
     } catch {
       showToast('Failed to add project', false)
     }
@@ -174,11 +174,11 @@ export default function Freelance() {
       if (newStatus === 'done') {
         const late = !!project.deadline && project.deadline < todayStr()
         applyXP(late ? 10 : 30, { projects: nextProjects })
-        showToast(late ? '+10 XP — shipped, but past the deadline' : '+30 XP — project shipped! 🚀')
+        showToast(late ? '+10 XP. Shipped, but past the deadline' : '+30 XP, project shipped! 🚀')
       } else {
         // Re-opening takes back the ship reward (anti-farming)
         applyXP(-30, { projects: nextProjects })
-        showToast('−30 XP — project reopened', false)
+        showToast('−30 XP, project reopened', false)
       }
     } catch {
       showToast('Failed to update project', false)
@@ -193,7 +193,7 @@ export default function Freelance() {
         projects: data.projects.filter(p => p.id !== id),
         workLogs: data.workLogs.filter(w => w.projectId !== id),
       })
-      showToast('−10 XP — active project abandoned', false)
+      showToast('−10 XP, active project abandoned', false)
     } else {
       setData(d => d ? {
         ...d,
@@ -245,7 +245,7 @@ export default function Freelance() {
 
   const handleClaimChallenge = (xp: number, title: string) => {
     applyXP(xp, {})
-    showToast(`${title} — +${xp} XP!`)
+    showToast(`${title}: +${xp} XP!`)
   }
 
   const recentLogs = data.workLogs.slice(0, 3)
@@ -370,7 +370,7 @@ export default function Freelance() {
                           <div className="flex-1 min-w-0">
                             <div className="font-nunito font-semibold text-sm text-[#09090F] truncate">{p.name}</div>
                             <div className="text-xs text-[#09090F]/40 font-nunito">
-                              {clientById(p.clientId)?.name ?? '—'} · {p.rateType === 'hourly' ? `${formatRp(p.rate)}/h` : formatRp(p.rate)}
+                              {clientById(p.clientId)?.name ?? 'No client'} · {p.rateType === 'hourly' ? `${formatRp(p.rate)}/h` : formatRp(p.rate)}
                             </div>
                           </div>
                           {days !== null && (
@@ -533,7 +533,7 @@ export default function Freelance() {
                     <div className="flex-1 min-w-0">
                       <div className={`font-nunito font-semibold text-sm truncate ${done ? 'line-through text-[#09090F]/40' : 'text-[#09090F]'}`}>{p.name}</div>
                       <div className="text-xs text-[#09090F]/50 font-nunito">
-                        {clientById(p.clientId)?.name ?? '—'} · {p.rateType === 'hourly' ? `${formatRp(p.rate)}/h` : formatRp(p.rate)}
+                        {clientById(p.clientId)?.name ?? 'No client'} · {p.rateType === 'hourly' ? `${formatRp(p.rate)}/h` : formatRp(p.rate)}
                         {p.deadline ? ` · due ${p.deadline}` : ''}
                       </div>
                     </div>
@@ -680,7 +680,7 @@ export default function Freelance() {
                 <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                   <div className="text-5xl mb-3">💵</div>
                   <div className="font-nunito font-semibold text-[#09090F] mb-1">No work logged yet</div>
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Log your first session above — every log feeds your pet!</div>
+                  <div className="text-xs text-[#09090F]/40 font-nunito">Log your first session above, every log feeds your pet!</div>
                 </div>
               )}
             </div>

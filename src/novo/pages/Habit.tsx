@@ -179,7 +179,7 @@ export default function Habit() {
     // Unchecking takes back the base reward so check/uncheck can't farm XP
     if (!nowCompleted) {
       xpTotal = -20
-      toastMsg = '−20 XP — habit unchecked'
+      toastMsg = '−20 XP, habit unchecked'
     }
 
     const before = data.character
@@ -211,7 +211,7 @@ export default function Habit() {
     const before = data.character
     setData(d => d ? { ...d, character: addXP(before, xp) } : d)
     runAward(before, xp)
-    showToast(`${title} — +${xp} XP!`)
+    showToast(`${title}: +${xp} XP!`)
   }
 
   const dailyChallenges = [

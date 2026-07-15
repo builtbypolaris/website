@@ -9,7 +9,7 @@ import {
 import { getStageFromXP } from '../data/creatures'
 import { TEMPLATES } from '../data/templates'
 import { QUICK_STATS, type QuickStat } from '../data/quickStats'
-import { INK, hardShadow, NProgress, Sticker } from '../components/ui'
+import { INK, hardShadow, NProgress } from '../components/ui'
 import { MissionsPanel } from '../components/MissionsPanel'
 import { CauseModal } from '../components/CausePicker'
 import { CAUSES } from '../components/CausePicker'
@@ -70,7 +70,6 @@ export default function Dashboard() {
 
       {/* Header */}
       <div className="mb-6 md:mb-8">
-        <Sticker accent="#7C3AED" rotate={-2} className="mb-3">🎮 Dashboard</Sticker>
         <h1
           className="font-nunito font-black uppercase leading-none mb-3"
           style={{ color: INK, fontSize: 'clamp(34px, 6vw, 76px)', letterSpacing: '-0.02em' }}
@@ -96,7 +95,7 @@ export default function Dashboard() {
             </div>
             <div className="font-nunito font-bold text-xs truncate" style={{ color: causeInfo ? causeInfo.accent : `${INK}66` }}>
               {causeInfo
-                ? `Team ${causeInfo.title} ${causeInfo.emoji} — ${causeInfo.line}`
+                ? `Team ${causeInfo.title} ${causeInfo.emoji}: ${causeInfo.line}`
                 : 'Pick your cause: every crown plants 1 plant or helps 1 person'}
             </div>
           </div>

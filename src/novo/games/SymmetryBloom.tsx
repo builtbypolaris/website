@@ -61,7 +61,7 @@ export default function SymmetryBloom({ onXPEarned }: Props) {
     if (next.has(i)) next.delete(i)
     else next.add(i)
 
-    // The mirror of left cell (row, col) is right cell (row, HALF-1-col) — same index space
+    // The mirror of left cell (row, col) is right cell (row, HALF-1-col). Same index space
     const target = new Set([...pattern].map(p => {
       const r = Math.floor(p / HALF)
       const c = p % HALF
@@ -112,7 +112,7 @@ export default function SymmetryBloom({ onXPEarned }: Props) {
 
         {playing && (
           <div className="absolute inset-0 flex items-center justify-center gap-1">
-            {/* Left half — the pattern to mirror */}
+            {/* Left half. The pattern to mirror */}
             <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${HALF}, 1fr)` }}>
               {Array.from({ length: ROWS * HALF }).map((_, i) => (
                 <div
@@ -128,7 +128,7 @@ export default function SymmetryBloom({ onXPEarned }: Props) {
             {/* Mirror line */}
             <div className="w-0.5 self-stretch my-6 rounded-full" style={{ background: '#FB7185' }} />
 
-            {/* Right half — the player's side */}
+            {/* Right half. The player's side */}
             <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${HALF}, 1fr)` }}>
               {Array.from({ length: ROWS * HALF }).map((_, i) => (
                 <button

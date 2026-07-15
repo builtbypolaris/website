@@ -767,7 +767,7 @@ export const en = {
         baby: {
           headline1: 'Every feed.',
           headline2: 'Every first.',
-          desc: 'Feeds, sleep, diapers, growth and milestones — logged in two taps. Your nursery pet grows alongside.',
+          desc: 'Feeds, sleep, diapers, growth and milestones, logged in two taps. Your nursery pet grows alongside.',
         },
         pet: {
           headline1: 'Happy pets.',
@@ -781,10 +781,9 @@ export const en = {
       getIt: 'Get it',
     },
     impact: {
-      sticker: 'Crowns · Real impact',
       titleLine1: 'You track.',
-      titleLine2Em: 'We plant.',
-      subtitle: 'Raise a pet through its full 10-stage cycle and it earns a crown 👑. Pick your cause, and Polaris turns every crown into real impact — fulfilled monthly.',
+      titleLine2Em: 'We give back.',
+      subtitle: 'Raise a pet through its full 10-stage cycle and it earns a crown 👑. Pick your cause, and Polaris turns every crown into real impact: a plant in the ground or help for someone who needs it, fulfilled monthly.',
       envTitle: 'Team Environment',
       envLine: '1 crown = 1 plant planted',
       envStat: 'plants planted so far',

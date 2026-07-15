@@ -221,7 +221,7 @@ export default function Study() {
     await dbDeleteSubject(id)
     if (hadSessions) {
       runAward(before, -5)
-      showToast('−5 XP — subject dropped with study history', false)
+      showToast('−5 XP, subject dropped with study history', false)
     }
   }
 
@@ -236,7 +236,7 @@ export default function Study() {
     const before = data.character
     setData(d => d ? { ...d, character: addXP(before, xp) } : d)
     runAward(before, xp)
-    showToast(`${title} — +${xp} XP!`)
+    showToast(`${title}: +${xp} XP!`)
   }
 
   const recentSessions = data.sessions.slice(0, 8)
@@ -582,7 +582,7 @@ export default function Study() {
                 >
                   Add Subject
                 </button>
-                <div className="text-xs text-[#09090F]/30 font-nunito mt-2">Exam date is optional — set it to get a countdown.</div>
+                <div className="text-xs text-[#09090F]/30 font-nunito mt-2">Exam date is optional. Set it to get a countdown.</div>
               </div>
 
               {data.subjects.map(s => {

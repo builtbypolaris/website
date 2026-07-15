@@ -112,7 +112,7 @@ export default function StampRush({ onXPEarned }: Props) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             <div className="text-5xl">🛂</div>
             <div className="font-fredoka text-xl text-gray-700">Stamp Rush!</div>
-            <p className="text-sm text-gray-500 text-center px-4">Stamp only passports from today's approved countries — the board changes!</p>
+            <p className="text-sm text-gray-500 text-center px-4">Stamp only passports from today's approved countries. The board changes!</p>
             <button onClick={start} className="px-6 py-2 bg-orange-400 hover:bg-orange-500 text-white font-fredoka text-lg rounded-full shadow transition">
               Play! 🎮
             </button>
