@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { TEMPLATES, TRACKER_PRICE_IDR } from '../data/templates'
+import { getImpactTotals } from '../lib/gamification'
 import type { TemplateInfo } from '../types'
 import { Constellation } from '../../components/ui/Constellation'
 import { en } from '../../i18n/locales/en'
@@ -306,9 +307,14 @@ export default function Home() {
   const navigate = useNavigate()
   const { session } = useAuth()
   const [modal, setModal] = useState<TemplateInfo | null>(null)
+  const [impact, setImpact] = useState<{ social: number; environment: number } | null>(null)
   // Novo is an English-only product — always use the English copy,
   // regardless of the main site's language switcher.
   const s = en.studios
+
+  useEffect(() => {
+    getImpactTotals().then(setImpact).catch(() => setImpact({ social: 0, environment: 0 }))
+  }, [])
 
   const go = () => navigate(session ? '/studios/dashboard' : '/studios/login')
 
@@ -408,6 +414,73 @@ export default function Home() {
                     <span className="flex-shrink-0 mx-4 self-center" style={{ color: 'rgba(167,139,250,0.2)', fontSize: 24 }}>·</span>
                   </div>
                 ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* IMPACT — every completed pet cycle plants or helps */}
+      <section className="py-16 md:py-24 px-6 md:px-12" style={{ background: '#09090F' }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-10 md:mb-14">
+            <span
+              className="inline-block font-nunito font-bold uppercase tracking-[0.2em] mb-5 text-[10px] px-3 py-1.5 rounded-full"
+              style={{ color: '#F59E0B', border: '1px solid rgba(245,158,11,0.35)', background: 'rgba(245,158,11,0.08)' }}
+            >
+              👑 {s.impact.sticker}
+            </span>
+            <h2
+              className="text-white mb-4"
+              style={{
+                fontFamily: 'Playfair Display, serif',
+                fontSize: 'clamp(36px, 5.5vw, 72px)',
+                fontWeight: 700,
+                letterSpacing: '-0.025em',
+                lineHeight: 1.0,
+              }}
+            >
+              {s.impact.titleLine1} <em style={{ color: '#4ADE80' }}>{s.impact.titleLine2Em}</em>
+            </h2>
+            <p className="font-nunito text-gray-400 text-base max-w-md mx-auto leading-relaxed">
+              {s.impact.subtitle}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-10">
+            {[
+              { emoji: '🌱', title: s.impact.envTitle, line: s.impact.envLine, stat: s.impact.envStat, accent: '#4ADE80', count: impact?.environment },
+              { emoji: '💛', title: s.impact.socialTitle, line: s.impact.socialLine, stat: s.impact.socialStat, accent: '#F472B6', count: impact?.social },
+            ].map(c => (
+              <div
+                key={c.title}
+                className="rounded-2xl p-6 text-center"
+                style={{
+                  background: `linear-gradient(180deg, color-mix(in srgb, ${c.accent} 14%, #0A0A12) 0%, #0A0A12 90%)`,
+                  border: `1px solid ${c.accent}45`,
+                }}
+              >
+                <div style={{ fontSize: 44 }} className="mb-2">{c.emoji}</div>
+                <div className="font-nunito font-bold uppercase tracking-wide text-white text-sm mb-1">{c.title}</div>
+                <div className="font-nunito font-semibold text-xs mb-4" style={{ color: c.accent }}>{c.line}</div>
+                <div className="font-nunito font-bold text-white leading-none" style={{ fontSize: 40 }}>
+                  {c.count === undefined ? '—' : c.count.toLocaleString()}
+                </div>
+                <div className="font-nunito text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>{c.stat}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 md:gap-5">
+            {[s.impact.how1, s.impact.how2, s.impact.how3].map((step, i) => (
+              <div key={step} className="flex items-center gap-3 md:gap-5">
+                <span
+                  className="font-nunito font-semibold text-sm px-4 py-2 rounded-full"
+                  style={{ color: 'rgba(255,255,255,0.75)', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.04)' }}
+                >
+                  {step}
+                </span>
+                {i < 2 && <span style={{ color: 'rgba(255,255,255,0.25)' }}>→</span>}
               </div>
             ))}
           </div>
