@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { getAllCharacters, DEFAULT_CHARACTER, todayStr } from '../lib/storage'
 import {
-  ensureWeeklyMissions, getWeekMissions, getStreaks, getBadges,
+  ensureWeeklyMissions, getWeekMissions, getStreaks, getBadges, getCrowns,
   type MissionRow, type StreakRow,
 } from '../lib/gamification'
 import { getStageFromXP } from '../data/creatures'
@@ -53,7 +53,7 @@ export default function Dashboard() {
 
   const displayName = (profile?.full_name ?? session?.user.email ?? '').split(' ')[0]
   const allXP = TEMPLATES.reduce((sum, t) => sum + (characters[t.id]?.xp ?? 0), 0)
-  const crowns = profile?.crowns ?? 0
+  const crowns = getCrowns(characters)
   const cause = profile?.cause ?? null
   const causeInfo = CAUSES.find(c => c.id === cause) ?? null
   const showCauseModal = !!profile && !cause && !causeModalDismissed && owned.length > 0

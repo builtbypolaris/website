@@ -12,7 +12,6 @@ create table if not exists public.profiles (
   location      text,
   owned_templates text[] default '{}' not null,
   cause         text check (cause in ('social', 'environment')),
-  crowns        integer default 0 not null,
   created_at    timestamptz default now()
 );
 
@@ -345,7 +344,8 @@ create table if not exists public.pet_weights (
 
 -- ── GAMIFICATION: missions / streaks / achievements ─────────
 
--- Weekly quests; a completed mission = 1 crown (see impact_totals below)
+-- Weekly quests; a completed mission pays bonus XP (crowns come from
+-- completed pet cycles — see impact_totals below)
 create table if not exists public.missions (
   user_id      uuid references auth.users(id) on delete cascade not null,
   mission_id   text not null,
@@ -375,7 +375,7 @@ create table if not exists public.achievements (
   primary key (user_id, tracker_type, badge_id)
 );
 
--- Community impact totals shown on the /studios landing (works logged-out)
+-- Community impact totals (1 crown = 1 completed pet cycle = prestige)
 create or replace function public.impact_totals()
 returns table (social bigint, environment bigint)
 language sql
@@ -384,9 +384,10 @@ set search_path = public
 stable
 as $$
   select
-    coalesce(sum(crowns) filter (where cause = 'social'), 0)      as social,
-    coalesce(sum(crowns) filter (where cause = 'environment'), 0) as environment
-  from public.profiles;
+    coalesce(sum(c.prestige) filter (where p.cause = 'social'), 0)      as social,
+    coalesce(sum(c.prestige) filter (where p.cause = 'environment'), 0) as environment
+  from public.characters c
+  join public.profiles p on p.id = c.user_id;
 $$;
 
 grant execute on function public.impact_totals() to anon, authenticated;

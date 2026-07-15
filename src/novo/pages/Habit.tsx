@@ -7,10 +7,11 @@ import {
   getHabitData,
   addXP, todayStr,
 } from '../lib/storage'
-import { awardXP, getStreak as getDayStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { awardXP, getStreak as getDayStreak, getBadges, getWeekMissions, applyHappinessDecay, type StreakRow, type MissionRow } from '../lib/gamification'
 import { useCelebrations } from '../components/CelebrationLayer'
 import { StreakBadge } from '../components/StreakBadge'
-import { BadgeWall } from '../components/BadgeWall'
+import { PetRoom } from '../components/PetRoom'
+import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import Character from '../components/Character'
 import HabitChain from '../games/HabitChain'
@@ -24,7 +25,7 @@ const CARD_BORDER = '#09090F'
 const INPUT_BG = '#F0EEE8'
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
-type MainTab = 'today' | 'analytics' | 'manage' | 'games'
+type MainTab = 'today' | 'analytics' | 'manage' | 'pet' | 'games'
 
 const HABIT_ICONS = ['💪', '📚', '🧘', '🏃', '💧', '🍎', '😴', '✍️', '🎯', '🧹', '🌿', '🎨']
 
@@ -69,14 +70,25 @@ export default function Habit() {
   const [toast, setToast] = useState('')
   const [streak, setStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const [missions, setMissions] = useState<MissionRow[]>([])
   const { celebrate, layer } = useCelebrations()
 
   useEffect(() => {
     if (!userId) return
     getDayStreak(userId, 'habit').then(setStreak)
     getBadges(userId, 'habit').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
+    getWeekMissions(userId).then(setMissions)
     getHabitData(userId).then(setData)
   }, [userId])
+
+  // Idle-day happiness decay — guarded to once per tracker per day
+  useEffect(() => {
+    if (!userId || !data) return
+    applyHappinessDecay(userId, 'habit', data.character).then(c => {
+      if (c.happiness !== data.character.happiness) setData(d => d ? { ...d, character: c } : d)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, data === null])
 
   const today = todayStr()
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
@@ -164,17 +176,23 @@ export default function Habit() {
       }
     }
 
+    // Unchecking takes back the base reward so check/uncheck can't farm XP
+    if (!nowCompleted) {
+      xpTotal = -20
+      toastMsg = '−20 XP — habit unchecked'
+    }
+
     const before = data.character
     setData(d => d ? {
       ...d,
       habits: d.habits.map(h => h.id === id ? { ...h, completions } : h),
-      character: nowCompleted ? addXP(before, xpTotal) : d.character,
+      character: addXP(before, xpTotal),
     } : d)
 
     if (toastMsg) showToast(toastMsg)
 
     await toggleHabitCompletion(id, userId, today, nowCompleted)
-    if (nowCompleted) runAward(before, xpTotal)
+    runAward(before, xpTotal)
   }
 
   const handleDeleteHabit = async (id: string) => {
@@ -188,6 +206,19 @@ export default function Habit() {
     runAward(before, xp, 'game')
     showToast(`+${xp} XP from game!`)
   }
+
+  const handleClaimChallenge = (xp: number, title: string) => {
+    const before = data.character
+    setData(d => d ? { ...d, character: addXP(before, xp) } : d)
+    runAward(before, xp)
+    showToast(`${title} — +${xp} XP!`)
+  }
+
+  const dailyChallenges = [
+    { id: 'do1', title: 'Complete a habit', emoji: '💪', xp: 10, met: todayDone >= 1 },
+    { id: 'do3', title: 'Complete 3 habits', emoji: '🔥', xp: 25, met: todayDone >= 3 },
+    { id: 'all', title: 'Complete every habit', emoji: '🌟', xp: 30, met: totalHabits > 0 && todayDone === totalHabits },
+  ]
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
@@ -227,8 +258,6 @@ export default function Habit() {
             />
           </div>
 
-          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
-
           {/* Today progress bar */}
           <div className="flex items-center gap-5 p-5 rounded-xl mb-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
             <div>
@@ -255,7 +284,7 @@ export default function Habit() {
 
           {/* Tabs */}
           <div className="flex gap-1.5 mb-6 py-1">
-            {(['today', 'analytics', 'manage', 'games'] as MainTab[]).map(t => (
+            {(['today', 'analytics', 'manage', 'pet', 'games'] as MainTab[]).map(t => (
               <button
                 key={t}
                 onClick={() => setMainTab(t)}
@@ -264,7 +293,7 @@ export default function Habit() {
                   ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
                   : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
               >
-                {t === 'today' ? '☀️ Today' : t === 'analytics' ? '📊 Analytics' : t === 'manage' ? '📋 Habits' : '🎮 Games'}
+                {t === 'today' ? '☀️ Today' : t === 'analytics' ? '📊 Analytics' : t === 'manage' ? '📋 Habits' : t === 'pet' ? '🐾 Pet' : '🎮 Games'}
               </button>
             ))}
           </div>
@@ -513,6 +542,21 @@ export default function Habit() {
           )}
 
           {/* GAMES TAB */}
+          {mainTab === 'pet' && (
+            <div className="space-y-4 max-w-2xl">
+              <DailyChallenges trackerId="habit" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
+              <PetRoom
+                userId={userId}
+                trackerId="habit"
+                character={data.character}
+                streak={streak}
+                earnedBadges={earnedBadges}
+                missions={missions}
+                onCharacter={c => setData(d => d ? { ...d, character: c } : d)}
+              />
+            </div>
+          )}
+
           {mainTab === 'games' && (
             <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
@@ -559,7 +603,6 @@ export default function Habit() {
                 onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`)}
               />
             </div>
-            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             <div className="rounded-xl p-3 text-xs font-nunito leading-relaxed" style={{ background: '#DBEAFE', border: '1px solid #BFDBFE' }}>
               <strong className="text-blue-700">Pet tip:</strong>{' '}
               <span className="text-blue-800">Complete all habits daily for +50 XP bonus. 7-day streaks give +20 extra per habit!</span>

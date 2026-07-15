@@ -10,10 +10,11 @@ import {
   setInstallmentMonthPaid as dbSetMonthPaid,
   addXP, todayStr,
 } from '../lib/storage'
-import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { awardXP, getStreak, getBadges, getWeekMissions, applyHappinessDecay, type StreakRow, type MissionRow } from '../lib/gamification'
 import { useCelebrations } from '../components/CelebrationLayer'
 import { StreakBadge } from '../components/StreakBadge'
-import { BadgeWall } from '../components/BadgeWall'
+import { PetRoom } from '../components/PetRoom'
+import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { SAVINGS_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
@@ -25,7 +26,7 @@ import type { SavingsData, Installment, SavingsGoal } from '../types'
 const GOAL_EMOJIS = ['🎯', '🏠', '🚗', '📱', '✈️', '💍', '🎓', '🛵']
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
-type MainTab = 'overview' | 'goals' | 'installments' | 'games'
+type MainTab = 'overview' | 'goals' | 'installments' | 'pet' | 'games'
 
 const ACCENT = '#0D9488'
 const CARD_BG = '#FFFFFF'
@@ -67,6 +68,7 @@ export default function Savings() {
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
   const [streak, setStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const [missions, setMissions] = useState<MissionRow[]>([])
   const { celebrate, layer } = useCelebrations()
 
   useEffect(() => {
@@ -74,7 +76,17 @@ export default function Savings() {
     getSavingsData(userId).then(setData)
     getStreak(userId, 'savings').then(setStreak)
     getBadges(userId, 'savings').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
+    getWeekMissions(userId).then(setMissions)
   }, [userId])
+
+  // Idle-day happiness decay — guarded to once per tracker per day
+  useEffect(() => {
+    if (!userId || !data) return
+    applyHappinessDecay(userId, 'savings', data.character).then(c => {
+      if (c.happiness !== data.character.happiness) setData(d => d ? { ...d, character: c } : d)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, data === null])
 
   const showToast = (msg: string, good = true) => {
     setToast({ msg, good })
@@ -133,7 +145,14 @@ export default function Savings() {
   }
 
   const handleDeleteGoal = async (id: string) => {
-    setData(d => d ? { ...d, goals: d.goals.filter(g => g.id !== id) } : d)
+    const goal = data.goals.find(g => g.id === id)
+    const abandoned = !!goal && goal.deposits.length > 0 && goalSaved(goal) < goal.targetAmount
+    if (abandoned) {
+      applyXP(-10, { ...data, goals: data.goals.filter(g => g.id !== id) })
+      showToast('−10 XP — goal abandoned before finishing', false)
+    } else {
+      setData(d => d ? { ...d, goals: d.goals.filter(g => g.id !== id) } : d)
+    }
     await dbDeleteGoal(id)
   }
 
@@ -187,16 +206,23 @@ export default function Savings() {
     try {
       await dbSetMonthPaid(inst.id, userId, month, !paid, todayStr())
       if (!paid) {
-        const onTime = new Date().getDate() <= inst.dueDay
-        const xpGain = onTime ? 25 : 10
+        const daysLate = new Date().getDate() - inst.dueDay
+        const xpGain = daysLate <= 0 ? 25 : daysLate > 7 ? -5 : 10
         const nextInsts = data.installments.map(i =>
           i.id === inst.id ? { ...i, payments: [{ month, paidAt: todayStr() }, ...i.payments] } : i)
         applyXP(xpGain, { ...data, installments: nextInsts })
-        showToast(onTime ? `Paid on time! +${xpGain} XP!` : `Paid! +${xpGain} XP`)
+        showToast(
+          daysLate <= 0 ? `Paid on time! +${xpGain} XP!`
+          : daysLate > 7 ? `${xpGain} XP — over a week late. Pay by day ${inst.dueDay} for +25!`
+          : `Paid! +${xpGain} XP`,
+          xpGain > 0,
+        )
       } else {
+        // Taking back the payment takes back the reward (anti-farming)
         const nextInsts = data.installments.map(i =>
           i.id === inst.id ? { ...i, payments: i.payments.filter(p => p.month !== month) } : i)
-        setData(d => d ? { ...d, installments: nextInsts } : d)
+        applyXP(-25, { ...data, installments: nextInsts })
+        showToast('−25 XP — payment unmarked', false)
       }
     } catch {
       showToast('Failed to update payment', false)
@@ -206,6 +232,11 @@ export default function Savings() {
   const handleXPEarned = (xp: number) => {
     applyXP(xp, data, 'game')
     showToast(`+${xp} XP from game!`)
+  }
+
+  const handleClaimChallenge = (xp: number, title: string) => {
+    applyXP(xp, data)
+    showToast(`${title} — +${xp} XP!`)
   }
 
   const petCard = (
@@ -218,6 +249,13 @@ export default function Savings() {
       onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`, true)}
     />
   )
+
+  const depositsToday = data.goals.flatMap(g => g.deposits).filter(d => d.date === todayStr())
+  const dailyChallenges = [
+    { id: 'dep1', title: 'Make a deposit', emoji: '💰', xp: 15, met: depositsToday.length >= 1 },
+    { id: 'dep2', title: 'Make 2 deposits', emoji: '🏦', xp: 25, met: depositsToday.length >= 2 },
+    { id: 'pay', title: 'Pay an installment', emoji: '📅', xp: 20, met: data.installments.some(i => i.payments.some(p => p.paidAt === todayStr())) },
+  ]
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
@@ -261,8 +299,6 @@ export default function Savings() {
             {petCard}
           </div>
 
-          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
-
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
             {[
@@ -284,6 +320,7 @@ export default function Savings() {
               { key: 'overview', label: '📊 Overview' },
               { key: 'goals',    label: '🎯 Goals' },
               { key: 'installments', label: '📅 Installments' },
+              { key: 'pet', label: '🐾 Pet' },
               { key: 'games',    label: '🎮 Games' },
             ] as { key: MainTab; label: string }[]).map(t => (
               <button
@@ -645,6 +682,21 @@ export default function Savings() {
           )}
 
           {/* ── GAMES ────────────────────────────────────────── */}
+          {mainTab === 'pet' && (
+            <div className="space-y-4 max-w-2xl">
+              <DailyChallenges trackerId="savings" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
+              <PetRoom
+                userId={userId}
+                trackerId="savings"
+                character={data.character}
+                streak={streak}
+                earnedBadges={earnedBadges}
+                missions={missions}
+                onCharacter={c => setData(d => d ? { ...d, character: c } : d)}
+              />
+            </div>
+          )}
+
           {mainTab === 'games' && (
             <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
@@ -679,7 +731,6 @@ export default function Savings() {
               <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               {petCard}
             </div>
-            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             {nextDue && (
               <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                 <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Next Due</div>

@@ -77,20 +77,16 @@ function cardBase(rotate: number): React.CSSProperties {
   }
 }
 
-function CrownCard({ c }: { c: Extract<Celebration, { type: 'crown' }> }) {
-  const impact =
-    c.cause === 'environment' ? '1 plant will be planted 🌱'
-    : c.cause === 'social' ? '1 person will receive help 💛'
-    : 'Pick your cause to direct your impact →'
+function MissionCard({ c }: { c: Extract<Celebration, { type: 'mission' }> }) {
   return (
     <div className="bounce-in rounded-2xl px-4 py-3 flex items-center gap-3" style={cardBase(-2)}>
-      <span className="text-3xl">👑</span>
+      <span className="text-3xl">🎯</span>
       <div>
         <div className="font-nunito font-black uppercase tracking-wide text-sm" style={{ color: INK }}>
-          Mission complete! +1 crown
+          Mission complete! +{c.bonusXP} XP
         </div>
         <div className="font-nunito font-bold text-xs" style={{ color: `${INK}99` }}>
-          {c.missionTitle} · <span style={{ color: c.cause === 'social' ? '#DB2777' : '#16A34A' }}>{impact}</span>
+          {c.title}
         </div>
       </div>
     </div>
@@ -158,7 +154,12 @@ function EvolveModal({ c, onClose }: { c: Extract<Celebration, { type: 'evolve' 
   )
 }
 
-function PrestigeModal({ c, onClose }: { c: Extract<Celebration, { type: 'prestige' }>; onClose: () => void }) {
+function CrownModal({ c, onClose }: { c: Extract<Celebration, { type: 'crown' }>; onClose: () => void }) {
+  const impact =
+    c.cause === 'environment' ? '1 plant will be planted 🌱'
+    : c.cause === 'social' ? '1 person will receive help 💛'
+    : 'Pick your cause on the Impact page to direct it'
+  const impactColor = c.cause === 'social' ? '#DB2777' : c.cause === 'environment' ? '#16A34A' : `${INK}99`
   return (
     <div
       className="fixed inset-0 flex items-center justify-center p-6"
@@ -167,22 +168,25 @@ function PrestigeModal({ c, onClose }: { c: Extract<Celebration, { type: 'presti
     >
       <div
         className="bounce-in rounded-3xl px-8 py-10 text-center max-w-sm w-full"
-        style={{ background: '#FFFFFF', border: `4px solid ${INK}`, boxShadow: hardShadow(8, '#7C3AED') }}
+        style={{ background: '#FFFFFF', border: `4px solid ${INK}`, boxShadow: hardShadow(8, '#F59E0B') }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="text-7xl mb-4 animate-float">⭐</div>
-        <div className="font-nunito font-black uppercase tracking-widest text-xs mb-1" style={{ color: '#7C3AED' }}>
-          Prestige {c.count}
+        <div className="text-7xl mb-4 animate-float">👑</div>
+        <div className="font-nunito font-black uppercase tracking-widest text-xs mb-1" style={{ color: '#B45309' }}>
+          Cycle {c.cycles} complete
         </div>
-        <div className="font-nunito font-black text-2xl mb-5" style={{ color: INK }}>
-          Maxed out — and reborn.
+        <div className="font-nunito font-black text-2xl mb-2" style={{ color: INK }}>
+          Crown earned!
+        </div>
+        <div className="font-nunito font-bold text-sm mb-6" style={{ color: impactColor }}>
+          {impact}
         </div>
         <button
           onClick={onClose}
           className="font-nunito font-black uppercase tracking-wide text-sm px-6 py-3 rounded-xl active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all"
-          style={{ background: '#7C3AED', color: '#FFFFFF', border: `3px solid ${INK}`, boxShadow: hardShadow(3) }}
+          style={{ background: '#F59E0B', color: '#09090F', border: `3px solid ${INK}`, boxShadow: hardShadow(3) }}
         >
-          Again!
+          Next cycle!
         </button>
       </div>
     </div>
@@ -203,12 +207,12 @@ export function useCelebrations(): { celebrate: (cs: Celebration[]) => void; lay
 
   const celebrate = useCallback((cs: Celebration[]) => {
     if (cs.length === 0) return
-    const big = cs.find(c => c.type === 'evolve' || c.type === 'prestige')
+    const big = cs.find(c => c.type === 'crown') ?? cs.find(c => c.type === 'evolve')
     if (big) setModal(big)
-    if (cs.some(c => c.type === 'evolve' || c.type === 'prestige' || c.type === 'crown')) {
+    if (cs.some(c => c.type === 'evolve' || c.type === 'crown')) {
       setConfetti(n => n + 1)
     }
-    const small = cs.filter(c => c.type === 'crown' || c.type === 'streak' || c.type === 'badge')
+    const small = cs.filter(c => c.type === 'mission' || c.type === 'streak' || c.type === 'badge')
     if (small.length > 0) {
       const stamped = small.map(c => ({ key: ++keyRef.current, c }))
       setToasts(t => [...t, ...stamped])
@@ -224,7 +228,7 @@ export function useCelebrations(): { celebrate: (cs: Celebration[]) => void; lay
       {toasts.length > 0 && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 flex flex-col gap-2 items-center px-4" style={{ zIndex: 9997, maxWidth: 420, width: '100%' }}>
           {toasts.map(({ key, c }) => (
-            c.type === 'crown' ? <CrownCard key={key} c={c} />
+            c.type === 'mission' ? <MissionCard key={key} c={c} />
             : c.type === 'streak' ? <StreakCard key={key} c={c} />
             : c.type === 'badge' ? <BadgeCard key={key} c={c} />
             : null
@@ -232,7 +236,7 @@ export function useCelebrations(): { celebrate: (cs: Celebration[]) => void; lay
         </div>
       )}
       {modal?.type === 'evolve' && <EvolveModal c={modal} onClose={() => setModal(null)} />}
-      {modal?.type === 'prestige' && <PrestigeModal c={modal} onClose={() => setModal(null)} />}
+      {modal?.type === 'crown' && <CrownModal c={modal} onClose={() => setModal(null)} />}
     </>
   )
 

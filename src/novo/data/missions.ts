@@ -64,7 +64,7 @@ export const BADGES: BadgeDef[] = [
   { id: 'xp-100', label: 'Century', emoji: '💯', description: 'Reached 100 XP' },
   { id: 'xp-1000', label: 'Grinder', emoji: '⚡', description: 'Reached 1,000 XP' },
   { id: 'stage-5', label: 'Evolver', emoji: '🧬', description: 'Evolved to stage 5' },
-  { id: 'prestige', label: 'Prestige', emoji: '⭐', description: 'Completed a full prestige' },
+  { id: 'prestige', label: 'Crowned', emoji: '👑', description: 'Completed a full pet cycle' },
   { id: 'streak-7', label: 'On Fire', emoji: '🔥', description: 'Hit a 7-day streak' },
   { id: 'streak-30', label: 'Unstoppable', emoji: '🌋', description: 'Hit a 30-day streak' },
   { id: 'gamer', label: 'Arcade Kid', emoji: '🕹️', description: 'Claimed XP from a mini-game' },

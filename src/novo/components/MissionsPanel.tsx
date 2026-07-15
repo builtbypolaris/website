@@ -33,7 +33,7 @@ export function MissionsPanel({ missions, accent = '#7C3AED', title = 'Weekly mi
                   {m.def?.emoji} {m.def?.title ?? m.missionId}
                 </div>
                 <div className="font-nunito font-black text-xs flex-shrink-0" style={{ color: complete ? '#16A34A' : `${INK}80` }}>
-                  {complete ? '👑 earned' : `${m.progress}/${m.target} · 👑`}
+                  {complete ? '✓ +100 XP' : `${m.progress}/${m.target} · +100 XP`}
                 </div>
               </div>
               <NProgress pct={pct} accent={complete ? '#16A34A' : accent} height={12} />
@@ -42,7 +42,7 @@ export function MissionsPanel({ missions, accent = '#7C3AED', title = 'Weekly mi
         })}
       </div>
       <div className="mt-3 font-nunito font-bold text-[11px]" style={{ color: `${INK}66` }}>
-        Every crown = 1 plant planted or 1 person helped. Resets every Monday.
+        Missions pay bonus XP toward your pet's cycle. Full cycles earn crowns 👑 — 1 crown = 1 plant or 1 person helped. Resets every Monday.
       </div>
     </NCard>
   )

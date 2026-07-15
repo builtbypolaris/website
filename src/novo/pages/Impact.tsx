@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { getImpactTotals, getWeekMissions, ensureWeeklyMissions, setCause, type Cause, type MissionRow } from '../lib/gamification'
+import { getAllCharacters } from '../lib/storage'
+import { getImpactTotals, getWeekMissions, ensureWeeklyMissions, getCrowns, setCause, type Cause, type MissionRow } from '../lib/gamification'
 import { NCard, StatTile, Sticker, INK, hardShadow } from '../components/ui'
 import { MissionsPanel } from '../components/MissionsPanel'
 import { CAUSES, CauseCards } from '../components/CausePicker'
@@ -19,14 +20,19 @@ export default function Impact() {
   const [totals, setTotals] = useState<{ social: number; environment: number } | null>(null)
   const [missions, setMissions] = useState<MissionRow[]>([])
   const [switching, setSwitching] = useState(false)
+  const [crowns, setCrowns] = useState(0)
 
   const cause = (profile?.cause ?? null) as Cause | null
-  const crowns = profile?.crowns ?? 0
   const causeInfo = CAUSES.find(c => c.id === cause) ?? null
 
   useEffect(() => {
     getImpactTotals().then(setTotals)
   }, [])
+
+  useEffect(() => {
+    if (!userId) return
+    getAllCharacters(userId).then(chars => setCrowns(getCrowns(chars)))
+  }, [userId])
 
   useEffect(() => {
     if (!userId || !profile) return
@@ -60,7 +66,7 @@ export default function Impact() {
             Your impact
           </h1>
           <p className="font-nunito font-bold text-sm max-w-md" style={{ color: `${INK}80` }}>
-            Every weekly mission you complete earns a crown. For every crown, Polaris makes it real — fulfilled monthly.
+            Raise a pet through its full 10-stage cycle to earn a crown. For every crown, Polaris makes it real — fulfilled monthly.
           </p>
         </div>
 
@@ -105,7 +111,7 @@ export default function Impact() {
                 </div>
               ) : (
                 <div className="font-nunito font-bold text-xs" style={{ color: `${INK}66` }}>
-                  Complete your first mission this week to start your {cause === 'social' ? 'chain of help' : 'garden'}.
+                  Raise a pet through all 10 stages to start your {cause === 'social' ? 'chain of help' : 'garden'}.
                 </div>
               )}
             </div>
@@ -116,7 +122,7 @@ export default function Impact() {
               className="font-nunito font-bold text-xs transition hover:opacity-70 disabled:opacity-40"
               style={{ color: `${INK}66` }}
             >
-              {switching ? 'Switching…' : `Switch to Team ${cause === 'social' ? 'Environment 🌱' : 'Social 💛'} (future crowns only) →`}
+              {switching ? 'Switching…' : `Switch to Team ${cause === 'social' ? 'Environment 🌱' : 'Social 💛'} →`}
             </button>
           </NCard>
         ) : (
@@ -154,7 +160,7 @@ export default function Impact() {
 
         {/* This week's missions */}
         <div className="mb-5">
-          <MissionsPanel missions={missions} title="Earn more crowns this week" />
+          <MissionsPanel missions={missions} title="Boost your cycle this week" />
         </div>
 
         {/* How it works */}
@@ -166,9 +172,10 @@ export default function Impact() {
             How it works
           </div>
           <p className="font-nunito font-bold text-xs leading-relaxed" style={{ color: `${INK}80` }}>
-            Missions reset every Monday. Each completed mission mints 1 crown 👑. At the end of every month,
-            Polaris tallies all crowns and fulfills them for real — planting for Team Environment, funding help
-            for Team Social. Your crowns are counted the moment you earn them.
+            Every pet has a 10-stage cycle (6,500 XP). Finish the cycle and the pet is reborn — with 1 crown 👑
+            added. Weekly missions pay bonus XP to get you there faster. At the end of every month, Polaris
+            tallies all crowns and fulfills them for real — planting for Team Environment, funding help for
+            Team Social.
           </p>
         </div>
 

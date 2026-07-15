@@ -6,10 +6,11 @@ import {
   deleteMoodEntry as dbDeleteEntry,
   addXP, todayStr,
 } from '../lib/storage'
-import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { awardXP, getStreak, getBadges, getWeekMissions, applyHappinessDecay, type StreakRow, type MissionRow } from '../lib/gamification'
 import { useCelebrations } from '../components/CelebrationLayer'
 import { StreakBadge } from '../components/StreakBadge'
-import { BadgeWall } from '../components/BadgeWall'
+import { PetRoom } from '../components/PetRoom'
+import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { MOOD_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
@@ -31,7 +32,7 @@ const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const XP_CHECKINS_PER_DAY = 3
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
-type MainTab = 'overview' | 'history' | 'trends' | 'games'
+type MainTab = 'overview' | 'history' | 'trends' | 'pet' | 'games'
 
 const ACCENT = '#DB2777'
 const CARD_BG = '#FFFFFF'
@@ -60,14 +61,25 @@ export default function Mood() {
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
   const [dayStreak, setDayStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const [missions, setMissions] = useState<MissionRow[]>([])
   const { celebrate, layer } = useCelebrations()
 
   useEffect(() => {
     if (!userId) return
     getStreak(userId, 'mood').then(setDayStreak)
     getBadges(userId, 'mood').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
+    getWeekMissions(userId).then(setMissions)
     getMoodData(userId).then(setData)
   }, [userId])
+
+  // Idle-day happiness decay — guarded to once per tracker per day
+  useEffect(() => {
+    if (!userId || !data) return
+    applyHappinessDecay(userId, 'mood', data.character).then(c => {
+      if (c.happiness !== data.character.happiness) setData(d => d ? { ...d, character: c } : d)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, data === null])
 
   const showToast = (msg: string, good = true) => {
     setToast({ msg, good })
@@ -191,6 +203,13 @@ export default function Mood() {
     showToast(`+${xp} XP from game!`)
   }
 
+  const handleClaimChallenge = (xp: number, title: string) => {
+    const before = data.character
+    setData(d => d ? { ...d, character: addXP(before, xp) } : d)
+    runAward(before, xp)
+    showToast(`${title} — +${xp} XP!`)
+  }
+
   const toggleTag = (tag: string) =>
     setCheckin(c => ({ ...c, tags: c.tags.includes(tag) ? c.tags.filter(t => t !== tag) : [...c.tags, tag] }))
 
@@ -232,6 +251,13 @@ export default function Mood() {
       onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`, true)}
     />
   )
+
+  const entriesToday = data.entries.filter(e => e.entryAt.startsWith(todayStr()))
+  const dailyChallenges = [
+    { id: 'checkin', title: 'Check in once', emoji: '🌤️', xp: 10, met: entriesToday.length >= 1 },
+    { id: 'note', title: 'Write a note with a check-in', emoji: '✍️', xp: 15, met: entriesToday.some(e => e.note.trim().length > 0) },
+    { id: 'tags', title: 'Tag 2 feelings', emoji: '🏷️', xp: 15, met: entriesToday.some(e => e.tags.length >= 2) },
+  ]
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
@@ -275,8 +301,6 @@ export default function Mood() {
             {petCard}
           </div>
 
-          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
-
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
             {[
@@ -298,6 +322,7 @@ export default function Mood() {
               { key: 'overview', label: '☀️ Check-in' },
               { key: 'history',  label: '📆 History' },
               { key: 'trends',   label: '📈 Trends' },
+              { key: 'pet', label: '🐾 Pet' },
               { key: 'games',    label: '🎮 Games' },
             ] as { key: MainTab; label: string }[]).map(t => (
               <button
@@ -549,6 +574,21 @@ export default function Mood() {
           )}
 
           {/* ── GAMES ────────────────────────────────────────── */}
+          {mainTab === 'pet' && (
+            <div className="space-y-4 max-w-2xl">
+              <DailyChallenges trackerId="mood" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
+              <PetRoom
+                userId={userId}
+                trackerId="mood"
+                character={data.character}
+                streak={dayStreak}
+                earnedBadges={earnedBadges}
+                missions={missions}
+                onCharacter={c => setData(d => d ? { ...d, character: c } : d)}
+              />
+            </div>
+          )}
+
           {mainTab === 'games' && (
             <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
@@ -583,7 +623,6 @@ export default function Mood() {
               <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               {petCard}
             </div>
-            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Streak</div>
               <div className="font-nunito font-bold text-2xl text-[#09090F]">{streak} day{streak === 1 ? '' : 's'} 🔥</div>

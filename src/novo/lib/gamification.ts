@@ -11,8 +11,8 @@ export type Cause = 'social' | 'environment'
 
 export type Celebration =
   | { type: 'evolve'; fromEmoji: string; toEmoji: string; toName: string; accent: string }
-  | { type: 'prestige'; count: number }
-  | { type: 'crown'; missionTitle: string; cause: Cause | null }
+  | { type: 'crown'; cycles: number; cause: Cause | null }
+  | { type: 'mission'; title: string; bonusXP: number }
   | { type: 'streak'; days: number; bonusXP: number }
   | { type: 'badge'; badgeId: string; label: string; emoji: string }
 
@@ -39,6 +39,18 @@ export interface StreakRow {
 }
 
 const STREAK_MILESTONES: Record<number, number> = { 7: 25, 30: 100, 100: 300 }
+
+// Completing a weekly mission pays bonus XP (missions accelerate pet
+// cycles; crowns come from completed cycles, i.e. prestige).
+export const MISSION_BONUS_XP = 100
+
+// Pet happiness multiplies positive XP: a thriving pet earns more,
+// a neglected one earns less.
+export function happinessMultiplier(happiness: number): number {
+  if (happiness >= 80) return 1.25
+  if (happiness <= 30) return 0.75
+  return 1
+}
 
 // ── Week helpers ─────────────────────────────────────────────
 
@@ -123,11 +135,36 @@ export async function getImpactTotals(): Promise<{ social: number; environment: 
   return { social: Number(row?.social ?? 0), environment: Number(row?.environment ?? 0) }
 }
 
-async function addCrowns(userId: string, amount: number): Promise<Cause | null> {
-  const { data } = await supabase.from('profiles').select('crowns, cause').eq('id', userId).single()
-  if (!data) return null
-  await supabase.from('profiles').update({ crowns: (data.crowns ?? 0) + amount }).eq('id', userId)
-  return (data.cause as Cause | null) ?? null
+async function getCause(userId: string): Promise<Cause | null> {
+  const { data } = await supabase.from('profiles').select('cause').eq('id', userId).single()
+  return (data?.cause as Cause | null) ?? null
+}
+
+// Crowns are derived, never stored: 1 completed pet cycle (prestige) = 1 crown.
+export function getCrowns(characters: Partial<Record<TemplateId, CharacterState>>): number {
+  return Object.values(characters).reduce((sum, c) => sum + (c?.prestige ?? 0), 0)
+}
+
+// Pets lose happiness on idle days (−8 per full missed day, floor 10).
+// Called on tracker page load; a localStorage guard makes it run at most
+// once per tracker per day (StrictMode double-mounts can't double-decay).
+export async function applyHappinessDecay(
+  userId: string,
+  trackerId: TemplateId,
+  character: CharacterState,
+): Promise<CharacterState> {
+  const guard = `novo-decay-${trackerId}-${todayStr()}`
+  if (localStorage.getItem(guard)) return character
+  localStorage.setItem(guard, '1')
+  const streak = await getStreak(userId, trackerId)
+  if (!streak?.lastActive) return character
+  const missedDays = Math.floor((Date.parse(todayStr()) - Date.parse(streak.lastActive)) / 86400000) - 1
+  if (missedDays <= 0) return character
+  const happiness = Math.max(10, character.happiness - missedDays * 8)
+  if (happiness === character.happiness) return character
+  const decayed = { ...character, happiness }
+  await saveCharacter(userId, trackerId, decayed)
+  return decayed
 }
 
 // ── Achievements ─────────────────────────────────────────────
@@ -173,34 +210,17 @@ export async function awardXP(
     celebrations.push({ type: 'streak', days: current, bonusXP })
   }
 
-  // 2. Character XP (single addXP so prestige rollover stays correct)
-  const totalGain = gain + bonusXP
-  const template = TEMPLATE_MAP[trackerId]
-  const stageBefore = getStageFromXP(template.stages, character.xp)
-  const next = addXP(character, totalGain)
-  await saveCharacter(userId, trackerId, next)
-  if (next.prestige > (character.prestige ?? 0)) {
-    celebrations.push({ type: 'prestige', count: next.prestige })
-  } else {
-    const stageAfter = getStageFromXP(template.stages, next.xp)
-    if (stageAfter.id > stageBefore.id) {
-      celebrations.push({
-        type: 'evolve',
-        fromEmoji: stageBefore.emoji,
-        toEmoji: stageAfter.emoji,
-        toName: stageAfter.name,
-        accent: template.accent,
-      })
-    }
-  }
+  // 2. Happiness multiplies positive gains (streak/mission bonuses excluded)
+  const effGain = gain > 0 ? Math.round(gain * happinessMultiplier(character.happiness)) : gain
+  const progressGain = effGain + bonusXP
 
-  // 3. Weekly missions
+  // 3. Weekly missions — completing one pays bonus XP (not a crown)
   const missions = await getWeekMissions(userId)
-  let crownsEarned = 0
+  let missionBonus = 0
   for (const m of missions) {
     if (m.completedAt || !m.def) continue
     let delta = 0
-    if (m.def.kind === 'xp' && (m.trackerType === trackerId || m.trackerType === null)) delta = totalGain
+    if (m.def.kind === 'xp' && (m.trackerType === trackerId || m.trackerType === null)) delta = progressGain
     else if (m.def.kind === 'days' && m.trackerType === trackerId && firstLogToday) delta = 1
     else if (m.def.kind === 'games' && kind === 'game') delta = 1
     if (delta === 0) continue
@@ -214,16 +234,34 @@ export async function awardXP(
       .eq('mission_id', m.missionId)
       .eq('week_start', m.weekStart)
     if (done) {
-      crownsEarned++
-      celebrations.push({ type: 'crown', missionTitle: m.def.title, cause: null })
+      missionBonus += MISSION_BONUS_XP
+      celebrations.push({ type: 'mission', title: m.def.title, bonusXP: MISSION_BONUS_XP })
     }
   }
-  if (crownsEarned > 0) {
-    const cause = await addCrowns(userId, crownsEarned)
-    for (const c of celebrations) if (c.type === 'crown') c.cause = cause
+
+  // 4. Character XP (single addXP so the prestige rollover stays correct)
+  const template = TEMPLATE_MAP[trackerId]
+  const stageBefore = getStageFromXP(template.stages, character.xp)
+  const next = addXP(character, effGain + bonusXP + missionBonus)
+  await saveCharacter(userId, trackerId, next)
+  if (next.prestige > (character.prestige ?? 0)) {
+    // A full pet cycle completed — this is the crown moment 👑
+    const cause = await getCause(userId)
+    celebrations.push({ type: 'crown', cycles: next.prestige, cause })
+  } else {
+    const stageAfter = getStageFromXP(template.stages, next.xp)
+    if (stageAfter.id > stageBefore.id) {
+      celebrations.push({
+        type: 'evolve',
+        fromEmoji: stageBefore.emoji,
+        toEmoji: stageAfter.emoji,
+        toName: stageAfter.name,
+        accent: template.accent,
+      })
+    }
   }
 
-  // 4. Achievement badges
+  // 5. Achievement badges
   const earned = new Set((await getBadges(userId, trackerId)).map(b => b.badgeId))
   const totalXP = next.xp + next.prestige * PRESTIGE_XP
   const stageNow = getStageFromXP(template.stages, next.xp)

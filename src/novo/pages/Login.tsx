@@ -85,7 +85,7 @@ function OnboardingForm({ userId, onDone }: { userId: string; onDone: () => void
               Pick your cause.
             </h2>
             <p className="text-gray-400 font-nunito text-sm leading-relaxed">
-              Complete weekly missions to earn crowns. For every crown, Polaris makes real impact — you choose where it goes.
+              Raise a pet through all 10 stages to earn a crown. For every crown, Polaris makes real impact — you choose where it goes.
             </p>
           </div>
 

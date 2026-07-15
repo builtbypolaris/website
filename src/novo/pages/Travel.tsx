@@ -10,10 +10,11 @@ import {
   deleteTripExpense as dbDeleteExpense,
   addXP, todayStr,
 } from '../lib/storage'
-import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { awardXP, getStreak, getBadges, getWeekMissions, applyHappinessDecay, type StreakRow, type MissionRow } from '../lib/gamification'
 import { useCelebrations } from '../components/CelebrationLayer'
 import { StreakBadge } from '../components/StreakBadge'
-import { BadgeWall } from '../components/BadgeWall'
+import { PetRoom } from '../components/PetRoom'
+import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { TRAVEL_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
@@ -36,7 +37,7 @@ const ITEM_XP_CAP = 5  // XP-earning itinerary items per day
 const XP_AWARDED_KEY = 'novo-travel-trip-xp'  // localStorage: trip ids already given completion XP
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
-type MainTab = 'trips' | 'itinerary' | 'budget' | 'games'
+type MainTab = 'trips' | 'itinerary' | 'budget' | 'pet' | 'games'
 
 const ACCENT = '#EA580C'
 const CARD_BG = '#FFFFFF'
@@ -66,6 +67,7 @@ export default function Travel() {
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
   const [streak, setStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const [missions, setMissions] = useState<MissionRow[]>([])
   const { celebrate, layer } = useCelebrations()
 
   const today = todayStr()
@@ -74,12 +76,22 @@ export default function Travel() {
     if (!userId) return
     getStreak(userId, 'travel').then(setStreak)
     getBadges(userId, 'travel').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
+    getWeekMissions(userId).then(setMissions)
     getTravelData(userId).then(d => {
       setData(d)
       const upcoming = d.trips.filter(t => t.endDate >= todayStr()).sort((a, b) => a.startDate.localeCompare(b.startDate))[0]
       setSelectedTripId(upcoming?.id ?? d.trips[0]?.id ?? null)
     })
   }, [userId])
+
+  // Idle-day happiness decay — guarded to once per tracker per day
+  useEffect(() => {
+    if (!userId || !data) return
+    applyHappinessDecay(userId, 'travel', data.character).then(c => {
+      if (c.happiness !== data.character.happiness) setData(d => d ? { ...d, character: c } : d)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, data === null])
 
   // Award completion XP once per finished trip (tracked per device in localStorage)
   useEffect(() => {
@@ -207,16 +219,20 @@ export default function Travel() {
   const handleAddExpense = async () => {
     if (!selectedTrip || !expenseForm.amount || isNaN(Number(expenseForm.amount))) return
     try {
+      const amount = Math.abs(Number(expenseForm.amount))
       const expense = await dbAddExpense(userId, {
         tripId: selectedTrip.id,
-        amount: Math.abs(Number(expenseForm.amount)),
+        amount,
         category: expenseForm.category,
         note: expenseForm.note,
         date: today,
       })
-      applyXP(8, { expenses: [expense, ...data.expenses] })
+      // Spending past the trip budget costs XP instead of earning it
+      const spentAfter = data.expenses.filter(e => e.tripId === selectedTrip.id).reduce((s, e) => s + e.amount, 0) + amount
+      const overBudget = selectedTrip.budget > 0 && spentAfter > selectedTrip.budget
+      applyXP(overBudget ? -5 : 8, { expenses: [expense, ...data.expenses] })
       setExpenseForm(f => ({ ...f, amount: '', note: '' }))
-      showToast('+8 XP!')
+      showToast(overBudget ? '−5 XP — this trip is over budget now' : '+8 XP!', !overBudget)
     } catch {
       showToast('Failed to log expense', false)
     }
@@ -230,6 +246,11 @@ export default function Travel() {
   const handleXPEarned = (xp: number) => {
     applyXP(xp, {}, 'game')
     showToast(`+${xp} XP from game!`)
+  }
+
+  const handleClaimChallenge = (xp: number, title: string) => {
+    applyXP(xp, {})
+    showToast(`${title} — +${xp} XP!`)
   }
 
   const petCard = (
@@ -250,6 +271,13 @@ export default function Travel() {
     if (t.startDate <= today) return { label: 'Ongoing! 🎒', color: GOOD_COLOR }
     return { label: `In ${daysUntil(t.startDate)} days`, color: ACCENT }
   }
+
+  const expensesToday = data.expenses.filter(e => e.date === todayStr())
+  const dailyChallenges = [
+    { id: 'exp1', title: 'Log an expense', emoji: '🧾', xp: 15, met: expensesToday.length >= 1 },
+    { id: 'exp2', title: 'Log 2 expenses', emoji: '💳', xp: 25, met: expensesToday.length >= 2 },
+    { id: 'plan', title: 'Plan an itinerary item for today', emoji: '🗺️', xp: 10, met: data.items.some(i => i.day === todayStr()) },
+  ]
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
@@ -293,8 +321,6 @@ export default function Travel() {
             {petCard}
           </div>
 
-          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
-
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
             {[
@@ -316,6 +342,7 @@ export default function Travel() {
               { key: 'trips',     label: '🌍 Trips' },
               { key: 'itinerary', label: '🗓️ Itinerary' },
               { key: 'budget',    label: '💰 Budget' },
+              { key: 'pet', label: '🐾 Pet' },
               { key: 'games',     label: '🎮 Games' },
             ] as { key: MainTab; label: string }[]).map(t => (
               <button
@@ -669,6 +696,21 @@ export default function Travel() {
           )}
 
           {/* ── GAMES ────────────────────────────────────────── */}
+          {mainTab === 'pet' && (
+            <div className="space-y-4 max-w-2xl">
+              <DailyChallenges trackerId="travel" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
+              <PetRoom
+                userId={userId}
+                trackerId="travel"
+                character={data.character}
+                streak={streak}
+                earnedBadges={earnedBadges}
+                missions={missions}
+                onCharacter={c => setData(d => d ? { ...d, character: c } : d)}
+              />
+            </div>
+          )}
+
           {mainTab === 'games' && (
             <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
@@ -703,7 +745,6 @@ export default function Travel() {
               <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               {petCard}
             </div>
-            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             {upcomingTrip && (
               <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                 <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Next Adventure</div>

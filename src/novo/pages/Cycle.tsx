@@ -7,10 +7,11 @@ import {
   upsertCycleLog as dbUpsertLog,
   addXP, todayStr,
 } from '../lib/storage'
-import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { awardXP, getStreak, getBadges, getWeekMissions, applyHappinessDecay, type StreakRow, type MissionRow } from '../lib/gamification'
 import { useCelebrations } from '../components/CelebrationLayer'
 import { StreakBadge } from '../components/StreakBadge'
-import { BadgeWall } from '../components/BadgeWall'
+import { PetRoom } from '../components/PetRoom'
+import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { CYCLE_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
@@ -30,7 +31,7 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
-type MainTab = 'today' | 'calendar' | 'insights' | 'games'
+type MainTab = 'today' | 'calendar' | 'insights' | 'pet' | 'games'
 
 const ACCENT = '#E11D48'
 const CARD_BG = '#FFFFFF'
@@ -64,6 +65,7 @@ export default function Cycle() {
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
   const [streak, setStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const [missions, setMissions] = useState<MissionRow[]>([])
   const { celebrate, layer } = useCelebrations()
 
   const today = todayStr()
@@ -72,12 +74,22 @@ export default function Cycle() {
     if (!userId) return
     getStreak(userId, 'cycle').then(setStreak)
     getBadges(userId, 'cycle').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
+    getWeekMissions(userId).then(setMissions)
     getCycleData(userId).then(d => {
       setData(d)
       const todayLog = d.logs.find(l => l.date === todayStr())
       if (todayLog) setLogForm({ flow: todayLog.flow, symptoms: todayLog.symptoms, note: todayLog.note })
     })
   }, [userId])
+
+  // Idle-day happiness decay — guarded to once per tracker per day
+  useEffect(() => {
+    if (!userId || !data) return
+    applyHappinessDecay(userId, 'cycle', data.character).then(c => {
+      if (c.happiness !== data.character.happiness) setData(d => d ? { ...d, character: c } : d)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, data === null])
 
   const showToast = (msg: string, good = true) => {
     setToast({ msg, good })
@@ -199,6 +211,11 @@ export default function Cycle() {
     showToast(`+${xp} XP from game!`)
   }
 
+  const handleClaimChallenge = (xp: number, title: string) => {
+    applyXP(xp, {})
+    showToast(`${title} — +${xp} XP!`)
+  }
+
   const toggleSymptom = (s: string) =>
     setLogForm(f => ({ ...f, symptoms: f.symptoms.includes(s) ? f.symptoms.filter(x => x !== s) : [...f.symptoms, s] }))
 
@@ -225,6 +242,13 @@ export default function Cycle() {
       onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`, true)}
     />
   )
+
+  const todayCycleLog = data.logs.find(l => l.date === todayStr())
+  const dailyChallenges = [
+    { id: 'log', title: 'Log today', emoji: '🌸', xp: 10, met: !!todayCycleLog },
+    { id: 'symptom', title: 'Track a symptom', emoji: '📋', xp: 15, met: (todayCycleLog?.symptoms.length ?? 0) > 0 },
+    { id: 'note', title: 'Add a note', emoji: '✍️', xp: 10, met: (todayCycleLog?.note ?? '').trim().length > 0 },
+  ]
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
@@ -268,8 +292,6 @@ export default function Cycle() {
             {petCard}
           </div>
 
-          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
-
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
             {[
@@ -291,6 +313,7 @@ export default function Cycle() {
               { key: 'today',    label: '🌷 Today' },
               { key: 'calendar', label: '📆 Calendar' },
               { key: 'insights', label: '📈 Insights' },
+              { key: 'pet', label: '🐾 Pet' },
               { key: 'games',    label: '🎮 Games' },
             ] as { key: MainTab; label: string }[]).map(t => (
               <button
@@ -566,6 +589,21 @@ export default function Cycle() {
           )}
 
           {/* ── GAMES ────────────────────────────────────────── */}
+          {mainTab === 'pet' && (
+            <div className="space-y-4 max-w-2xl">
+              <DailyChallenges trackerId="cycle" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
+              <PetRoom
+                userId={userId}
+                trackerId="cycle"
+                character={data.character}
+                streak={streak}
+                earnedBadges={earnedBadges}
+                missions={missions}
+                onCharacter={c => setData(d => d ? { ...d, character: c } : d)}
+              />
+            </div>
+          )}
+
           {mainTab === 'games' && (
             <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
@@ -600,7 +638,6 @@ export default function Cycle() {
               <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               {petCard}
             </div>
-            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             {cycleDay !== null && (
               <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                 <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Current Phase</div>

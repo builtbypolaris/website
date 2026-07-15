@@ -7,10 +7,11 @@ import {
   getTodoData,
   addXP, todayStr,
 } from '../lib/storage'
-import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { awardXP, getStreak, getBadges, getWeekMissions, applyHappinessDecay, type StreakRow, type MissionRow } from '../lib/gamification'
 import { useCelebrations } from '../components/CelebrationLayer'
 import { StreakBadge } from '../components/StreakBadge'
-import { BadgeWall } from '../components/BadgeWall'
+import { PetRoom } from '../components/PetRoom'
+import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import Character from '../components/Character'
 import TaskTap from '../games/TaskTap'
@@ -25,7 +26,7 @@ const INPUT_BG = '#F0EEE8'
 const BAR_MAX_H = 80
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
-type MainTab = 'tasks' | 'analytics' | 'games'
+type MainTab = 'tasks' | 'analytics' | 'pet' | 'games'
 type FilterTab = 'all' | 'active' | 'done'
 
 const PRIORITY_CONFIG: Record<Priority, { label: string; color: string; bar: string }> = {
@@ -51,14 +52,25 @@ export default function Todo() {
   const [toast, setToast] = useState('')
   const [streak, setStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const [missions, setMissions] = useState<MissionRow[]>([])
   const { celebrate, layer } = useCelebrations()
 
   useEffect(() => {
     if (!userId) return
     getStreak(userId, 'todo').then(setStreak)
     getBadges(userId, 'todo').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
+    getWeekMissions(userId).then(setMissions)
     getTodoData(userId).then(setData)
   }, [userId])
+
+  // Idle-day happiness decay — guarded to once per tracker per day
+  useEffect(() => {
+    if (!userId || !data) return
+    applyHappinessDecay(userId, 'todo', data.character).then(c => {
+      if (c.happiness !== data.character.happiness) setData(d => d ? { ...d, character: c } : d)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, data === null])
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
 
@@ -130,14 +142,15 @@ export default function Todo() {
 
     let xpTotal = 0
     if (nowCompleted) {
-      const xp = PRIORITY_XP[task.priority]
+      const overdue = !!(task.dueDate && task.dueDate < todayStr())
+      const xp = overdue ? 5 : PRIORITY_XP[task.priority]
       xpTotal = xp
       const wouldAllDone = data.tasks.every(t => t.id === id || t.completed)
       if (wouldAllDone && data.tasks.length >= 3) {
         xpTotal += 30
         showToast(`+${xp} XP! +30 ALL DONE bonus!`)
       } else {
-        showToast(`+${xp} XP!`)
+        showToast(overdue ? `+${xp} XP — it was overdue, finish on time for more!` : `+${xp} XP!`)
       }
     }
 
@@ -153,8 +166,19 @@ export default function Todo() {
   }
 
   const handleDeleteTask = async (id: string) => {
-    setData(d => d ? { ...d, tasks: d.tasks.filter(t => t.id !== id) } : d)
+    const task = data.tasks.find(t => t.id === id)
+    const abandoned = !!task && !task.completed
+    const before = data.character
+    setData(d => d ? {
+      ...d,
+      tasks: d.tasks.filter(t => t.id !== id),
+      character: abandoned ? addXP(before, -5) : d.character,
+    } : d)
     await dbDeleteTask(id)
+    if (abandoned) {
+      runAward(before, -5)
+      showToast('−5 XP — task abandoned')
+    }
   }
 
   const handleXPEarned = (xp: number) => {
@@ -162,6 +186,13 @@ export default function Todo() {
     setData(d => d ? { ...d, character: addXP(before, xp) } : d)
     runAward(before, xp, 'game')
     showToast(`+${xp} XP from game!`)
+  }
+
+  const handleClaimChallenge = (xp: number, title: string) => {
+    const before = data.character
+    setData(d => d ? { ...d, character: addXP(before, xp) } : d)
+    runAward(before, xp)
+    showToast(`${title} — +${xp} XP!`)
   }
 
   const isOverdue = (t: Task) => !!(t.dueDate && !t.completed && t.dueDate < todayStr())
@@ -227,6 +258,13 @@ export default function Todo() {
     )
   }
 
+  const doneToday = data.tasks.filter(t => t.completedAt === todayStr())
+  const dailyChallenges = [
+    { id: 'done1', title: 'Complete a task', emoji: '✅', xp: 10, met: doneToday.length >= 1 },
+    { id: 'done3', title: 'Complete 3 tasks', emoji: '🔥', xp: 25, met: doneToday.length >= 3 },
+    { id: 'high', title: 'Finish a high-priority task', emoji: '⚡', xp: 20, met: doneToday.some(t => t.priority === 'high') },
+  ]
+
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
       {layer}
@@ -265,8 +303,6 @@ export default function Todo() {
             />
           </div>
 
-          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
-
           {/* Metrics */}
           <div className="grid grid-cols-3 gap-2 mb-6">
             {[
@@ -283,7 +319,7 @@ export default function Todo() {
 
           {/* Tabs */}
           <div className="flex gap-1.5 mb-6 py-1">
-            {(['tasks', 'analytics', 'games'] as MainTab[]).map(t => (
+            {(['tasks', 'analytics', 'pet', 'games'] as MainTab[]).map(t => (
               <button
                 key={t}
                 onClick={() => setMainTab(t)}
@@ -292,7 +328,7 @@ export default function Todo() {
                   ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
                   : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
               >
-                {t === 'tasks' ? '📋 Tasks' : t === 'analytics' ? '📊 Analytics' : '🎮 Games'}
+                {t === 'tasks' ? '📋 Tasks' : t === 'analytics' ? '📊 Analytics' : t === 'pet' ? '🐾 Pet' : '🎮 Games'}
               </button>
             ))}
           </div>
@@ -470,6 +506,21 @@ export default function Todo() {
           )}
 
           {/* GAMES TAB */}
+          {mainTab === 'pet' && (
+            <div className="space-y-4 max-w-2xl">
+              <DailyChallenges trackerId="todo" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
+              <PetRoom
+                userId={userId}
+                trackerId="todo"
+                character={data.character}
+                streak={streak}
+                earnedBadges={earnedBadges}
+                missions={missions}
+                onCharacter={c => setData(d => d ? { ...d, character: c } : d)}
+              />
+            </div>
+          )}
+
           {mainTab === 'games' && (
             <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
@@ -516,7 +567,6 @@ export default function Todo() {
                 onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`)}
               />
             </div>
-            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             <div className="rounded-xl p-3 text-xs font-nunito leading-relaxed" style={{ background: '#DCFCE7', border: '1px solid #BBF7D0' }}>
               <strong className="text-green-700">Pet tip:</strong>{' '}
               <span className="text-green-800">Complete high-priority tasks for 25 XP each. Finish ALL tasks for +30 bonus XP!</span>

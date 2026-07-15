@@ -11,10 +11,11 @@ import {
   deleteWorkLog as dbDeleteWorkLog,
   addXP, todayStr,
 } from '../lib/storage'
-import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { awardXP, getStreak, getBadges, getWeekMissions, applyHappinessDecay, type StreakRow, type MissionRow } from '../lib/gamification'
 import { useCelebrations } from '../components/CelebrationLayer'
 import { StreakBadge } from '../components/StreakBadge'
-import { BadgeWall } from '../components/BadgeWall'
+import { PetRoom } from '../components/PetRoom'
+import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { FREELANCE_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
@@ -24,7 +25,7 @@ import ScheduleFit from '../games/ScheduleFit'
 import type { FreelanceData, RateType } from '../types'
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
-type MainTab = 'overview' | 'projects' | 'earnings' | 'games'
+type MainTab = 'overview' | 'projects' | 'earnings' | 'pet' | 'games'
 
 const ACCENT = '#0284C7'
 const CARD_BG = '#FFFFFF'
@@ -54,6 +55,7 @@ export default function Freelance() {
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
   const [streak, setStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const [missions, setMissions] = useState<MissionRow[]>([])
   const { celebrate, layer } = useCelebrations()
 
   useEffect(() => {
@@ -61,7 +63,17 @@ export default function Freelance() {
     getFreelanceData(userId).then(setData)
     getStreak(userId, 'freelance').then(setStreak)
     getBadges(userId, 'freelance').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
+    getWeekMissions(userId).then(setMissions)
   }, [userId])
+
+  // Idle-day happiness decay — guarded to once per tracker per day
+  useEffect(() => {
+    if (!userId || !data) return
+    applyHappinessDecay(userId, 'freelance', data.character).then(c => {
+      if (c.happiness !== data.character.happiness) setData(d => d ? { ...d, character: c } : d)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, data === null])
 
   const showToast = (msg: string, good = true) => {
     setToast({ msg, good })
@@ -160,10 +172,13 @@ export default function Freelance() {
     try {
       await dbUpdateProjectStatus(id, newStatus)
       if (newStatus === 'done') {
-        applyXP(30, { projects: nextProjects })
-        showToast('+30 XP — project shipped! 🚀')
+        const late = !!project.deadline && project.deadline < todayStr()
+        applyXP(late ? 10 : 30, { projects: nextProjects })
+        showToast(late ? '+10 XP — shipped, but past the deadline' : '+30 XP — project shipped! 🚀')
       } else {
-        setData(d => d ? { ...d, projects: nextProjects } : d)
+        // Re-opening takes back the ship reward (anti-farming)
+        applyXP(-30, { projects: nextProjects })
+        showToast('−30 XP — project reopened', false)
       }
     } catch {
       showToast('Failed to update project', false)
@@ -171,11 +186,21 @@ export default function Freelance() {
   }
 
   const handleDeleteProject = async (id: string) => {
-    setData(d => d ? {
-      ...d,
-      projects: d.projects.filter(p => p.id !== id),
-      workLogs: d.workLogs.filter(w => w.projectId !== id),
-    } : d)
+    const project = projectById(id)
+    const abandoned = project?.status === 'active' && data.workLogs.some(w => w.projectId === id)
+    if (abandoned) {
+      applyXP(-10, {
+        projects: data.projects.filter(p => p.id !== id),
+        workLogs: data.workLogs.filter(w => w.projectId !== id),
+      })
+      showToast('−10 XP — active project abandoned', false)
+    } else {
+      setData(d => d ? {
+        ...d,
+        projects: d.projects.filter(p => p.id !== id),
+        workLogs: d.workLogs.filter(w => w.projectId !== id),
+      } : d)
+    }
     await dbDeleteProject(id)
   }
 
@@ -218,6 +243,11 @@ export default function Freelance() {
     showToast(`+${xp} XP from game!`)
   }
 
+  const handleClaimChallenge = (xp: number, title: string) => {
+    applyXP(xp, {})
+    showToast(`${title} — +${xp} XP!`)
+  }
+
   const recentLogs = data.workLogs.slice(0, 3)
 
   const petCard = (
@@ -232,6 +262,13 @@ export default function Freelance() {
   )
 
   const inputStyle = { background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }
+
+  const logsToday = data.workLogs.filter(l => l.date === todayStr())
+  const dailyChallenges = [
+    { id: 'log1', title: 'Log work once', emoji: '💼', xp: 15, met: logsToday.length >= 1 },
+    { id: 'log2', title: 'Log work twice', emoji: '🚀', xp: 25, met: logsToday.length >= 2 },
+    { id: 'hours2', title: 'Log 2+ hours', emoji: '⏰', xp: 20, met: logsToday.reduce((sum, l) => sum + (l.hours ?? 0), 0) >= 2 },
+  ]
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
@@ -275,8 +312,6 @@ export default function Freelance() {
             {petCard}
           </div>
 
-          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
-
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
             {[
@@ -298,6 +333,7 @@ export default function Freelance() {
               { key: 'overview', label: '📊 Overview' },
               { key: 'projects', label: '📁 Projects' },
               { key: 'earnings', label: '💵 Earnings' },
+              { key: 'pet', label: '🐾 Pet' },
               { key: 'games',    label: '🎮 Games' },
             ] as { key: MainTab; label: string }[]).map(t => (
               <button
@@ -651,6 +687,21 @@ export default function Freelance() {
           )}
 
           {/* ── GAMES ────────────────────────────────────────── */}
+          {mainTab === 'pet' && (
+            <div className="space-y-4 max-w-2xl">
+              <DailyChallenges trackerId="freelance" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
+              <PetRoom
+                userId={userId}
+                trackerId="freelance"
+                character={data.character}
+                streak={streak}
+                earnedBadges={earnedBadges}
+                missions={missions}
+                onCharacter={c => setData(d => d ? { ...d, character: c } : d)}
+              />
+            </div>
+          )}
+
           {mainTab === 'games' && (
             <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
@@ -685,7 +736,6 @@ export default function Freelance() {
               <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               {petCard}
             </div>
-            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             {nextDeadline && (
               <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                 <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Next Deadline</div>

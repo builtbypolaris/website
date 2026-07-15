@@ -13,10 +13,11 @@ import {
   deletePetWeight as dbDeleteWeight,
   addXP, todayStr,
 } from '../lib/storage'
-import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { awardXP, getStreak, getBadges, getWeekMissions, applyHappinessDecay, type StreakRow, type MissionRow } from '../lib/gamification'
 import { useCelebrations } from '../components/CelebrationLayer'
 import { StreakBadge } from '../components/StreakBadge'
-import { BadgeWall } from '../components/BadgeWall'
+import { PetRoom } from '../components/PetRoom'
+import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { PET_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
@@ -46,7 +47,7 @@ const EVENT_META: { key: PetEventType; emoji: string; label: string }[] = [
 const EVENT_XP_CAP = 10  // XP-earning care events per day
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
-type MainTab = 'today' | 'care' | 'health' | 'games'
+type MainTab = 'today' | 'care' | 'health' | 'pet' | 'games'
 
 const ACCENT = '#CA8A04'
 const CARD_BG = '#FFFFFF'
@@ -79,6 +80,7 @@ export default function Pet() {
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
   const [streak, setStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const [missions, setMissions] = useState<MissionRow[]>([])
   const { celebrate, layer } = useCelebrations()
 
   const today = todayStr()
@@ -87,12 +89,22 @@ export default function Pet() {
     if (!userId) return
     getStreak(userId, 'pet').then(setStreak)
     getBadges(userId, 'pet').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
+    getWeekMissions(userId).then(setMissions)
     getPetData(userId).then(d => {
       setData(d)
       setSelectedPetId(d.pets[0]?.id ?? null)
       if (d.pets.length === 0) setShowPetForm(true)
     })
   }, [userId])
+
+  // Idle-day happiness decay — guarded to once per tracker per day
+  useEffect(() => {
+    if (!userId || !data) return
+    applyHappinessDecay(userId, 'pet', data.character).then(c => {
+      if (c.happiness !== data.character.happiness) setData(d => d ? { ...d, character: c } : d)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, data === null])
 
   const showToast = (msg: string, good = true) => {
     setToast({ msg, good })
@@ -210,11 +222,13 @@ export default function Pet() {
       await dbSetCareItemDone(id, nextDone)
       if (nextDone) {
         const onTime = item.dueDate >= today
-        const xpGain = 15 + (onTime ? 5 : 0)
+        const xpGain = onTime ? 20 : 5
         applyXP(xpGain, { careItems: nextItems })
-        showToast(onTime ? `+${xpGain} XP — done on time!` : `+${xpGain} XP — done!`)
+        showToast(onTime ? `+${xpGain} XP — done on time!` : `+${xpGain} XP — done late, watch those due dates`)
       } else {
-        setData(d => d ? { ...d, careItems: nextItems } : d)
+        // Un-ticking takes back the reward (anti-farming)
+        applyXP(-15, { careItems: nextItems })
+        showToast('−15 XP — care item unchecked', false)
       }
     } catch {
       showToast('Failed to update', false)
@@ -249,6 +263,11 @@ export default function Pet() {
   const handleXPEarned = (xp: number) => {
     applyXP(xp, {}, 'game')
     showToast(`+${xp} XP from game!`)
+  }
+
+  const handleClaimChallenge = (xp: number, title: string) => {
+    applyXP(xp, {})
+    showToast(`${title} — +${xp} XP!`)
   }
 
   const todayEvents = petEvents.filter(e => e.eventAt.startsWith(today))
@@ -300,6 +319,13 @@ export default function Pet() {
 
   const inputStyle = { background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }
 
+  const petEventsToday = data.events.filter(e => e.eventAt.startsWith(todayStr()))
+  const dailyChallenges = [
+    { id: 'ev2', title: 'Log 2 care events', emoji: '🐾', xp: 15, met: petEventsToday.length >= 2 },
+    { id: 'fun', title: 'Walk or play today', emoji: '🎾', xp: 15, met: petEventsToday.some(e => e.eventType === 'walk' || e.eventType === 'play') },
+    { id: 'ev4', title: 'Log 4 care events', emoji: '🏆', xp: 25, met: petEventsToday.length >= 4 },
+  ]
+
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
 
@@ -342,8 +368,6 @@ export default function Pet() {
             {petCard}
           </div>
 
-          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
-
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
             {[
@@ -365,6 +389,7 @@ export default function Pet() {
               { key: 'today',  label: '🍖 Today' },
               { key: 'care',   label: '📋 Care' },
               { key: 'health', label: '🩺 Health' },
+              { key: 'pet', label: '🐾 Pet' },
               { key: 'games',  label: '🎮 Games' },
             ] as { key: MainTab; label: string }[]).map(t => (
               <button
@@ -678,6 +703,21 @@ export default function Pet() {
           )}
 
           {/* ── GAMES ────────────────────────────────────────── */}
+          {mainTab === 'pet' && (
+            <div className="space-y-4 max-w-2xl">
+              <DailyChallenges trackerId="pet" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
+              <PetRoom
+                userId={userId}
+                trackerId="pet"
+                character={data.character}
+                streak={streak}
+                earnedBadges={earnedBadges}
+                missions={missions}
+                onCharacter={c => setData(d => d ? { ...d, character: c } : d)}
+              />
+            </div>
+          )}
+
           {mainTab === 'games' && (
             <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
@@ -712,7 +752,6 @@ export default function Pet() {
               <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               {petCard}
             </div>
-            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             {nextDue && (
               <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                 <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Next Due</div>

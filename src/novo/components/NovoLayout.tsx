@@ -62,12 +62,7 @@ export function NovoLayout() {
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${isActive('/studios/impact') ? 'bg-black/8' : 'hover:bg-black/5'}`}
           >
             <span className="text-base">👑</span>
-            <div>
-              <span className="font-nunito text-sm font-semibold text-[#09090F]">Impact</span>
-              {(profile?.crowns ?? 0) > 0 && (
-                <span className="ml-2 text-xs font-nunito font-bold" style={{ color: '#7C3AED' }}>{profile?.crowns}</span>
-              )}
-            </div>
+            <span className="font-nunito text-sm font-semibold text-[#09090F]">Impact</span>
           </button>
 
           {TEMPLATES.map(t => {

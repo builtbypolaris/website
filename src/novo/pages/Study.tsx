@@ -9,10 +9,11 @@ import {
   deleteStudySession as dbDeleteSession,
   addXP, todayStr,
 } from '../lib/storage'
-import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { awardXP, getStreak, getBadges, getWeekMissions, applyHappinessDecay, type StreakRow, type MissionRow } from '../lib/gamification'
 import { useCelebrations } from '../components/CelebrationLayer'
 import { StreakBadge } from '../components/StreakBadge'
-import { BadgeWall } from '../components/BadgeWall'
+import { PetRoom } from '../components/PetRoom'
+import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { STUDY_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
@@ -24,7 +25,7 @@ import type { CharacterState, StudyData } from '../types'
 const SUBJECT_COLORS = ['#6D28D9', '#0284C7', '#16A34A', '#D97706', '#DC2626', '#DB2777', '#0D9488']
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
-type MainTab = 'overview' | 'study' | 'subjects' | 'games'
+type MainTab = 'overview' | 'study' | 'subjects' | 'pet' | 'games'
 
 const ACCENT = '#6D28D9'
 const CARD_BG = '#FFFFFF'
@@ -61,6 +62,7 @@ export default function Study() {
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
   const [dayStreak, setDayStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const [missions, setMissions] = useState<MissionRow[]>([])
   const { celebrate, layer } = useCelebrations()
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -68,8 +70,18 @@ export default function Study() {
     if (!userId) return
     getStreak(userId, 'study').then(setDayStreak)
     getBadges(userId, 'study').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
+    getWeekMissions(userId).then(setMissions)
     getStudyData(userId).then(setData)
   }, [userId])
+
+  // Idle-day happiness decay — guarded to once per tracker per day
+  useEffect(() => {
+    if (!userId || !data) return
+    applyHappinessDecay(userId, 'study', data.character).then(c => {
+      if (c.happiness !== data.character.happiness) setData(d => d ? { ...d, character: c } : d)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, data === null])
 
   // Study timer tick
   useEffect(() => {
@@ -136,7 +148,8 @@ export default function Study() {
   const logSession = async (minutes: number, subjectId: string, notes: string) => {
     if (!subjectId || minutes <= 0) return false
     const firstToday = !data.sessions.some(s => s.date === todayStr())
-    const xpGain = Math.min(30, Math.floor(minutes / 5)) + (firstToday ? 10 : 0)
+    // Sessions under 10 minutes barely count — no first-of-day bonus either
+    const xpGain = minutes < 10 ? 2 : Math.min(30, Math.floor(minutes / 5)) + (firstToday ? 10 : 0)
     try {
       const sess = await dbAddSession(userId, { subjectId, durationMinutes: minutes, notes, date: todayStr() })
       const before = data.character
@@ -197,12 +210,19 @@ export default function Study() {
   }
 
   const handleDeleteSubject = async (id: string) => {
+    const hadSessions = data.sessions.some(s => s.subjectId === id)
+    const before = data.character
     setData(d => d ? {
       ...d,
       subjects: d.subjects.filter(s => s.id !== id),
       sessions: d.sessions.filter(s => s.subjectId !== id),
+      character: hadSessions ? addXP(before, -5) : d.character,
     } : d)
     await dbDeleteSubject(id)
+    if (hadSessions) {
+      runAward(before, -5)
+      showToast('−5 XP — subject dropped with study history', false)
+    }
   }
 
   const handleXPEarned = (xp: number) => {
@@ -210,6 +230,13 @@ export default function Study() {
     setData(d => d ? { ...d, character: addXP(before, xp) } : d)
     runAward(before, xp, 'game')
     showToast(`+${xp} XP from game!`)
+  }
+
+  const handleClaimChallenge = (xp: number, title: string) => {
+    const before = data.character
+    setData(d => d ? { ...d, character: addXP(before, xp) } : d)
+    runAward(before, xp)
+    showToast(`${title} — +${xp} XP!`)
   }
 
   const recentSessions = data.sessions.slice(0, 8)
@@ -224,6 +251,13 @@ export default function Study() {
       onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`, true)}
     />
   )
+
+  const minutesToday = data.sessions.filter(s => s.date === todayStr()).reduce((sum, x) => sum + x.durationMinutes, 0)
+  const dailyChallenges = [
+    { id: 's1', title: 'Study once', emoji: '📖', xp: 10, met: data.sessions.some(s => s.date === todayStr()) },
+    { id: 'm30', title: 'Study 30+ minutes', emoji: '⏱️', xp: 20, met: minutesToday >= 30 },
+    { id: 'm60', title: 'Study 60+ minutes', emoji: '🎓', xp: 35, met: minutesToday >= 60 },
+  ]
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
@@ -267,8 +301,6 @@ export default function Study() {
             {petCard}
           </div>
 
-          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
-
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
             {[
@@ -290,6 +322,7 @@ export default function Study() {
               { key: 'overview', label: '📊 Overview' },
               { key: 'study',    label: '⏱️ Study' },
               { key: 'subjects', label: '📚 Subjects' },
+              { key: 'pet', label: '🐾 Pet' },
               { key: 'games',    label: '🎮 Games' },
             ] as { key: MainTab; label: string }[]).map(t => (
               <button
@@ -600,6 +633,21 @@ export default function Study() {
           )}
 
           {/* ── GAMES ────────────────────────────────────────── */}
+          {mainTab === 'pet' && (
+            <div className="space-y-4 max-w-2xl">
+              <DailyChallenges trackerId="study" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
+              <PetRoom
+                userId={userId}
+                trackerId="study"
+                character={data.character}
+                streak={dayStreak}
+                earnedBadges={earnedBadges}
+                missions={missions}
+                onCharacter={c => setData(d => d ? { ...d, character: c } : d)}
+              />
+            </div>
+          )}
+
           {mainTab === 'games' && (
             <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
@@ -634,7 +682,6 @@ export default function Study() {
               <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               {petCard}
             </div>
-            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             {nextExam && (
               <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
                 <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Next Exam</div>

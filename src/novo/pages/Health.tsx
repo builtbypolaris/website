@@ -10,10 +10,11 @@ import {
   saveHealthGoals as dbSaveGoals,
   addXP, todayStr,
 } from '../lib/storage'
-import { awardXP, getStreak, getBadges, type StreakRow } from '../lib/gamification'
+import { awardXP, getStreak, getBadges, getWeekMissions, applyHappinessDecay, type StreakRow, type MissionRow } from '../lib/gamification'
 import { useCelebrations } from '../components/CelebrationLayer'
 import { StreakBadge } from '../components/StreakBadge'
-import { BadgeWall } from '../components/BadgeWall'
+import { PetRoom } from '../components/PetRoom'
+import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { HEALTH_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
@@ -32,7 +33,7 @@ const MEAL_TYPES: { key: MealType; emoji: string; label: string }[] = [
 const MEAL_XP_CAP = 4  // XP-earning meals per day
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
-type MainTab = 'today' | 'meals' | 'body' | 'games'
+type MainTab = 'today' | 'meals' | 'body' | 'pet' | 'games'
 
 const ACCENT = '#65A30D'
 const CARD_BG = '#FFFFFF'
@@ -55,6 +56,7 @@ export default function Health() {
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
   const [dayStreak, setDayStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
+  const [missions, setMissions] = useState<MissionRow[]>([])
   const { celebrate, layer } = useCelebrations()
   const waterXPAwarded = useRef(0)  // highest glass count XP was awarded for today (per session)
 
@@ -62,12 +64,22 @@ export default function Health() {
     if (!userId) return
     getStreak(userId, 'health').then(setDayStreak)
     getBadges(userId, 'health').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
+    getWeekMissions(userId).then(setMissions)
     getHealthData(userId).then(d => {
       setData(d)
       setGoalsForm({ calories: String(d.goals.calorieTarget), water: String(d.goals.waterTarget) })
       waterXPAwarded.current = d.waterByDate[todayStr()] ?? 0
     })
   }, [userId])
+
+  // Idle-day happiness decay — guarded to once per tracker per day
+  useEffect(() => {
+    if (!userId || !data) return
+    applyHappinessDecay(userId, 'health', data.character).then(c => {
+      if (c.happiness !== data.character.happiness) setData(d => d ? { ...d, character: c } : d)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, data === null])
 
   const showToast = (msg: string, good = true) => {
     setToast({ msg, good })
@@ -136,11 +148,21 @@ export default function Health() {
     if (mealForm.mealType !== 'snack' && !mainsBefore.has(mealForm.mealType) && mainsBefore.size === 2) {
       xpGain += 15
     }
+    // A meal that blows past 120% of the calorie target turns into a penalty
+    const caloriesAfter = todayMeals.reduce((s, m) => s + (m.calories ?? 0), 0) + (calories ?? 0)
+    if (caloriesAfter > data.goals.calorieTarget * 1.2) {
+      xpGain = -5
+    }
     try {
       const meal = await dbAddMeal(userId, { mealType: mealForm.mealType, food: mealForm.food, calories, date: today })
-      if (xpGain > 0) {
+      if (xpGain !== 0) {
         applyXP(xpGain, { meals: [meal, ...data.meals] })
-        showToast(xpGain >= 23 ? `+${xpGain} XP — all 3 meals logged! 🎉` : `+${xpGain} XP!`)
+        showToast(
+          xpGain < 0 ? `${xpGain} XP — that's over 120% of your calorie target`
+          : xpGain >= 23 ? `+${xpGain} XP — all 3 meals logged! 🎉`
+          : `+${xpGain} XP!`,
+          xpGain > 0,
+        )
       } else {
         setData(d => d ? { ...d, meals: [meal, ...d.meals] } : d)
         showToast('Logged! (daily XP cap reached)')
@@ -215,6 +237,11 @@ export default function Health() {
     showToast(`+${xp} XP from game!`)
   }
 
+  const handleClaimChallenge = (xp: number, title: string) => {
+    applyXP(xp, {})
+    showToast(`${title} — +${xp} XP!`)
+  }
+
   // Meals grouped by day (latest 14 days present in data)
   const mealDays = [...new Set(data.meals.map(m => m.date))].sort((a, b) => b.localeCompare(a)).slice(0, 14)
 
@@ -230,6 +257,13 @@ export default function Health() {
   )
 
   const inputStyle = { background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }
+
+  const mealsTodayList = data.meals.filter(m => m.date === todayStr())
+  const dailyChallenges = [
+    { id: 'meals2', title: 'Log 2 meals', emoji: '🍽️', xp: 15, met: mealsTodayList.length >= 2 },
+    { id: 'water6', title: 'Drink 6 glasses of water', emoji: '💧', xp: 15, met: (data.waterByDate[todayStr()] ?? 0) >= 6 },
+    { id: 'main3', title: 'Log all 3 main meals', emoji: '🥗', xp: 30, met: (['breakfast', 'lunch', 'dinner'] as const).every(t => mealsTodayList.some(m => m.mealType === t)) },
+  ]
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
@@ -273,8 +307,6 @@ export default function Health() {
             {petCard}
           </div>
 
-          <div className="lg:hidden mb-4"><BadgeWall earned={earnedBadges} accent={ACCENT} /></div>
-
           {/* Metrics strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
             {[
@@ -296,6 +328,7 @@ export default function Health() {
               { key: 'today', label: '☀️ Today' },
               { key: 'meals', label: '🍽️ Meals' },
               { key: 'body',  label: '⚖️ Body' },
+              { key: 'pet', label: '🐾 Pet' },
               { key: 'games', label: '🎮 Games' },
             ] as { key: MainTab; label: string }[]).map(t => (
               <button
@@ -591,6 +624,21 @@ export default function Health() {
           )}
 
           {/* ── GAMES ────────────────────────────────────────── */}
+          {mainTab === 'pet' && (
+            <div className="space-y-4 max-w-2xl">
+              <DailyChallenges trackerId="health" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
+              <PetRoom
+                userId={userId}
+                trackerId="health"
+                character={data.character}
+                streak={dayStreak}
+                earnedBadges={earnedBadges}
+                missions={missions}
+                onCharacter={c => setData(d => d ? { ...d, character: c } : d)}
+              />
+            </div>
+          )}
+
           {mainTab === 'games' && (
             <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="flex items-center justify-between mb-4">
@@ -625,7 +673,6 @@ export default function Health() {
               <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
               {petCard}
             </div>
-            <BadgeWall earned={earnedBadges} accent={ACCENT} />
             <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
               <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Today</div>
               <div className="h-2 rounded-full overflow-hidden mb-2" style={{ background: '#E5E4E2' }}>
