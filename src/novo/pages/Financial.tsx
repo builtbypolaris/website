@@ -392,7 +392,8 @@ export default function Financial() {
 
           {/* ── OVERVIEW ─────────────────────────────────────── */}
           {mainTab === 'overview' && (
-            <div className="space-y-6 max-w-xl">
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
+            <div className="space-y-6">
 
               {(budgetAlerts.length > 0 || nextBill) && (
                 <div className="space-y-1">
@@ -460,7 +461,9 @@ export default function Financial() {
                   </NButton>
                 </div>
               </Panel>
+            </div>
 
+            <div className="space-y-6">
               {/* Cashflow health — plain content, no box */}
               {data.transactions.length > 0 && (
                 <div>
@@ -515,11 +518,12 @@ export default function Financial() {
                 </div>
               )}
             </div>
+            </div>
           )}
 
           {/* ── LOG ──────────────────────────────────────────── */}
           {mainTab === 'log' && (
-            <div className="max-w-xl">
+            <div className="max-w-2xl">
               <div className="flex gap-5 mb-5">
                 {(['all', 'income', 'expense'] as const).map(f => (
                   <button
@@ -565,7 +569,7 @@ export default function Financial() {
 
           {/* ── BUDGETS ──────────────────────────────────────── */}
           {mainTab === 'budgets' && (
-            <div className="space-y-10 max-w-xl">
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-10">
 
               <div>
                 <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Category budgets</div>
@@ -692,7 +696,7 @@ export default function Financial() {
 
           {/* ── ANALYTICS ────────────────────────────────────── */}
           {mainTab === 'analytics' && (
-            <div className="space-y-8 max-w-xl">
+            <div className="space-y-8 max-w-5xl">
               {data.transactions.length === 0 ? (
                 <div className="py-10 text-center">
                   <div className="font-nunito text-sm" style={{ color: INK }}>No data yet</div>
@@ -767,41 +771,45 @@ export default function Financial() {
                     </div>
                   </div>
 
-                  {topExpenses.length > 0 && (
-                    <div>
-                      <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Top spending categories</div>
-                      <div className="space-y-3">
-                        {topExpenses.map(([cat, amt]) => (
-                          <div key={cat}>
-                            <div className="flex justify-between font-nunito text-xs mb-1.5">
-                              <span style={{ color: INK }}>{cat}</span>
-                              <span style={{ color: MUTED }}>
-                                {totalExpense > 0 ? Math.round((amt / totalExpense) * 100) : 0}% · {formatRp(amt)}
-                              </span>
-                            </div>
-                            <NProgress pct={totalExpense > 0 ? (amt / totalExpense) * 100 : 0} accent={EXPENSE_COLOR} height={4} />
+                  {(topExpenses.length > 0 || incomeSources.length > 0) && (
+                    <div className="grid lg:grid-cols-2 gap-x-10 gap-y-8">
+                      {topExpenses.length > 0 && (
+                        <div>
+                          <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Top spending categories</div>
+                          <div className="space-y-3">
+                            {topExpenses.map(([cat, amt]) => (
+                              <div key={cat}>
+                                <div className="flex justify-between font-nunito text-xs mb-1.5">
+                                  <span style={{ color: INK }}>{cat}</span>
+                                  <span style={{ color: MUTED }}>
+                                    {totalExpense > 0 ? Math.round((amt / totalExpense) * 100) : 0}% · {formatRp(amt)}
+                                  </span>
+                                </div>
+                                <NProgress pct={totalExpense > 0 ? (amt / totalExpense) * 100 : 0} accent={EXPENSE_COLOR} height={4} />
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                        </div>
+                      )}
 
-                  {incomeSources.length > 0 && (
-                    <div>
-                      <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Income sources</div>
-                      <div className="space-y-3">
-                        {incomeSources.map(([cat, amt]) => (
-                          <div key={cat}>
-                            <div className="flex justify-between font-nunito text-xs mb-1.5">
-                              <span style={{ color: INK }}>{cat}</span>
-                              <span style={{ color: MUTED }}>
-                                {totalIncome > 0 ? Math.round((amt / totalIncome) * 100) : 0}% · {formatRp(amt)}
-                              </span>
-                            </div>
-                            <NProgress pct={totalIncome > 0 ? (amt / totalIncome) * 100 : 0} accent={INCOME_COLOR} height={4} />
+                      {incomeSources.length > 0 && (
+                        <div>
+                          <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Income sources</div>
+                          <div className="space-y-3">
+                            {incomeSources.map(([cat, amt]) => (
+                              <div key={cat}>
+                                <div className="flex justify-between font-nunito text-xs mb-1.5">
+                                  <span style={{ color: INK }}>{cat}</span>
+                                  <span style={{ color: MUTED }}>
+                                    {totalIncome > 0 ? Math.round((amt / totalIncome) * 100) : 0}% · {formatRp(amt)}
+                                  </span>
+                                </div>
+                                <NProgress pct={totalIncome > 0 ? (amt / totalIncome) * 100 : 0} accent={INCOME_COLOR} height={4} />
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </>
