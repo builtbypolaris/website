@@ -25,8 +25,31 @@ export interface Transaction {
   date: string
 }
 
+export interface Budget {
+  category: string
+  monthlyLimit: number
+}
+
+export interface RecurringPayment {
+  month: string  // 'YYYY-MM'
+  paidAt: string
+}
+
+export interface RecurringItem {
+  id: string
+  name: string
+  amount: number
+  type: 'income' | 'expense'
+  category: string
+  dueDay: number
+  active: boolean
+  payments: RecurringPayment[]
+}
+
 export interface FinancialData {
   transactions: Transaction[]
+  budgets: Budget[]
+  recurring: RecurringItem[]
   character: CharacterState
 }
 

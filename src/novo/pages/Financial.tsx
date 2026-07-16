@@ -4,6 +4,11 @@ import {
   addTransaction as dbAddTransaction,
   deleteTransaction as dbDeleteTransaction,
   getFinancialData,
+  saveBudget as dbSaveBudget,
+  deleteBudget as dbDeleteBudget,
+  addRecurring as dbAddRecurring,
+  deleteRecurring as dbDeleteRecurring,
+  setRecurringMonthPaid as dbSetRecurringPaid,
   addXP, todayStr,
 } from '../lib/storage'
 import { awardXP, getStreak, getBadges, getWeekMissions, applyHappinessDecay, type StreakRow, type MissionRow } from '../lib/gamification'
@@ -26,11 +31,12 @@ const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct
 const BAR_MAX_H = 112
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
-type MainTab = 'overview' | 'log' | 'analytics' | 'pet' | 'games'
+type MainTab = 'overview' | 'log' | 'budgets' | 'analytics' | 'pet' | 'games'
 
 const ACCENT = '#B45309'
 const INCOME_COLOR = '#16A34A'
 const EXPENSE_COLOR = '#DC2626'
+const WARN_COLOR = '#D97706'
 
 function formatRp(n: number) { return 'Rp ' + n.toLocaleString('id-ID') }
 function shortRp(n: number) {
@@ -38,10 +44,12 @@ function shortRp(n: number) {
   if (n >= 1_000) return `${Math.round(n / 1_000)}K`
   return String(n)
 }
+function currentMonth() { return todayStr().slice(0, 7) }
 
 const MAIN_TABS: { key: MainTab; label: string }[] = [
   { key: 'overview', label: 'Overview' },
   { key: 'log', label: 'Log' },
+  { key: 'budgets', label: 'Budgets' },
   { key: 'analytics', label: 'Analytics' },
   { key: 'pet', label: 'Pet' },
   { key: 'games', label: 'Games' },
@@ -57,6 +65,8 @@ export default function Financial() {
   const [gameTab, setGameTab] = useState<GameTab>('clicker')
   const [form, setForm] = useState({ type: 'income' as 'income' | 'expense', amount: '', category: INCOME_CATS[0], description: '' })
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all')
+  const [budgetInputs, setBudgetInputs] = useState<Record<string, string>>({})
+  const [recurForm, setRecurForm] = useState({ name: '', amount: '', type: 'expense' as 'income' | 'expense', category: EXPENSE_CATS[0], dueDay: '1' })
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
   const [streak, setStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
@@ -142,6 +152,45 @@ export default function Financial() {
   const topExpenses = byCategory('expense').slice(0, 5)
   const incomeSources = byCategory('income')
 
+  // ── Analytics: net worth trend (cumulative running balance) ──
+  const sortedTx = [...data.transactions].sort((a, b) => a.date.localeCompare(b.date))
+  let running = 0
+  const netWorthSeries = sortedTx.map(t => {
+    running += t.type === 'income' ? t.amount : -t.amount
+    return running
+  })
+  const nwMin = Math.min(...netWorthSeries, 0)
+  const nwMax = Math.max(...netWorthSeries, 0)
+  const netWorthPoints = netWorthSeries.map((v, i) => {
+    const x = netWorthSeries.length > 1 ? (i / (netWorthSeries.length - 1)) * 100 : 50
+    const y = nwMax > nwMin ? 90 - ((v - nwMin) / (nwMax - nwMin)) * 80 : 50
+    return `${x},${y}`
+  }).join(' ')
+  const netWorthColor = (netWorthSeries[netWorthSeries.length - 1] ?? 0) >= 0 ? INCOME_COLOR : EXPENSE_COLOR
+
+  // ── Budgets: this month's spend per category ──────────────
+  const monthExpenses = data.transactions.filter(t => t.type === 'expense' && t.date.startsWith(currentMonth()))
+  const spentInCategory = (cat: string) => monthExpenses.filter(t => t.category === cat).reduce((s, t) => s + t.amount, 0)
+  const budgetFor = (cat: string) => data.budgets.find(b => b.category === cat)
+  const budgetAlerts = EXPENSE_CATS
+    .map(cat => ({ cat, budget: budgetFor(cat), spent: spentInCategory(cat) }))
+    .filter(b => b.budget && b.spent / b.budget!.monthlyLimit >= 0.8)
+    .map(b => ({ ...b, pct: Math.round((b.spent / b.budget!.monthlyLimit) * 100) }))
+
+  // ── Recurring bills ────────────────────────────────────────
+  const isRecurPaid = (r: FinancialData['recurring'][number]) => r.payments.some(p => p.month === currentMonth())
+  const isRecurOverdue = (r: FinancialData['recurring'][number]) => !isRecurPaid(r) && new Date().getDate() > r.dueDay
+  const activeRecurring = data.recurring.filter(r => r.active)
+  const nextBill = activeRecurring
+    .filter(r => !isRecurPaid(r))
+    .sort((a, b) => a.dueDay - b.dueDay)[0]
+
+  const applyXP = (xpGain: number, patch: Partial<FinancialData>, kind: 'log' | 'game' = 'log') => {
+    const before = data.character
+    setData(d => d ? { ...d, ...patch, character: addXP(before, xpGain) } : d)
+    runAward(before, xpGain, kind)
+  }
+
   // ── Actions ───────────────────────────────────────────────
   const handleAddTransaction = async () => {
     if (!form.amount || isNaN(Number(form.amount))) return
@@ -161,7 +210,6 @@ export default function Financial() {
       else                      xpGain = -20
     }
 
-    const newCharacter = addXP(data.character, xpGain)
     try {
       const tx = await dbAddTransaction(userId, {
         type: form.type,
@@ -170,8 +218,7 @@ export default function Financial() {
         description: form.description || form.category,
         date: todayStr(),
       })
-      setData(d => d ? { ...d, transactions: [tx, ...d.transactions], character: newCharacter } : d)
-      runAward(data.character, xpGain)
+      applyXP(xpGain, { transactions: [tx, ...data.transactions] })
       setForm(f => ({ ...f, amount: '', description: '' }))
       if (xpGain > 0) showToast(`+${xpGain} XP!`, true)
       else showToast(`${xpGain} XP. Watch your cashflow!`, false)
@@ -189,7 +236,6 @@ export default function Financial() {
     const before = data.character
     setData(d => d ? { ...d, character: addXP(before, xp) } : d)
     runAward(before, xp, 'game')
-    showToast(`+${xp} XP from game!`)
   }
 
   const handleClaimChallenge = (xp: number, title: string) => {
@@ -197,6 +243,67 @@ export default function Financial() {
     setData(d => d ? { ...d, character: addXP(before, xp) } : d)
     runAward(before, xp)
     showToast(`${title}: +${xp} XP!`)
+  }
+
+  // ── Budget actions ───────────────────────────────────────
+  const handleBudgetBlur = async (cat: string) => {
+    const raw = budgetInputs[cat]
+    if (raw === undefined) return
+    const val = Math.abs(Number(raw))
+    if (!raw || isNaN(val) || val === 0) {
+      if (budgetFor(cat)) {
+        setData(d => d ? { ...d, budgets: d.budgets.filter(b => b.category !== cat) } : d)
+        await dbDeleteBudget(userId, cat)
+      }
+      return
+    }
+    setData(d => d ? { ...d, budgets: [...d.budgets.filter(b => b.category !== cat), { category: cat, monthlyLimit: val }] } : d)
+    await dbSaveBudget(userId, cat, val)
+  }
+
+  // ── Recurring actions ────────────────────────────────────
+  const handleAddRecurring = async () => {
+    if (!recurForm.name || !recurForm.amount) return
+    try {
+      const item = await dbAddRecurring(userId, {
+        name: recurForm.name,
+        amount: Math.abs(Number(recurForm.amount)),
+        type: recurForm.type,
+        category: recurForm.category,
+        dueDay: Math.min(31, Math.max(1, Number(recurForm.dueDay) || 1)),
+      })
+      setData(d => d ? { ...d, recurring: [...d.recurring, item] } : d)
+      setRecurForm({ name: '', amount: '', type: 'expense', category: EXPENSE_CATS[0], dueDay: '1' })
+      showToast('Recurring bill added!')
+    } catch {
+      showToast('Failed to add recurring bill', false)
+    }
+  }
+
+  const handleDeleteRecurring = async (id: string) => {
+    setData(d => d ? { ...d, recurring: d.recurring.filter(r => r.id !== id) } : d)
+    await dbDeleteRecurring(id)
+  }
+
+  const handleMarkRecurringPaid = async (r: FinancialData['recurring'][number]) => {
+    const month = currentMonth()
+    const daysLate = new Date().getDate() - r.dueDay
+    const xpGain = daysLate <= 0 ? 25 : daysLate > 7 ? -5 : 10
+    try {
+      await dbSetRecurringPaid(r.id, userId, month, true, todayStr())
+      const tx = await dbAddTransaction(userId, {
+        type: r.type,
+        amount: r.amount,
+        category: r.category,
+        description: r.name,
+        date: todayStr(),
+      })
+      const nextRecurring = data.recurring.map(x => x.id === r.id ? { ...x, payments: [{ month, paidAt: todayStr() }, ...x.payments] } : x)
+      applyXP(xpGain, { recurring: nextRecurring, transactions: [tx, ...data.transactions] })
+      showToast(daysLate <= 0 ? `Paid on time! +${xpGain} XP!` : daysLate > 7 ? `${xpGain} XP. Over a week late.` : `Paid! +${xpGain} XP`, xpGain > 0)
+    } catch {
+      showToast('Failed to mark paid', false)
+    }
   }
 
   const cats     = form.type === 'income' ? INCOME_CATS : EXPENSE_CATS
@@ -267,18 +374,16 @@ export default function Financial() {
             ))}
           </div>
 
-          {/* Tabs — plain text, underline indicates active */}
-          <div className="flex mb-6 overflow-x-auto scrollbar-hidden gap-5" style={{ borderBottom: `1px solid ${INK}12` }}>
+          {/* Tabs — solid pill buttons, not underlined links */}
+          <div className="flex flex-wrap gap-2 mb-6">
             {MAIN_TABS.map(t => (
               <button
                 key={t.key}
                 onClick={() => setMainTab(t.key)}
-                className="pb-2.5 font-nunito text-sm whitespace-nowrap flex-shrink-0 transition-colors"
-                style={{
-                  color: mainTab === t.key ? INK : MUTED,
-                  fontWeight: mainTab === t.key ? 600 : 400,
-                  borderBottom: mainTab === t.key ? `2px solid ${ACCENT}` : '2px solid transparent',
-                }}
+                className="px-4 py-2 rounded-full font-nunito text-sm font-semibold transition-all"
+                style={mainTab === t.key
+                  ? { background: ACCENT, color: '#FFFFFF', boxShadow: `0 3px 10px ${ACCENT}50` }
+                  : { background: `${INK}08`, color: MUTED }}
               >
                 {t.label}
               </button>
@@ -288,6 +393,21 @@ export default function Financial() {
           {/* ── OVERVIEW ─────────────────────────────────────── */}
           {mainTab === 'overview' && (
             <div className="space-y-6 max-w-xl">
+
+              {(budgetAlerts.length > 0 || nextBill) && (
+                <div className="space-y-1">
+                  {budgetAlerts.map(a => (
+                    <div key={a.cat} className="font-nunito text-xs" style={{ color: a.pct >= 100 ? EXPENSE_COLOR : WARN_COLOR }}>
+                      {a.cat} is at {a.pct}% of its {formatRp(a.budget!.monthlyLimit)} budget
+                    </div>
+                  ))}
+                  {nextBill && (
+                    <div className="font-nunito text-xs" style={{ color: isRecurOverdue(nextBill) ? EXPENSE_COLOR : MUTED }}>
+                      {nextBill.name} {isRecurOverdue(nextBill) ? 'is overdue' : `due on day ${nextBill.dueDay}`}, {formatRp(nextBill.amount)}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Add transaction — the one panel on this tab, it's real input UI */}
               <Panel tone="tint" accent={ACCENT} className="p-5">
@@ -443,6 +563,133 @@ export default function Financial() {
             </div>
           )}
 
+          {/* ── BUDGETS ──────────────────────────────────────── */}
+          {mainTab === 'budgets' && (
+            <div className="space-y-10 max-w-xl">
+
+              <div>
+                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Category budgets</div>
+                <div className="font-nunito text-xs mb-4" style={{ color: MUTED }}>Set a monthly limit per category. Leave blank for no limit.</div>
+                <div className="space-y-4">
+                  {EXPENSE_CATS.map(cat => {
+                    const budget = budgetFor(cat)
+                    const spent = spentInCategory(cat)
+                    const pct = budget ? Math.min(100, (spent / budget.monthlyLimit) * 100) : 0
+                    const over = !!budget && spent > budget.monthlyLimit
+                    const near = !!budget && !over && pct >= 80
+                    const color = over ? EXPENSE_COLOR : near ? WARN_COLOR : ACCENT
+                    return (
+                      <div key={cat}>
+                        <div className="flex items-center justify-between gap-3 mb-1.5">
+                          <span className="font-nunito text-sm" style={{ color: INK }}>{cat}</span>
+                          <input
+                            type="number"
+                            placeholder="No limit"
+                            value={budgetInputs[cat] ?? (budget ? String(budget.monthlyLimit) : '')}
+                            onChange={e => setBudgetInputs(f => ({ ...f, [cat]: e.target.value }))}
+                            onBlur={() => handleBudgetBlur(cat)}
+                            className="w-32 px-2 py-1 rounded-lg font-nunito text-xs text-right outline-none"
+                            style={{ background: '#F0EEE8', color: INK }}
+                          />
+                        </div>
+                        {budget && (
+                          <>
+                            <NProgress pct={pct} accent={color} height={4} />
+                            <div className="flex justify-between font-nunito text-xs mt-1" style={{ color: over ? EXPENSE_COLOR : MUTED }}>
+                              <span>{formatRp(spent)} spent</span>
+                              <span>{over ? 'Over budget' : `of ${formatRp(budget.monthlyLimit)}`}</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Recurring bills</div>
+                <Panel tone="tint" accent={ACCENT} className="p-4 mb-4">
+                  <div className="flex gap-2 mb-2">
+                    {(['expense', 'income'] as const).map(t => (
+                      <button
+                        key={t}
+                        onClick={() => setRecurForm(f => ({ ...f, type: t, category: t === 'income' ? INCOME_CATS[0] : EXPENSE_CATS[0] }))}
+                        className="flex-1 py-1.5 rounded-full font-nunito text-xs font-semibold transition-colors"
+                        style={recurForm.type === t
+                          ? { background: t === 'income' ? INCOME_COLOR : EXPENSE_COLOR, color: '#FFFFFF' }
+                          : { background: 'transparent', color: MUTED }}
+                      >
+                        {t === 'income' ? 'Income' : 'Bill'}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <input
+                      type="text" placeholder="Name (e.g. Netflix)" value={recurForm.name}
+                      onChange={e => setRecurForm(f => ({ ...f, name: e.target.value }))}
+                      className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                      style={{ background: '#FFFFFF', color: INK }}
+                    />
+                    <input
+                      type="number" placeholder="Amount (Rp)" value={recurForm.amount}
+                      onChange={e => setRecurForm(f => ({ ...f, amount: e.target.value }))}
+                      className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                      style={{ background: '#FFFFFF', color: INK }}
+                    />
+                    <select
+                      value={recurForm.category}
+                      onChange={e => setRecurForm(f => ({ ...f, category: e.target.value }))}
+                      className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                      style={{ background: '#FFFFFF', color: INK }}
+                    >
+                      {(recurForm.type === 'income' ? INCOME_CATS : EXPENSE_CATS).map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <input
+                      type="number" min={1} max={31} placeholder="Due day (1-31)" value={recurForm.dueDay}
+                      onChange={e => setRecurForm(f => ({ ...f, dueDay: e.target.value }))}
+                      onKeyDown={e => e.key === 'Enter' && handleAddRecurring()}
+                      className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                      style={{ background: '#FFFFFF', color: INK }}
+                    />
+                  </div>
+                  <NButton onClick={handleAddRecurring} disabled={!recurForm.name || !recurForm.amount} accent={ACCENT} className="w-full">
+                    Add recurring
+                  </NButton>
+                </Panel>
+
+                {data.recurring.map((r, i) => {
+                  const paid = isRecurPaid(r)
+                  const overdue = isRecurOverdue(r)
+                  return (
+                    <div key={r.id} className="flex items-center gap-3 py-3" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-nunito font-medium text-sm truncate" style={{ color: overdue ? EXPENSE_COLOR : INK }}>
+                          {r.name}
+                        </div>
+                        <div className="font-nunito text-xs" style={{ color: MUTED }}>
+                          {r.type === 'income' ? '+' : '−'}{formatRp(r.amount)} · due day {r.dueDay} · {r.category}
+                        </div>
+                      </div>
+                      {paid ? (
+                        <span className="font-nunito text-xs flex-shrink-0" style={{ color: INCOME_COLOR }}>Paid this month</span>
+                      ) : (
+                        <button onClick={() => handleMarkRecurringPaid(r)} className="font-nunito text-xs flex-shrink-0" style={{ color: overdue ? EXPENSE_COLOR : ACCENT }}>
+                          Mark paid
+                        </button>
+                      )}
+                      <button onClick={() => handleDeleteRecurring(r.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
+                    </div>
+                  )
+                })}
+
+                {data.recurring.length === 0 && (
+                  <div className="font-nunito text-xs" style={{ color: MUTED }}>No recurring bills yet. Add rent, subscriptions, or a salary above.</div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* ── ANALYTICS ────────────────────────────────────── */}
           {mainTab === 'analytics' && (
             <div className="space-y-8 max-w-xl">
@@ -466,6 +713,24 @@ export default function Financial() {
                       </div>
                     ))}
                   </div>
+
+                  {netWorthSeries.length >= 2 && (
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>Net worth trend</div>
+                        <span className="font-nunito text-xs" style={{ color: MUTED }}>
+                          {formatRp(netWorthSeries[0])} → {formatRp(netWorthSeries[netWorthSeries.length - 1])}
+                        </span>
+                      </div>
+                      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full" style={{ height: 100 }}>
+                        <polyline points={netWorthPoints} fill="none" stroke={netWorthColor} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
+                      </svg>
+                      <div className="flex justify-between font-nunito text-[10px]" style={{ color: MUTED }}>
+                        <span>{sortedTx[0]?.date}</span>
+                        <span>{sortedTx[sortedTx.length - 1]?.date}</span>
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>
@@ -563,17 +828,15 @@ export default function Financial() {
           {/* ── GAMES ────────────────────────────────────────── */}
           {mainTab === 'games' && (
             <div className="max-w-xl">
-              <div className="flex items-center gap-5 mb-5" style={{ borderBottom: `1px solid ${INK}12` }}>
+              <div className="flex flex-wrap gap-2 mb-5">
                 {(['clicker', 'arcade', 'puzzle'] as GameTab[]).map(g => (
                   <button
                     key={g}
                     onClick={() => setGameTab(g)}
-                    className="pb-2.5 font-nunito text-sm transition-colors"
-                    style={{
-                      color: gameTab === g ? INK : MUTED,
-                      fontWeight: gameTab === g ? 600 : 400,
-                      borderBottom: gameTab === g ? `2px solid ${ACCENT}` : '2px solid transparent',
-                    }}
+                    className="px-4 py-2 rounded-full font-nunito text-sm font-semibold transition-all"
+                    style={gameTab === g
+                      ? { background: ACCENT, color: '#FFFFFF', boxShadow: `0 3px 10px ${ACCENT}50` }
+                      : { background: `${INK}08`, color: MUTED }}
                   >
                     {g === 'clicker' ? 'Clicker' : g === 'arcade' ? 'Arcade' : 'Puzzle'}
                   </button>
@@ -598,7 +861,16 @@ export default function Financial() {
                 <span style={{ color: MUTED }}>{savingsRate}% savings</span>
               </div>
             </div>
-            <div className="font-nunito text-xs leading-relaxed mt-4" style={{ color: MUTED }}>
+            {nextBill && (
+              <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${INK}0D` }}>
+                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Next bill</div>
+                <div className="font-nunito text-sm" style={{ color: INK }}>{nextBill.name}</div>
+                <div className="font-nunito text-xs" style={{ color: isRecurOverdue(nextBill) ? EXPENSE_COLOR : MUTED }}>
+                  {formatRp(nextBill.amount)} · {isRecurOverdue(nextBill) ? 'overdue' : `due day ${nextBill.dueDay}`}
+                </div>
+              </div>
+            )}
+            <div className="font-nunito text-xs leading-relaxed mt-4 pt-4" style={{ color: MUTED, borderTop: `1px solid ${INK}0D` }}>
               Healthier cashflow means faster pet growth. Keep savings above 20% for max XP.
             </div>
           </Panel>

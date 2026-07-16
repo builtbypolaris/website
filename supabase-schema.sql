@@ -40,6 +40,35 @@ create table if not exists public.transactions (
   created_at  timestamptz default now()
 );
 
+-- 3b. FINANCIAL BUDGETS + RECURRING BILLS
+create table if not exists public.financial_budgets (
+  user_id       uuid references auth.users(id) on delete cascade not null,
+  category      text not null,
+  monthly_limit numeric not null,
+  created_at    timestamptz default now(),
+  primary key (user_id, category)
+);
+
+create table if not exists public.financial_recurring (
+  id         uuid default gen_random_uuid() primary key,
+  user_id    uuid references auth.users(id) on delete cascade not null,
+  name       text not null,
+  amount     numeric not null,
+  type       text not null check (type in ('income', 'expense')),
+  category   text not null,
+  due_day    integer not null check (due_day between 1 and 31),
+  active     boolean default true not null,
+  created_at timestamptz default now()
+);
+
+create table if not exists public.financial_recurring_payments (
+  recurring_id uuid references public.financial_recurring(id) on delete cascade not null,
+  user_id      uuid references auth.users(id) on delete cascade not null,
+  month        text not null,
+  paid_at      date not null,
+  primary key (recurring_id, month)
+);
+
 -- 4. TASKS  (todo tracker)
 create table if not exists public.tasks (
   id           uuid default gen_random_uuid() primary key,
@@ -429,6 +458,9 @@ alter table public.pets             enable row level security;
 alter table public.pet_events       enable row level security;
 alter table public.pet_care_items   enable row level security;
 alter table public.pet_weights      enable row level security;
+alter table public.financial_budgets           enable row level security;
+alter table public.financial_recurring          enable row level security;
+alter table public.financial_recurring_payments enable row level security;
 alter table public.missions         enable row level security;
 alter table public.streaks          enable row level security;
 alter table public.achievements     enable row level security;
@@ -517,6 +549,12 @@ create policy "pet_events: own rows" on public.pet_events
 create policy "pet_care_items: own rows" on public.pet_care_items
   for all using (auth.uid() = user_id);
 create policy "pet_weights: own rows" on public.pet_weights
+  for all using (auth.uid() = user_id);
+create policy "financial_budgets: own rows" on public.financial_budgets
+  for all using (auth.uid() = user_id);
+create policy "financial_recurring: own rows" on public.financial_recurring
+  for all using (auth.uid() = user_id);
+create policy "financial_recurring_payments: own rows" on public.financial_recurring_payments
   for all using (auth.uid() = user_id);
 create policy "missions: own rows" on public.missions
   for all using (auth.uid() = user_id);
