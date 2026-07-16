@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { INK, hardShadow } from './ui'
+import { INK, MUTED, PAPER } from './ui'
 import type { Celebration } from '../lib/gamification'
 
 // ── Confetti (self-contained canvas burst, no deps) ──────────
@@ -66,56 +66,54 @@ function ConfettiBurst({ colors, onDone }: { colors: string[]; onDone: () => voi
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 9999 }} />
 }
 
-// ── Individual celebration cards ─────────────────────────────
+// ── Individual celebration toasts — flat accent fill, no border/rotation ──
 
-function cardBase(rotate: number): React.CSSProperties {
-  return {
-    background: '#FFFFFF',
-    border: `3px solid ${INK}`,
-    boxShadow: hardShadow(5),
-    transform: `rotate(${rotate}deg)`,
-  }
+function toastStyle(accent: string): React.CSSProperties {
+  return { background: accent, color: '#FFFFFF' }
 }
 
 function MissionCard({ c }: { c: Extract<Celebration, { type: 'mission' }> }) {
   return (
-    <div className="bounce-in rounded-2xl px-4 py-3 flex items-center gap-3" style={cardBase(-2)}>
-      <span className="text-3xl">🎯</span>
-      <div>
-        <div className="font-nunito font-black uppercase tracking-wide text-sm" style={{ color: INK }}>
-          Mission complete! +{c.bonusXP} XP
-        </div>
-        <div className="font-nunito font-bold text-xs" style={{ color: `${INK}99` }}>
-          {c.title}
-        </div>
-      </div>
+    <div className="bounce-in rounded-2xl px-4 py-3" style={toastStyle('#7C3AED')}>
+      <div className="font-nunito font-semibold text-sm">Mission complete, +{c.bonusXP} XP</div>
+      <div className="font-nunito text-xs text-white/80">{c.title}</div>
     </div>
   )
 }
 
 function StreakCard({ c }: { c: Extract<Celebration, { type: 'streak' }> }) {
   return (
-    <div className="bounce-in rounded-2xl px-4 py-3 flex items-center gap-3" style={cardBase(2)}>
-      <span className="text-3xl">🔥</span>
-      <div>
-        <div className="font-nunito font-black uppercase tracking-wide text-sm" style={{ color: INK }}>
-          {c.days}-day streak!
-        </div>
-        <div className="font-nunito font-bold text-xs" style={{ color: `${INK}99` }}>Bonus +{c.bonusXP} XP</div>
-      </div>
+    <div className="bounce-in rounded-2xl px-4 py-3" style={toastStyle('#EA580C')}>
+      <div className="font-nunito font-semibold text-sm">{c.days}-day streak</div>
+      <div className="font-nunito text-xs text-white/80">Bonus +{c.bonusXP} XP</div>
     </div>
   )
 }
 
 function BadgeCard({ c }: { c: Extract<Celebration, { type: 'badge' }> }) {
   return (
-    <div className="bounce-in rounded-2xl px-4 py-3 flex items-center gap-3" style={cardBase(-1.5)}>
-      <span className="text-3xl">{c.emoji}</span>
-      <div>
-        <div className="font-nunito font-black uppercase tracking-wide text-sm" style={{ color: INK }}>
-          Badge unlocked
-        </div>
-        <div className="font-nunito font-bold text-xs" style={{ color: `${INK}99` }}>{c.label}</div>
+    <div className="bounce-in rounded-2xl px-4 py-3" style={toastStyle('#0284C7')}>
+      <div className="font-nunito font-semibold text-sm">{c.emoji} Badge unlocked</div>
+      <div className="font-nunito text-xs text-white/80">{c.label}</div>
+    </div>
+  )
+}
+
+// ── Modals ─────────────────────────────────────────────────
+
+function ModalShell({ children, onClose }: { children: ReactNode; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 flex items-center justify-center p-6"
+      style={{ zIndex: 9998, background: 'rgba(20,18,27,0.75)' }}
+      onClick={onClose}
+    >
+      <div
+        className="bounce-in rounded-3xl px-8 py-10 text-center max-w-sm w-full"
+        style={{ background: PAPER }}
+        onClick={e => e.stopPropagation()}
+      >
+        {children}
       </div>
     </div>
   )
@@ -123,34 +121,21 @@ function BadgeCard({ c }: { c: Extract<Celebration, { type: 'badge' }> }) {
 
 function EvolveModal({ c, onClose }: { c: Extract<Celebration, { type: 'evolve' }>; onClose: () => void }) {
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center p-6"
-      style={{ zIndex: 9998, background: 'rgba(9,9,15,0.75)' }}
-      onClick={onClose}
-    >
-      <div
-        className="bounce-in rounded-3xl px-8 py-10 text-center max-w-sm w-full"
-        style={{ background: '#FFFFFF', border: `4px solid ${INK}`, boxShadow: hardShadow(8, c.accent) }}
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-center gap-4 mb-4">
-          <span className="text-4xl opacity-40">{c.fromEmoji}</span>
-          <span className="font-nunito font-black text-2xl" style={{ color: c.accent }}>→</span>
-          <span className="text-7xl animate-float">{c.toEmoji}</span>
-        </div>
-        <div className="font-nunito font-black uppercase tracking-widest text-xs mb-1" style={{ color: c.accent }}>
-          Evolution!
-        </div>
-        <div className="font-nunito font-black text-2xl mb-5" style={{ color: INK }}>{c.toName}</div>
-        <button
-          onClick={onClose}
-          className="font-nunito font-black uppercase tracking-wide text-sm px-6 py-3 rounded-xl active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all"
-          style={{ background: c.accent, color: '#FFFFFF', border: `3px solid ${INK}`, boxShadow: hardShadow(3) }}
-        >
-          Let's go!
-        </button>
+    <ModalShell onClose={onClose}>
+      <div className="flex items-center justify-center gap-3 mb-4">
+        <span className="text-4xl opacity-40">{c.fromEmoji}</span>
+        <span className="text-7xl animate-float">{c.toEmoji}</span>
       </div>
-    </div>
+      <div className="font-nunito text-xs mb-1" style={{ color: c.accent }}>Evolved</div>
+      <div className="font-nunito font-semibold text-2xl mb-6" style={{ color: INK }}>{c.toName}</div>
+      <button
+        onClick={onClose}
+        className="font-nunito font-semibold text-sm px-6 py-3 rounded-full transition-opacity hover:opacity-90"
+        style={{ background: c.accent, color: '#FFFFFF' }}
+      >
+        Let's go
+      </button>
+    </ModalShell>
   )
 }
 
@@ -159,37 +144,21 @@ function CrownModal({ c, onClose }: { c: Extract<Celebration, { type: 'crown' }>
     c.cause === 'environment' ? '1 plant will be planted 🌱'
     : c.cause === 'social' ? '1 person will receive help 💛'
     : 'Pick your cause on the Impact page to direct it'
-  const impactColor = c.cause === 'social' ? '#DB2777' : c.cause === 'environment' ? '#16A34A' : `${INK}99`
+  const impactColor = c.cause === 'social' ? '#DB2777' : c.cause === 'environment' ? '#16A34A' : MUTED
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center p-6"
-      style={{ zIndex: 9998, background: 'rgba(9,9,15,0.75)' }}
-      onClick={onClose}
-    >
-      <div
-        className="bounce-in rounded-3xl px-8 py-10 text-center max-w-sm w-full"
-        style={{ background: '#FFFFFF', border: `4px solid ${INK}`, boxShadow: hardShadow(8, '#F59E0B') }}
-        onClick={e => e.stopPropagation()}
+    <ModalShell onClose={onClose}>
+      <div className="text-7xl mb-4 animate-float">👑</div>
+      <div className="font-nunito text-xs mb-1" style={{ color: '#B45309' }}>Cycle {c.cycles} complete</div>
+      <div className="font-nunito font-semibold text-2xl mb-2" style={{ color: INK }}>Crown earned</div>
+      <div className="font-nunito text-sm mb-6" style={{ color: impactColor }}>{impact}</div>
+      <button
+        onClick={onClose}
+        className="font-nunito font-semibold text-sm px-6 py-3 rounded-full transition-opacity hover:opacity-90"
+        style={{ background: '#F59E0B', color: '#14121B' }}
       >
-        <div className="text-7xl mb-4 animate-float">👑</div>
-        <div className="font-nunito font-black uppercase tracking-widest text-xs mb-1" style={{ color: '#B45309' }}>
-          Cycle {c.cycles} complete
-        </div>
-        <div className="font-nunito font-black text-2xl mb-2" style={{ color: INK }}>
-          Crown earned!
-        </div>
-        <div className="font-nunito font-bold text-sm mb-6" style={{ color: impactColor }}>
-          {impact}
-        </div>
-        <button
-          onClick={onClose}
-          className="font-nunito font-black uppercase tracking-wide text-sm px-6 py-3 rounded-xl active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all"
-          style={{ background: '#F59E0B', color: '#09090F', border: `3px solid ${INK}`, boxShadow: hardShadow(3) }}
-        >
-          Next cycle!
-        </button>
-      </div>
-    </div>
+        Next cycle
+      </button>
+    </ModalShell>
   )
 }
 

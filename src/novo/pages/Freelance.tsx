@@ -19,6 +19,7 @@ import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { FREELANCE_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
+import { INK, MUTED, Panel, NButton, NProgress } from '../components/ui'
 import InboxZero from '../games/InboxZero'
 import GigJuggler from '../games/GigJuggler'
 import ScheduleFit from '../games/ScheduleFit'
@@ -28,12 +29,16 @@ type GameTab = 'clicker' | 'arcade' | 'puzzle'
 type MainTab = 'overview' | 'projects' | 'earnings' | 'pet' | 'games'
 
 const ACCENT = '#0284C7'
-const CARD_BG = '#FFFFFF'
-const CARD_BORDER = '#09090F'
-const INPUT_BG = '#F0EEE8'
 const GOOD_COLOR = '#16A34A'
+const WORK_LOG_XP_CAP = 5
 
-const WORK_LOG_XP_CAP = 5  // XP-earning work logs per day
+const MAIN_TABS: { key: MainTab; label: string }[] = [
+  { key: 'overview', label: 'Overview' },
+  { key: 'projects', label: 'Projects' },
+  { key: 'earnings', label: 'Earnings' },
+  { key: 'pet', label: 'Pet' },
+  { key: 'games', label: 'Games' },
+]
 
 function formatRp(n: number) { return 'Rp ' + n.toLocaleString('id-ID') }
 
@@ -66,7 +71,7 @@ export default function Freelance() {
     getWeekMissions(userId).then(setMissions)
   }, [userId])
 
-  // Idle-day happiness decay — guarded to once per tracker per day
+  // Idle-day happiness decay, guarded to once per tracker per day
   useEffect(() => {
     if (!userId || !data) return
     applyHappinessDecay(userId, 'freelance', data.character).then(c => {
@@ -83,7 +88,7 @@ export default function Freelance() {
   if (!data) {
     return (
       <div className="h-full flex items-center justify-center" style={{ background: '#F5F4F2' }}>
-        <div className="font-nunito text-[#09090F]/40 text-sm">Loading…</div>
+        <div className="font-nunito text-sm" style={{ color: MUTED }}>Loading…</div>
       </div>
     )
   }
@@ -174,9 +179,8 @@ export default function Freelance() {
       if (newStatus === 'done') {
         const late = !!project.deadline && project.deadline < todayStr()
         applyXP(late ? 10 : 30, { projects: nextProjects })
-        showToast(late ? '+10 XP. Shipped, but past the deadline' : '+30 XP, project shipped! 🚀')
+        showToast(late ? '+10 XP. Shipped, but past the deadline' : '+30 XP, project shipped!')
       } else {
-        // Re-opening takes back the ship reward (anti-farming)
         applyXP(-30, { projects: nextProjects })
         showToast('−30 XP, project reopened', false)
       }
@@ -209,7 +213,6 @@ export default function Freelance() {
     const project = projectById(logForm.projectId)
     const hours = logForm.hours ? Math.abs(Number(logForm.hours)) : undefined
     let amount = logForm.amount ? Math.abs(Number(logForm.amount)) : 0
-    // Hourly project + hours but no amount → derive it from the rate
     if (!amount && hours && project?.rateType === 'hourly') amount = hours * project.rate
     if (!amount) return
 
@@ -222,10 +225,10 @@ export default function Freelance() {
       })
       if (xpGain > 0) {
         applyXP(xpGain, { workLogs: [log, ...data.workLogs] })
-        showToast(firstToday ? `+${xpGain} XP (first log today!)` : `+${xpGain} XP!`)
+        showToast(firstToday ? `+${xpGain} XP, first log today!` : `+${xpGain} XP!`)
       } else {
         setData(d => d ? { ...d, workLogs: [log, ...d.workLogs] } : d)
-        showToast('Logged! (daily XP cap reached)')
+        showToast('Logged. Daily XP cap reached')
       }
       setLogForm(f => ({ ...f, hours: '', amount: '', note: '' }))
     } catch {
@@ -257,11 +260,11 @@ export default function Freelance() {
       happiness={data.character.happiness}
       prestige={data.character.prestige}
       onEvolution={s => showToast(`Evolved to ${s.name}!`, true)}
-      onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`, true)}
+      onPrestige={p => showToast(`Prestige ${p}! Pet reborn!`, true)}
     />
   )
 
-  const inputStyle = { background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }
+  const inputStyle = { background: '#FFFFFF', color: INK }
 
   const logsToday = data.workLogs.filter(l => l.date === todayStr())
   const dailyChallenges = [
@@ -272,14 +275,10 @@ export default function Freelance() {
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
-
       {layer}
 
       {toast && (
-        <div
-          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl font-nunito font-black text-white text-sm bounce-in"
-          style={{ background: toast.good ? '#16A34A' : '#DC2626', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-        >
+        <div className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-2xl font-nunito font-semibold text-white text-sm bounce-in" style={{ background: toast.good ? '#16A34A' : '#DC2626' }}>
           {toast.msg}
         </div>
       )}
@@ -289,60 +288,52 @@ export default function Freelance() {
         className="flex items-center justify-between px-4 md:px-6 py-3 sticky top-0 z-30 flex-shrink-0"
         style={{ background: 'rgba(245,244,242,0.97)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E5E4E2' }}
       >
-        <button
-          onClick={() => navigate('/studios/dashboard')}
-          className="w-8 h-8 flex items-center justify-center rounded-lg font-nunito text-[#09090F]/50 hover:text-[#09090F] hover:bg-black/5 transition"
-        >
-          ←
+        <button onClick={() => navigate('/studios/dashboard')} className="font-nunito text-sm transition-opacity hover:opacity-70" style={{ color: MUTED }}>
+          Back
         </button>
-        <div className="font-nunito font-black uppercase tracking-wide text-[#09090F] text-sm md:text-base flex items-center gap-2">💼 Freelance Hub <StreakBadge streak={streak} /></div>
-        <div className="hidden lg:flex items-center gap-1.5 text-xs font-nunito text-[#09090F]/50 bg-black/5 px-2.5 py-1.5 rounded-lg">
+        <div className="font-nunito font-semibold text-sm flex items-center gap-2" style={{ color: INK }}>
+          Freelance Hub <StreakBadge streak={streak} />
+        </div>
+        <div className="hidden lg:flex items-center gap-1.5 font-nunito text-xs" style={{ color: MUTED }}>
           <span>{petStage.emoji}</span>
           <span>{data.character.xp} XP</span>
         </div>
-        <div className="lg:hidden w-8" />
+        <div className="lg:hidden w-10" />
       </header>
 
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
 
-          {/* Mobile pet card */}
-          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-            <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
-            {petCard}
-          </div>
+          {/* Mobile pet, plain */}
+          <div className="lg:hidden mb-5">{petCard}</div>
 
-          {/* Metrics strip */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
+          {/* Metrics */}
+          <div className="flex flex-wrap gap-x-8 gap-y-3 mb-6">
             {[
               { label: 'This month', value: formatRp(monthEarnings), color: GOOD_COLOR },
               { label: 'Active projects', value: String(activeProjects.length), color: ACCENT },
-              { label: 'Clients', value: String(data.clients.length), color: '#09090F' },
-              { label: 'Next deadline', value: nextDeadline ? `${daysUntil(nextDeadline.deadline!)}d` : '—', color: nextDeadline && daysUntil(nextDeadline.deadline!) <= 3 ? '#DC2626' : '#09090F' },
+              { label: 'Clients', value: String(data.clients.length), color: INK },
+              { label: 'Next deadline', value: nextDeadline ? `${daysUntil(nextDeadline.deadline!)}d` : '—', color: nextDeadline && daysUntil(nextDeadline.deadline!) <= 3 ? '#DC2626' : INK },
             ].map(m => (
-              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                <div className="font-nunito font-black text-base md:text-xl mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
-                <div className="text-[10px] font-nunito font-black uppercase tracking-widest text-[#09090F]/45">{m.label}</div>
+              <div key={m.label}>
+                <div className="font-nunito font-bold text-lg md:text-xl leading-none" style={{ color: m.color }}>{m.value}</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{m.label}</div>
               </div>
             ))}
           </div>
 
           {/* Tabs */}
-          <div className="flex mb-5 overflow-x-auto scrollbar-hidden gap-1.5 py-1">
-            {([
-              { key: 'overview', label: '📊 Overview' },
-              { key: 'projects', label: '📁 Projects' },
-              { key: 'earnings', label: '💵 Earnings' },
-              { key: 'pet', label: '🐾 Pet' },
-              { key: 'games',    label: '🎮 Games' },
-            ] as { key: MainTab; label: string }[]).map(t => (
+          <div className="flex mb-6 overflow-x-auto scrollbar-hidden gap-5" style={{ borderBottom: `1px solid ${INK}12` }}>
+            {MAIN_TABS.map(t => (
               <button
                 key={t.key}
                 onClick={() => setMainTab(t.key)}
-                className="px-3 md:px-4 py-2 rounded-xl font-nunito text-sm transition whitespace-nowrap flex-shrink-0"
-                style={mainTab === t.key
-                  ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
-                  : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
+                className="pb-2.5 font-nunito text-sm whitespace-nowrap flex-shrink-0 transition-colors"
+                style={{
+                  color: mainTab === t.key ? INK : MUTED,
+                  fontWeight: mainTab === t.key ? 600 : 400,
+                  borderBottom: mainTab === t.key ? `2px solid ${ACCENT}` : '2px solid transparent',
+                }}
               >
                 {t.label}
               </button>
@@ -351,14 +342,14 @@ export default function Freelance() {
 
           {/* ── OVERVIEW ─────────────────────────────────────── */}
           {mainTab === 'overview' && (
-            <div className="space-y-4">
+            <div className="space-y-8 max-w-xl">
 
               {activeProjects.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Active Projects</div>
-                    <button onClick={() => setMainTab('projects')} className="text-xs font-nunito transition hover:opacity-70" style={{ color: ACCENT }}>
-                      Manage →
+                    <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>Active projects</div>
+                    <button onClick={() => setMainTab('projects')} className="font-nunito text-xs transition-opacity hover:opacity-70" style={{ color: ACCENT }}>
+                      Manage
                     </button>
                   </div>
                   <div className="space-y-2.5">
@@ -368,19 +359,14 @@ export default function Freelance() {
                       return (
                         <div key={p.id} className="flex items-center gap-3">
                           <div className="flex-1 min-w-0">
-                            <div className="font-nunito font-semibold text-sm text-[#09090F] truncate">{p.name}</div>
-                            <div className="text-xs text-[#09090F]/40 font-nunito">
+                            <div className="font-nunito text-sm truncate" style={{ color: INK }}>{p.name}</div>
+                            <div className="font-nunito text-xs" style={{ color: MUTED }}>
                               {clientById(p.clientId)?.name ?? 'No client'} · {p.rateType === 'hourly' ? `${formatRp(p.rate)}/h` : formatRp(p.rate)}
                             </div>
                           </div>
                           {days !== null && (
-                            <span
-                              className="font-nunito font-bold text-xs px-2.5 py-1 rounded-full flex-shrink-0"
-                              style={urgent
-                                ? { background: '#FEE2E2', color: '#DC2626' }
-                                : { background: ACCENT + '15', color: ACCENT }}
-                            >
-                              {days < 0 ? 'Overdue!' : days === 0 ? 'Due today!' : `${days}d left`}
+                            <span className="font-nunito text-xs flex-shrink-0" style={{ color: urgent ? '#DC2626' : ACCENT }}>
+                              {days < 0 ? 'Overdue' : days === 0 ? 'Due today' : `${days}d left`}
                             </span>
                           )}
                         </div>
@@ -391,25 +377,23 @@ export default function Freelance() {
               )}
 
               {recentLogs.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Recent Work</div>
-                    <button onClick={() => setMainTab('earnings')} className="text-xs font-nunito transition hover:opacity-70" style={{ color: ACCENT }}>
-                      See all →
+                    <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>Recent work</div>
+                    <button onClick={() => setMainTab('earnings')} className="font-nunito text-xs transition-opacity hover:opacity-70" style={{ color: ACCENT }}>
+                      See all
                     </button>
                   </div>
                   <div className="space-y-2.5">
                     {recentLogs.map(w => (
                       <div key={w.id} className="flex items-center gap-3">
                         <div className="flex-1 min-w-0">
-                          <div className="font-nunito text-sm text-[#09090F] truncate">
+                          <div className="font-nunito text-sm truncate" style={{ color: INK }}>
                             {projectById(w.projectId)?.name ?? 'Unknown'}{w.note ? ` · ${w.note}` : ''}
                           </div>
-                          <div className="text-xs text-[#09090F]/40 font-nunito">{w.date}{w.hours ? ` · ${w.hours}h` : ''}</div>
+                          <div className="font-nunito text-xs" style={{ color: MUTED }}>{w.date}{w.hours ? ` · ${w.hours}h` : ''}</div>
                         </div>
-                        <span className="font-nunito font-semibold text-sm flex-shrink-0" style={{ color: GOOD_COLOR }}>
-                          +{formatRp(w.amount)}
-                        </span>
+                        <span className="font-nunito font-medium text-sm flex-shrink-0" style={{ color: GOOD_COLOR }}>+{formatRp(w.amount)}</span>
                       </div>
                     ))}
                   </div>
@@ -417,10 +401,9 @@ export default function Freelance() {
               )}
 
               {data.clients.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-5xl mb-3">💼</div>
-                  <div className="font-nunito font-semibold text-[#09090F] mb-1">Welcome to your hub</div>
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Add your first client in the Projects tab to get rolling</div>
+                <div className="py-10 text-center">
+                  <div className="font-nunito text-sm" style={{ color: INK }}>Welcome to your hub</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Add your first client in the Projects tab to get rolling</div>
                 </div>
               )}
             </div>
@@ -428,46 +411,35 @@ export default function Freelance() {
 
           {/* ── PROJECTS ─────────────────────────────────────── */}
           {mainTab === 'projects' && (
-            <div className="space-y-4">
+            <div className="max-w-xl">
 
-              {/* Add client */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>New Client</div>
+              <Panel tone="tint" accent={ACCENT} className="p-4 mb-4">
                 <div className="flex gap-2">
                   <input
                     type="text" placeholder="Client name" value={clientForm.name}
                     onChange={e => setClientForm(f => ({ ...f, name: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleAddClient()}
-                    className="flex-1 px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
+                    className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                     style={inputStyle}
                   />
                   <input
                     type="text" placeholder="Contact (optional)" value={clientForm.contact}
                     onChange={e => setClientForm(f => ({ ...f, contact: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleAddClient()}
-                    className="flex-1 px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
+                    className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                     style={inputStyle}
                   />
-                  <button
-                    onClick={handleAddClient}
-                    disabled={!clientForm.name}
-                    className="px-5 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                    style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-                  >
-                    Add
-                  </button>
+                  <NButton onClick={handleAddClient} disabled={!clientForm.name} accent={ACCENT}>Add</NButton>
                 </div>
-              </div>
+              </Panel>
 
-              {/* Add project */}
               {data.clients.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>New Project</div>
+                <Panel tone="tint" accent={ACCENT} className="p-4 mb-4">
                   <div className="grid grid-cols-2 gap-2 mb-2">
                     <select
                       value={projectForm.clientId}
                       onChange={e => setProjectForm(f => ({ ...f, clientId: e.target.value }))}
-                      className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none"
+                      className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                       style={inputStyle}
                     >
                       <option value="">Client…</option>
@@ -476,20 +448,20 @@ export default function Freelance() {
                     <input
                       type="text" placeholder="Project name" value={projectForm.name}
                       onChange={e => setProjectForm(f => ({ ...f, name: e.target.value }))}
-                      className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
+                      className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                       style={inputStyle}
                     />
                     <input
                       type="date" value={projectForm.deadline}
                       onChange={e => setProjectForm(f => ({ ...f, deadline: e.target.value }))}
-                      className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none"
+                      className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                       style={inputStyle}
                     />
                     <div className="flex gap-2">
                       <select
                         value={projectForm.rateType}
                         onChange={e => setProjectForm(f => ({ ...f, rateType: e.target.value as RateType }))}
-                        className="px-2 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none"
+                        className="px-2 py-2.5 rounded-xl font-nunito text-sm outline-none"
                         style={inputStyle}
                       >
                         <option value="fixed">Fixed</option>
@@ -500,73 +472,54 @@ export default function Freelance() {
                         value={projectForm.rate}
                         onChange={e => setProjectForm(f => ({ ...f, rate: e.target.value }))}
                         onKeyDown={e => e.key === 'Enter' && handleAddProject()}
-                        className="flex-1 min-w-0 px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
+                        className="flex-1 min-w-0 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                         style={inputStyle}
                       />
                     </div>
                   </div>
-                  <button
-                    onClick={handleAddProject}
-                    disabled={!projectForm.clientId || !projectForm.name}
-                    className="w-full py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                    style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-                  >
-                    Create Project
-                  </button>
-                </div>
+                  <NButton onClick={handleAddProject} disabled={!projectForm.clientId || !projectForm.name} accent={ACCENT} className="w-full">
+                    Create project
+                  </NButton>
+                </Panel>
               )}
 
-              {/* Project list */}
-              {data.projects.map(p => {
+              {data.projects.map((p, i) => {
                 const done = p.status === 'done'
                 return (
-                  <div key={p.id} className="px-4 py-3 rounded-xl flex items-center gap-3" style={{ background: CARD_BG, border: `3px solid ${done ? GOOD_COLOR + '60' : CARD_BORDER}` }}>
+                  <div key={p.id} className="flex items-center gap-3 py-3" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
                     <button
                       onClick={() => handleToggleProjectDone(p.id)}
-                      className="w-6 h-6 rounded-md flex items-center justify-center text-xs flex-shrink-0 transition"
-                      style={done
-                        ? { background: GOOD_COLOR, color: '#fff' }
-                        : { background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0 transition-colors"
+                      style={{ background: done ? GOOD_COLOR : `${INK}08`, color: done ? '#fff' : 'inherit' }}
                     >
                       {done ? '✓' : ''}
                     </button>
                     <div className="flex-1 min-w-0">
-                      <div className={`font-nunito font-semibold text-sm truncate ${done ? 'line-through text-[#09090F]/40' : 'text-[#09090F]'}`}>{p.name}</div>
-                      <div className="text-xs text-[#09090F]/50 font-nunito">
+                      <div className="font-nunito font-medium text-sm truncate" style={{ color: INK, textDecoration: done ? 'line-through' : 'none', opacity: done ? 0.5 : 1 }}>{p.name}</div>
+                      <div className="font-nunito text-xs" style={{ color: MUTED }}>
                         {clientById(p.clientId)?.name ?? 'No client'} · {p.rateType === 'hourly' ? `${formatRp(p.rate)}/h` : formatRp(p.rate)}
                         {p.deadline ? ` · due ${p.deadline}` : ''}
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleDeleteProject(p.id)}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg text-[#09090F]/30 hover:text-red-500 hover:bg-red-50 transition flex-shrink-0"
-                    >
-                      ✕
-                    </button>
+                    <button onClick={() => handleDeleteProject(p.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
                   </div>
                 )
               })}
 
-              {/* Client list */}
               {data.clients.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Clients</div>
+                <div className="mt-6">
+                  <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Clients</div>
                   <div className="space-y-2">
                     {data.clients.map(c => (
                       <div key={c.id} className="flex items-center gap-3">
                         <div className="flex-1 min-w-0">
-                          <span className="font-nunito font-semibold text-sm text-[#09090F]">{c.name}</span>
-                          {c.contact && <span className="font-nunito text-xs text-[#09090F]/40 ml-2">{c.contact}</span>}
+                          <span className="font-nunito text-sm" style={{ color: INK }}>{c.name}</span>
+                          {c.contact && <span className="font-nunito text-xs ml-2" style={{ color: MUTED }}>{c.contact}</span>}
                         </div>
-                        <span className="font-nunito text-xs text-[#09090F]/40 flex-shrink-0">
+                        <span className="font-nunito text-xs flex-shrink-0" style={{ color: MUTED }}>
                           {data.projects.filter(p => p.clientId === c.id).length} projects
                         </span>
-                        <button
-                          onClick={() => handleDeleteClient(c.id)}
-                          className="w-6 h-6 flex items-center justify-center rounded-lg text-[#09090F]/30 hover:text-red-500 hover:bg-red-50 transition flex-shrink-0"
-                        >
-                          ✕
-                        </button>
+                        <button onClick={() => handleDeleteClient(c.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
                       </div>
                     ))}
                   </div>
@@ -577,20 +530,18 @@ export default function Freelance() {
 
           {/* ── EARNINGS ─────────────────────────────────────── */}
           {mainTab === 'earnings' && (
-            <div className="space-y-4">
+            <div className="max-w-xl">
 
-              {/* Log work */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Log Work</div>
+              <Panel tone="tint" accent={ACCENT} className="p-4 mb-5">
                 {activeProjects.length === 0 ? (
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Add an active project first in the Projects tab.</div>
+                  <div className="font-nunito text-xs" style={{ color: MUTED }}>Add an active project first in the Projects tab.</div>
                 ) : (
                   <>
                     <div className="grid grid-cols-3 gap-2 mb-2">
                       <select
                         value={logForm.projectId}
                         onChange={e => setLogForm(f => ({ ...f, projectId: e.target.value }))}
-                        className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none col-span-3 md:col-span-1"
+                        className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none col-span-3 md:col-span-1"
                         style={inputStyle}
                       >
                         <option value="">Project…</option>
@@ -599,14 +550,14 @@ export default function Freelance() {
                       <input
                         type="number" placeholder="Hours (opt.)" value={logForm.hours}
                         onChange={e => setLogForm(f => ({ ...f, hours: e.target.value }))}
-                        className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
+                        className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                         style={inputStyle}
                       />
                       <input
                         type="number" placeholder="Earned (Rp)" value={logForm.amount}
                         onChange={e => setLogForm(f => ({ ...f, amount: e.target.value }))}
                         onKeyDown={e => e.key === 'Enter' && handleAddWorkLog()}
-                        className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
+                        className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                         style={inputStyle}
                       />
                     </div>
@@ -615,78 +566,58 @@ export default function Freelance() {
                         type="text" placeholder="Note (optional)" value={logForm.note}
                         onChange={e => setLogForm(f => ({ ...f, note: e.target.value }))}
                         onKeyDown={e => e.key === 'Enter' && handleAddWorkLog()}
-                        className="flex-1 px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
+                        className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                         style={inputStyle}
                       />
-                      <button
-                        onClick={handleAddWorkLog}
-                        disabled={!logForm.projectId || (!logForm.amount && !logForm.hours)}
-                        className="px-5 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                        style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-                      >
-                        Log
-                      </button>
+                      <NButton onClick={handleAddWorkLog} disabled={!logForm.projectId || (!logForm.amount && !logForm.hours)} accent={ACCENT}>Log</NButton>
                     </div>
-                    <div className="text-xs text-[#09090F]/30 font-nunito mt-2">
-                      Hourly project + hours = amount auto-calculated from the rate.
+                    <div className="font-nunito text-xs mt-2" style={{ color: MUTED }}>
+                      Hourly project + hours means the amount is auto-calculated from the rate.
                     </div>
                   </>
                 )}
-              </div>
+              </Panel>
 
-              {/* Per-client earnings */}
               {earningsByClient.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Earnings by Client</div>
+                <div className="mb-6">
+                  <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Earnings by client</div>
                   <div className="space-y-3">
                     {earningsByClient.map(({ client, total }) => (
                       <div key={client.id}>
-                        <div className="flex justify-between text-xs font-nunito mb-1.5">
-                          <span className="font-semibold text-[#09090F]">{client.name}</span>
-                          <span className="text-[#09090F]/60">{formatRp(total)}</span>
+                        <div className="flex justify-between font-nunito text-xs mb-1.5">
+                          <span style={{ color: INK }}>{client.name}</span>
+                          <span style={{ color: MUTED }}>{formatRp(total)}</span>
                         </div>
-                        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#E5E4E2' }}>
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{ width: `${(total / maxClientEarnings) * 100}%`, background: ACCENT + '99' }}
-                          />
-                        </div>
+                        <NProgress pct={(total / maxClientEarnings) * 100} accent={ACCENT} height={4} />
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Log list */}
-              {data.workLogs.map(w => (
-                <div key={w.id} className="px-4 py-3 rounded-xl flex items-center gap-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+              {data.workLogs.map((w, i) => (
+                <div key={w.id} className="flex items-center gap-3 py-3" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
                   <div className="flex-1 min-w-0">
-                    <div className="font-nunito font-semibold text-sm text-[#09090F] truncate">
+                    <div className="font-nunito font-medium text-sm truncate" style={{ color: INK }}>
                       {projectById(w.projectId)?.name ?? 'Unknown'}{w.note ? ` · ${w.note}` : ''}
                     </div>
-                    <div className="text-xs text-[#09090F]/50 font-nunito">{w.date}{w.hours ? ` · ${w.hours}h` : ''}</div>
+                    <div className="font-nunito text-xs" style={{ color: MUTED }}>{w.date}{w.hours ? ` · ${w.hours}h` : ''}</div>
                   </div>
-                  <span className="font-nunito font-bold text-sm flex-shrink-0" style={{ color: GOOD_COLOR }}>+{formatRp(w.amount)}</span>
-                  <button
-                    onClick={() => handleDeleteWorkLog(w.id)}
-                    className="w-7 h-7 flex items-center justify-center rounded-lg text-[#09090F]/30 hover:text-red-500 hover:bg-red-50 transition flex-shrink-0"
-                  >
-                    ✕
-                  </button>
+                  <span className="font-nunito font-semibold text-sm flex-shrink-0" style={{ color: GOOD_COLOR }}>+{formatRp(w.amount)}</span>
+                  <button onClick={() => handleDeleteWorkLog(w.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
                 </div>
               ))}
 
               {data.workLogs.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-5xl mb-3">💵</div>
-                  <div className="font-nunito font-semibold text-[#09090F] mb-1">No work logged yet</div>
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Log your first session above, every log feeds your pet!</div>
+                <div className="py-10 text-center">
+                  <div className="font-nunito text-sm" style={{ color: INK }}>No work logged yet</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Log your first session above, every log feeds your pet</div>
                 </div>
               )}
             </div>
           )}
 
-          {/* ── GAMES ────────────────────────────────────────── */}
+          {/* ── PET ──────────────────────────────────────────── */}
           {mainTab === 'pet' && (
             <div className="space-y-4 max-w-2xl">
               <DailyChallenges trackerId="freelance" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
@@ -703,22 +634,20 @@ export default function Freelance() {
           )}
 
           {mainTab === 'games' && (
-            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
-                <span className="text-xs text-[#09090F]/50 font-nunito">XP → Freelance Pet</span>
-              </div>
-              <div className="flex gap-1.5 mb-5 p-1 rounded-xl" style={{ background: INPUT_BG }}>
+            <div className="max-w-xl">
+              <div className="flex items-center gap-5 mb-5" style={{ borderBottom: `1px solid ${INK}12` }}>
                 {(['clicker', 'arcade', 'puzzle'] as GameTab[]).map(g => (
                   <button
                     key={g}
                     onClick={() => setGameTab(g)}
-                    className="flex-1 py-2 rounded-lg font-nunito text-sm transition"
-                    style={gameTab === g
-                      ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '2px 2px 0 #09090F' }
-                      : { color: 'rgba(9,9,15,0.4)' }}
+                    className="pb-2.5 font-nunito text-sm transition-colors"
+                    style={{
+                      color: gameTab === g ? INK : MUTED,
+                      fontWeight: gameTab === g ? 600 : 400,
+                      borderBottom: gameTab === g ? `2px solid ${ACCENT}` : '2px solid transparent',
+                    }}
                   >
-                    {g === 'clicker' ? '👆 Clicker' : g === 'arcade' ? '🕹️ Arcade' : '🧩 Puzzle'}
+                    {g === 'clicker' ? 'Clicker' : g === 'arcade' ? 'Arcade' : 'Puzzle'}
                   </button>
                 ))}
               </div>
@@ -729,27 +658,21 @@ export default function Freelance() {
           )}
         </div>
 
-        {/* RIGHT PANEL — desktop only */}
-        <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${CARD_BORDER}`, background: '#F5F4F2' }}>
-          <div className="p-6 space-y-4">
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
-              {petCard}
-            </div>
+        {/* RIGHT PANEL, desktop only */}
+        <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${INK}0D`, background: '#F5F4F2' }}>
+          <Panel tone="tint" accent={ACCENT} className="m-6 p-5">
+            {petCard}
             {nextDeadline && (
-              <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Next Deadline</div>
-                <div className="font-nunito font-semibold text-sm text-[#09090F]">{nextDeadline.name}</div>
-                <div className="text-xs text-[#09090F]/50 font-nunito">
-                  {nextDeadline.deadline} · {daysUntil(nextDeadline.deadline!)} days left
-                </div>
+              <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${INK}0D` }}>
+                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Next deadline</div>
+                <div className="font-nunito text-sm" style={{ color: INK }}>{nextDeadline.name}</div>
+                <div className="font-nunito text-xs" style={{ color: MUTED }}>{nextDeadline.deadline} · {daysUntil(nextDeadline.deadline!)} days left</div>
               </div>
             )}
-            <div className="rounded-xl p-3 text-xs font-nunito leading-relaxed" style={{ background: '#E0F2FE', border: '1px solid #BAE6FD' }}>
-              <strong className="text-sky-700">Pet tip:</strong>{' '}
-              <span className="text-sky-800">Work logs earn +10 XP (first 5 per day), the day's first log +15 bonus, and shipping a project +30!</span>
+            <div className="font-nunito text-xs leading-relaxed mt-4 pt-4" style={{ color: MUTED, borderTop: `1px solid ${INK}0D` }}>
+              Work logs earn +10 XP, up to 5 per day, the day's first log adds +15, and shipping a project earns +30.
             </div>
-          </div>
+          </Panel>
         </aside>
       </div>
     </div>

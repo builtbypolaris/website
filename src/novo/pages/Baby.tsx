@@ -20,6 +20,7 @@ import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { BABY_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
+import { INK, MUTED, Panel, NButton } from '../components/ui'
 import LullabyKeys from '../games/LullabyKeys'
 import BubbleBath from '../games/BubbleBath'
 import BlockStacker from '../games/BlockStacker'
@@ -34,22 +35,26 @@ const EVENT_META: { key: BabyEventType; emoji: string; label: string }[] = [
   { key: 'pumping',     emoji: '🤱', label: 'Pump' },
 ]
 
-const EVENT_XP_CAP = 10  // XP-earning events per day
+const EVENT_XP_CAP = 10
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
 type MainTab = 'today' | 'history' | 'growth' | 'pet' | 'games'
 
 const ACCENT = '#A21CAF'
-const CARD_BG = '#FFFFFF'
-const CARD_BORDER = '#09090F'
-const INPUT_BG = '#F0EEE8'
+const MAIN_TABS: { key: MainTab; label: string }[] = [
+  { key: 'today', label: 'Today' },
+  { key: 'history', label: 'History' },
+  { key: 'growth', label: 'Growth' },
+  { key: 'pet', label: 'Pet' },
+  { key: 'games', label: 'Games' },
+]
 
 function eventMeta(type: BabyEventType) { return EVENT_META.find(m => m.key === type)! }
 function eventTime(e: BabyEvent) { return new Date(e.eventAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) }
 
 function babyAge(birthdate: string): string {
   const days = Math.floor((Date.now() - new Date(birthdate).getTime()) / 86400000)
-  if (days < 0) return 'soon!'
+  if (days < 0) return 'soon'
   if (days < 60) return `${days}d`
   if (days < 730) return `${Math.floor(days / 30.44)}mo`
   return `${Math.floor(days / 365.25)}y`
@@ -97,7 +102,7 @@ export default function Baby() {
     })
   }, [userId])
 
-  // Idle-day happiness decay — guarded to once per tracker per day
+  // Idle-day happiness decay, guarded to once per tracker per day
   useEffect(() => {
     if (!userId || !data) return
     applyHappinessDecay(userId, 'baby', data.character).then(c => {
@@ -114,7 +119,7 @@ export default function Baby() {
   if (!data) {
     return (
       <div className="h-full flex items-center justify-center" style={{ background: '#F5F4F2' }}>
-        <div className="font-nunito text-[#09090F]/40 text-sm">Loading…</div>
+        <div className="font-nunito text-sm" style={{ color: MUTED }}>Loading…</div>
       </div>
     )
   }
@@ -126,7 +131,6 @@ export default function Baby() {
   const feedsToday = todayEvents.filter(e => e.eventType === 'feeding').length
   const diapersToday = todayEvents.filter(e => e.eventType === 'diaper').length
 
-  // Sleep today: paired sleep_start → sleep_end intervals touching today
   const chronological = [...babyEvents].sort((a, b) => a.eventAt.localeCompare(b.eventAt))
   let sleepMs = 0
   let sleepStart: string | null = null
@@ -170,7 +174,7 @@ export default function Baby() {
       setSelectedBabyId(newBaby.id)
       setBabyForm({ name: '', emoji: BABY_EMOJIS[0], birthdate: '' })
       setShowBabyForm(false)
-      showToast(`Welcome, ${newBaby.name}! 💕`)
+      showToast(`Welcome, ${newBaby.name}!`)
     } catch {
       showToast('Failed to add baby', false)
     }
@@ -200,7 +204,7 @@ export default function Baby() {
         showToast(`${eventMeta(type).emoji} +${xpGain} XP!`)
       } else {
         setData(d => d ? { ...d, events: [event, ...d.events] } : d)
-        showToast(`${eventMeta(type).emoji} Logged! (daily XP cap reached)`)
+        showToast(`${eventMeta(type).emoji} Logged. Daily XP cap reached`)
       }
       setEventNote('')
     } catch {
@@ -222,7 +226,7 @@ export default function Baby() {
       const entry = await dbAddGrowth(userId, { babyId: baby.id, date: today, weightKg, heightCm })
       applyXP(15, { growth: [...data.growth, entry] })
       setGrowthForm({ weight: '', height: '' })
-      showToast('+15 XP, growing strong! 🌱')
+      showToast('+15 XP, growing strong!')
     } catch {
       showToast('Failed to log growth', false)
     }
@@ -239,7 +243,7 @@ export default function Baby() {
       const milestone = await dbAddMilestone(userId, { babyId: baby.id, title: milestoneForm, date: today })
       applyXP(25, { milestones: [milestone, ...data.milestones] })
       setMilestoneForm('')
-      showToast('+25 XP, milestone unlocked! 🎉')
+      showToast('+25 XP, milestone unlocked!')
     } catch {
       showToast('Failed to add milestone', false)
     }
@@ -260,7 +264,6 @@ export default function Baby() {
     showToast(`${title}: +${xp} XP!`)
   }
 
-  // Events grouped by day for history
   const eventDays = [...new Set(babyEvents.map(e => e.eventAt.slice(0, 10)))].sort((a, b) => b.localeCompare(a)).slice(0, 14)
 
   const babySelector = data.babies.length > 0 && (
@@ -269,19 +272,13 @@ export default function Baby() {
         <button
           key={b.id}
           onClick={() => setSelectedBabyId(b.id)}
-          className="px-3 py-1.5 rounded-full font-nunito text-xs font-semibold transition flex items-center gap-1.5"
-          style={selectedBabyId === b.id
-            ? { background: ACCENT + '18', color: ACCENT, border: `3px solid ${ACCENT}` }
-            : { background: INPUT_BG, color: 'rgba(9,9,15,0.45)', border: `3px solid ${CARD_BORDER}` }}
+          className="px-3 py-1.5 rounded-full font-nunito text-xs transition-colors flex items-center gap-1.5"
+          style={selectedBabyId === b.id ? { background: ACCENT, color: '#FFFFFF' } : { background: `${INK}08`, color: MUTED }}
         >
           {b.emoji} {b.name} · {babyAge(b.birthdate)}
         </button>
       ))}
-      <button
-        onClick={() => setShowBabyForm(s => !s)}
-        className="px-3 py-1.5 rounded-full font-nunito text-xs font-semibold transition"
-        style={{ background: INPUT_BG, color: 'rgba(9,9,15,0.45)', border: `1px dashed ${CARD_BORDER}` }}
-      >
+      <button onClick={() => setShowBabyForm(s => !s)} className="px-3 py-1.5 rounded-full font-nunito text-xs" style={{ color: MUTED }}>
         + Add
       </button>
     </div>
@@ -294,11 +291,11 @@ export default function Baby() {
       happiness={data.character.happiness}
       prestige={data.character.prestige}
       onEvolution={s => showToast(`Evolved to ${s.name}!`, true)}
-      onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`, true)}
+      onPrestige={p => showToast(`Prestige ${p}! Pet reborn!`, true)}
     />
   )
 
-  const inputStyle = { background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }
+  const inputStyle = { background: '#FFFFFF', color: INK }
 
   const babyEventsToday = data.events.filter(e => e.eventAt.startsWith(todayStr()))
   const dailyChallenges = [
@@ -309,14 +306,10 @@ export default function Baby() {
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
-
       {layer}
 
       {toast && (
-        <div
-          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl font-nunito font-black text-white text-sm bounce-in"
-          style={{ background: toast.good ? '#16A34A' : '#DC2626', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-        >
+        <div className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-2xl font-nunito font-semibold text-white text-sm bounce-in" style={{ background: toast.good ? '#16A34A' : '#DC2626' }}>
           {toast.msg}
         </div>
       )}
@@ -326,60 +319,52 @@ export default function Baby() {
         className="flex items-center justify-between px-4 md:px-6 py-3 sticky top-0 z-30 flex-shrink-0"
         style={{ background: 'rgba(245,244,242,0.97)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E5E4E2' }}
       >
-        <button
-          onClick={() => navigate('/studios/dashboard')}
-          className="w-8 h-8 flex items-center justify-center rounded-lg font-nunito text-[#09090F]/50 hover:text-[#09090F] hover:bg-black/5 transition"
-        >
-          ←
+        <button onClick={() => navigate('/studios/dashboard')} className="font-nunito text-sm transition-opacity hover:opacity-70" style={{ color: MUTED }}>
+          Back
         </button>
-        <div className="font-nunito font-black uppercase tracking-wide text-[#09090F] text-sm md:text-base flex items-center gap-2">👶 Baby Tracker <StreakBadge streak={streak} /></div>
-        <div className="hidden lg:flex items-center gap-1.5 text-xs font-nunito text-[#09090F]/50 bg-black/5 px-2.5 py-1.5 rounded-lg">
+        <div className="font-nunito font-semibold text-sm flex items-center gap-2" style={{ color: INK }}>
+          Baby <StreakBadge streak={streak} />
+        </div>
+        <div className="hidden lg:flex items-center gap-1.5 font-nunito text-xs" style={{ color: MUTED }}>
           <span>{petStage.emoji}</span>
           <span>{data.character.xp} XP</span>
         </div>
-        <div className="lg:hidden w-8" />
+        <div className="lg:hidden w-10" />
       </header>
 
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
 
-          {/* Mobile pet card */}
-          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-            <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
-            {petCard}
-          </div>
+          {/* Mobile pet, plain */}
+          <div className="lg:hidden mb-5">{petCard}</div>
 
-          {/* Metrics strip */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
+          {/* Metrics */}
+          <div className="flex flex-wrap gap-x-8 gap-y-3 mb-6">
             {[
-              { label: 'Feeds today', value: `${feedsToday} 🍼`, color: ACCENT },
-              { label: 'Sleep today', value: `${(sleepMs / 3600000).toFixed(1)}h${isAsleep ? ' 😴' : ''}`, color: '#0284C7' },
-              { label: 'Diapers today', value: `${diapersToday} 🧷`, color: '#D97706' },
-              { label: 'Age', value: baby ? babyAge(baby.birthdate) : '—', color: '#09090F' },
+              { label: 'Feeds today', value: String(feedsToday), color: ACCENT },
+              { label: 'Sleep today', value: `${(sleepMs / 3600000).toFixed(1)}h${isAsleep ? ', asleep' : ''}`, color: '#0284C7' },
+              { label: 'Diapers today', value: String(diapersToday), color: '#D97706' },
+              { label: 'Age', value: baby ? babyAge(baby.birthdate) : '—', color: INK },
             ].map(m => (
-              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                <div className="font-nunito font-black text-base md:text-xl mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
-                <div className="text-[10px] font-nunito font-black uppercase tracking-widest text-[#09090F]/45">{m.label}</div>
+              <div key={m.label}>
+                <div className="font-nunito font-bold text-lg md:text-xl leading-none" style={{ color: m.color }}>{m.value}</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{m.label}</div>
               </div>
             ))}
           </div>
 
           {/* Tabs */}
-          <div className="flex mb-5 overflow-x-auto scrollbar-hidden gap-1.5 py-1">
-            {([
-              { key: 'today',   label: '🍼 Today' },
-              { key: 'history', label: '📖 History' },
-              { key: 'growth',  label: '🌱 Growth' },
-              { key: 'pet', label: '🐾 Pet' },
-              { key: 'games',   label: '🎮 Games' },
-            ] as { key: MainTab; label: string }[]).map(t => (
+          <div className="flex mb-6 overflow-x-auto scrollbar-hidden gap-5" style={{ borderBottom: `1px solid ${INK}12` }}>
+            {MAIN_TABS.map(t => (
               <button
                 key={t.key}
                 onClick={() => setMainTab(t.key)}
-                className="px-3 md:px-4 py-2 rounded-xl font-nunito text-sm transition whitespace-nowrap flex-shrink-0"
-                style={mainTab === t.key
-                  ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
-                  : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
+                className="pb-2.5 font-nunito text-sm whitespace-nowrap flex-shrink-0 transition-colors"
+                style={{
+                  color: mainTab === t.key ? INK : MUTED,
+                  fontWeight: mainTab === t.key ? 600 : 400,
+                  borderBottom: mainTab === t.key ? `2px solid ${ACCENT}` : '2px solid transparent',
+                }}
               >
                 {t.label}
               </button>
@@ -388,29 +373,19 @@ export default function Baby() {
 
           {/* ── TODAY ────────────────────────────────────────── */}
           {mainTab === 'today' && (
-            <div className="space-y-4">
+            <div className="space-y-6 max-w-xl">
 
-              {babySelector && (
-                <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  {babySelector}
-                </div>
-              )}
+              {babySelector}
 
-              {/* Add baby form */}
               {showBabyForm && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
-                    {data.babies.length === 0 ? 'Add Your Little One' : 'Add Another Baby'}
-                  </div>
+                <Panel tone="tint" accent={ACCENT} className="p-4">
                   <div className="flex gap-1.5 mb-2">
                     {BABY_EMOJIS.map(e => (
                       <button
                         key={e}
                         onClick={() => setBabyForm(f => ({ ...f, emoji: e }))}
-                        className="w-9 h-9 rounded-lg text-lg transition"
-                        style={babyForm.emoji === e
-                          ? { background: ACCENT + '20', border: `3px solid ${ACCENT}` }
-                          : { background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
+                        className="w-9 h-9 rounded-full text-lg transition-opacity"
+                        style={{ opacity: babyForm.emoji === e ? 1 : 0.4 }}
                       >
                         {e}
                       </button>
@@ -420,52 +395,38 @@ export default function Baby() {
                     <input
                       type="text" placeholder="Name" value={babyForm.name}
                       onChange={e => setBabyForm(f => ({ ...f, name: e.target.value }))}
-                      className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
+                      className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                       style={inputStyle}
                     />
                     <input
                       type="date" value={babyForm.birthdate}
                       onChange={e => setBabyForm(f => ({ ...f, birthdate: e.target.value }))}
-                      className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none"
+                      className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                       style={inputStyle}
                     />
                   </div>
-                  <button
-                    onClick={handleAddBaby}
-                    disabled={!babyForm.name || !babyForm.birthdate}
-                    className="w-full py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                    style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-                  >
-                    Add Baby
-                  </button>
-                </div>
+                  <NButton onClick={handleAddBaby} disabled={!babyForm.name || !babyForm.birthdate} accent={ACCENT} className="w-full">
+                    Add baby
+                  </NButton>
+                </Panel>
               )}
 
               {baby && (
                 <>
-                  {/* Last feed banner */}
                   {lastFeed && (
-                    <div className="rounded-xl p-3 flex items-center gap-3" style={{ background: '#FAE8FF', border: '1px solid #F0ABFC' }}>
-                      <span className="text-xl">🍼</span>
-                      <span className="font-nunito text-xs text-fuchsia-900">
-                        Last feed <strong>{timeAgo(lastFeed.eventAt)}</strong>
-                        {isAsleep && <> · {baby.name} is sleeping 😴</>}
-                      </span>
+                    <div className="font-nunito text-xs" style={{ color: ACCENT }}>
+                      Last feed {timeAgo(lastFeed.eventAt)}{isAsleep && <> · {baby.name} is sleeping</>}
                     </div>
                   )}
 
-                  {/* Quick log */}
-                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                    <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
-                      Quick Log: {baby.emoji} {baby.name}
-                    </div>
+                  <Panel tone="tint" accent={ACCENT} className="p-4 md:p-5">
                     <div className="grid grid-cols-5 gap-1.5 mb-3">
                       {EVENT_META.map(m => (
                         <button
                           key={m.key}
                           onClick={() => handleLogEvent(m.key)}
-                          className="py-3 rounded-xl font-nunito text-xs font-semibold transition active:scale-95 flex flex-col items-center gap-1"
-                          style={{ background: ACCENT + '10', color: ACCENT, border: `3px solid ${ACCENT}30` }}
+                          className="py-3 rounded-xl font-nunito text-xs transition-opacity hover:opacity-70 flex flex-col items-center gap-1"
+                          style={{ background: '#FFFFFF', color: ACCENT }}
                         >
                           <span className="text-xl">{m.emoji}</span>
                           {m.label}
@@ -475,29 +436,23 @@ export default function Baby() {
                     <input
                       type="text" placeholder="Note for the next log (optional)" value={eventNote}
                       onChange={e => setEventNote(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
+                      className="w-full px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                       style={inputStyle}
                     />
-                  </div>
+                  </Panel>
 
-                  {/* Today's timeline */}
                   {todayEvents.length > 0 && (
-                    <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                      <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Today's Timeline</div>
-                      <div className="space-y-2">
-                        {todayEvents.map(e => {
+                    <div>
+                      <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Today's timeline</div>
+                      <div>
+                        {todayEvents.map((e, i) => {
                           const m = eventMeta(e.eventType)
                           return (
-                            <div key={e.id} className="flex items-center gap-3">
-                              <span className="font-nunito text-xs font-bold w-11 flex-shrink-0" style={{ color: ACCENT }}>{eventTime(e)}</span>
-                              <span className="text-lg flex-shrink-0">{m.emoji}</span>
-                              <span className="font-nunito text-sm text-[#09090F] flex-1 truncate">{m.label}{e.note ? ` · ${e.note}` : ''}</span>
-                              <button
-                                onClick={() => handleDeleteEvent(e.id)}
-                                className="w-6 h-6 flex items-center justify-center rounded-lg text-[#09090F]/30 hover:text-red-500 hover:bg-red-50 transition flex-shrink-0"
-                              >
-                                ✕
-                              </button>
+                            <div key={e.id} className="flex items-center gap-3 py-2" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                              <span className="font-nunito text-xs font-medium w-11 flex-shrink-0" style={{ color: ACCENT }}>{eventTime(e)}</span>
+                              <span className="text-base flex-shrink-0">{m.emoji}</span>
+                              <span className="font-nunito text-sm flex-1 truncate" style={{ color: INK }}>{m.label}{e.note ? ` · ${e.note}` : ''}</span>
+                              <button onClick={() => handleDeleteEvent(e.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
                             </div>
                           )
                         })}
@@ -511,40 +466,32 @@ export default function Baby() {
 
           {/* ── HISTORY ──────────────────────────────────────── */}
           {mainTab === 'history' && (
-            <div className="space-y-4">
+            <div className="max-w-xl">
               {!baby || eventDays.length === 0 ? (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-5xl mb-3">📖</div>
-                  <div className="font-nunito font-semibold text-[#09090F] mb-1">No events yet</div>
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Quick-log feeds, sleep and diapers in the Today tab</div>
+                <div className="py-10 text-center">
+                  <div className="font-nunito text-sm" style={{ color: INK }}>No events yet</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Quick-log feeds, sleep and diapers in the Today tab</div>
                 </div>
               ) : (
                 eventDays.map(day => {
                   const events = babyEvents.filter(e => e.eventAt.startsWith(day))
                   return (
-                    <div key={day} className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>
-                          {day === today ? 'Today' : day}
-                        </div>
-                        <span className="text-xs font-nunito text-[#09090F]/50">
-                          🍼{events.filter(e => e.eventType === 'feeding').length} · 🧷{events.filter(e => e.eventType === 'diaper').length}
+                    <div key={day} className="mb-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>{day === today ? 'Today' : day}</div>
+                        <span className="font-nunito text-xs" style={{ color: MUTED }}>
+                          {events.filter(e => e.eventType === 'feeding').length} feeds · {events.filter(e => e.eventType === 'diaper').length} diapers
                         </span>
                       </div>
-                      <div className="space-y-2">
-                        {events.map(e => {
+                      <div>
+                        {events.map((e, i) => {
                           const m = eventMeta(e.eventType)
                           return (
-                            <div key={e.id} className="flex items-center gap-3">
-                              <span className="font-nunito text-xs font-bold w-11 flex-shrink-0" style={{ color: ACCENT }}>{eventTime(e)}</span>
+                            <div key={e.id} className="flex items-center gap-3 py-2" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                              <span className="font-nunito text-xs font-medium w-11 flex-shrink-0" style={{ color: ACCENT }}>{eventTime(e)}</span>
                               <span className="text-base flex-shrink-0">{m.emoji}</span>
-                              <span className="font-nunito text-sm text-[#09090F] flex-1 truncate">{m.label}{e.note ? ` · ${e.note}` : ''}</span>
-                              <button
-                                onClick={() => handleDeleteEvent(e.id)}
-                                className="w-6 h-6 flex items-center justify-center rounded-lg text-[#09090F]/30 hover:text-red-500 hover:bg-red-50 transition flex-shrink-0"
-                              >
-                                ✕
-                              </button>
+                              <span className="font-nunito text-sm flex-1 truncate" style={{ color: INK }}>{m.label}{e.note ? ` · ${e.note}` : ''}</span>
+                              <button onClick={() => handleDeleteEvent(e.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
                             </div>
                           )
                         })}
@@ -558,114 +505,82 @@ export default function Baby() {
 
           {/* ── GROWTH ───────────────────────────────────────── */}
           {mainTab === 'growth' && (
-            <div className="space-y-4">
+            <div className="max-w-xl">
               {!baby ? (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-5xl mb-3">🌱</div>
-                  <div className="font-nunito font-semibold text-[#09090F] mb-1">Add a baby first</div>
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Head to the Today tab to add your little one</div>
+                <div className="py-10 text-center">
+                  <div className="font-nunito text-sm" style={{ color: INK }}>Add a baby first</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Head to the Today tab to add your little one</div>
                 </div>
               ) : (
-                <>
-                  {/* Log growth */}
-                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                    <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
-                      Growth Entry: {baby.emoji} {baby.name}
-                    </div>
+                <div className="space-y-8">
+                  <Panel tone="tint" accent={ACCENT} className="p-4">
                     <div className="flex gap-2">
                       <input
                         type="number" step="0.01" placeholder="Weight (kg)" value={growthForm.weight}
                         onChange={e => setGrowthForm(f => ({ ...f, weight: e.target.value }))}
-                        className="flex-1 px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
+                        className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                         style={inputStyle}
                       />
                       <input
                         type="number" step="0.1" placeholder="Height (cm)" value={growthForm.height}
                         onChange={e => setGrowthForm(f => ({ ...f, height: e.target.value }))}
                         onKeyDown={e => e.key === 'Enter' && handleAddGrowth()}
-                        className="flex-1 px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
+                        className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                         style={inputStyle}
                       />
-                      <button
-                        onClick={handleAddGrowth}
-                        disabled={!growthForm.weight && !growthForm.height}
-                        className="px-5 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                        style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-                      >
-                        Log
-                      </button>
+                      <NButton onClick={handleAddGrowth} disabled={!growthForm.weight && !growthForm.height} accent={ACCENT}>Log</NButton>
                     </div>
-                  </div>
+                  </Panel>
 
-                  {/* Growth entries */}
                   {babyGrowth.length > 0 && (
-                    <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                      <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Entries</div>
-                      <div className="space-y-2">
-                        {[...babyGrowth].reverse().map(g => (
-                          <div key={g.id} className="flex items-center gap-3">
-                            <span className="font-nunito text-sm text-[#09090F] flex-1">{g.date}</span>
-                            {g.weightKg != null && <span className="font-nunito font-semibold text-sm" style={{ color: ACCENT }}>{g.weightKg} kg</span>}
-                            {g.heightCm != null && <span className="font-nunito font-semibold text-sm text-[#09090F]/60">{g.heightCm} cm</span>}
-                            <button
-                              onClick={() => handleDeleteGrowth(g.id)}
-                              className="w-6 h-6 flex items-center justify-center rounded-lg text-[#09090F]/30 hover:text-red-500 hover:bg-red-50 transition flex-shrink-0"
-                            >
-                              ✕
-                            </button>
+                    <div>
+                      <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Entries</div>
+                      <div>
+                        {[...babyGrowth].reverse().map((g, i) => (
+                          <div key={g.id} className="flex items-center gap-3 py-2" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                            <span className="font-nunito text-sm flex-1" style={{ color: INK }}>{g.date}</span>
+                            {g.weightKg != null && <span className="font-nunito font-medium text-sm" style={{ color: ACCENT }}>{g.weightKg} kg</span>}
+                            {g.heightCm != null && <span className="font-nunito text-sm" style={{ color: MUTED }}>{g.heightCm} cm</span>}
+                            <button onClick={() => handleDeleteGrowth(g.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {/* Milestones */}
-                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                    <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Milestones</div>
-                    <div className="flex gap-2 mb-3">
+                  <div>
+                    <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Milestones</div>
+                    <div className="flex gap-2 mb-4">
                       <input
                         type="text" placeholder="First smile, first steps…" value={milestoneForm}
                         onChange={e => setMilestoneForm(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleAddMilestone()}
-                        className="flex-1 px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                        style={inputStyle}
+                        className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                        style={{ background: '#F0EEE8', color: INK }}
                       />
-                      <button
-                        onClick={handleAddMilestone}
-                        disabled={!milestoneForm}
-                        className="px-5 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                        style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-                      >
-                        +25 XP
-                      </button>
+                      <NButton onClick={handleAddMilestone} disabled={!milestoneForm} accent={ACCENT}>+25 XP</NButton>
                     </div>
-                    <div className="space-y-2">
-                      {babyMilestones.map(m => (
-                        <div key={m.id} className="flex items-center gap-3">
-                          <span className="text-lg flex-shrink-0">🏆</span>
+                    <div>
+                      {babyMilestones.map((m, i) => (
+                        <div key={m.id} className="flex items-center gap-3 py-2" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
                           <div className="flex-1 min-w-0">
-                            <div className="font-nunito font-semibold text-sm text-[#09090F] truncate">{m.title}</div>
-                            <div className="text-xs text-[#09090F]/40 font-nunito">{m.date}</div>
+                            <div className="font-nunito text-sm truncate" style={{ color: INK }}>{m.title}</div>
+                            <div className="font-nunito text-xs" style={{ color: MUTED }}>{m.date}</div>
                           </div>
-                          <button
-                            onClick={() => handleDeleteMilestone(m.id)}
-                            className="w-6 h-6 flex items-center justify-center rounded-lg text-[#09090F]/30 hover:text-red-500 hover:bg-red-50 transition flex-shrink-0"
-                          >
-                            ✕
-                          </button>
+                          <button onClick={() => handleDeleteMilestone(m.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
                         </div>
                       ))}
                       {babyMilestones.length === 0 && (
-                        <div className="text-xs text-[#09090F]/40 font-nunito">No milestones yet, every first counts!</div>
+                        <div className="font-nunito text-xs" style={{ color: MUTED }}>No milestones yet, every first counts</div>
                       )}
                     </div>
                   </div>
-                </>
+                </div>
               )}
             </div>
           )}
 
-          {/* ── GAMES ────────────────────────────────────────── */}
+          {/* ── PET ──────────────────────────────────────────── */}
           {mainTab === 'pet' && (
             <div className="space-y-4 max-w-2xl">
               <DailyChallenges trackerId="baby" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
@@ -682,22 +597,20 @@ export default function Baby() {
           )}
 
           {mainTab === 'games' && (
-            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
-                <span className="text-xs text-[#09090F]/50 font-nunito">XP → Baby Pet</span>
-              </div>
-              <div className="flex gap-1.5 mb-5 p-1 rounded-xl" style={{ background: INPUT_BG }}>
+            <div className="max-w-xl">
+              <div className="flex items-center gap-5 mb-5" style={{ borderBottom: `1px solid ${INK}12` }}>
                 {(['clicker', 'arcade', 'puzzle'] as GameTab[]).map(g => (
                   <button
                     key={g}
                     onClick={() => setGameTab(g)}
-                    className="flex-1 py-2 rounded-lg font-nunito text-sm transition"
-                    style={gameTab === g
-                      ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '2px 2px 0 #09090F' }
-                      : { color: 'rgba(9,9,15,0.4)' }}
+                    className="pb-2.5 font-nunito text-sm transition-colors"
+                    style={{
+                      color: gameTab === g ? INK : MUTED,
+                      fontWeight: gameTab === g ? 600 : 400,
+                      borderBottom: gameTab === g ? `2px solid ${ACCENT}` : '2px solid transparent',
+                    }}
                   >
-                    {g === 'clicker' ? '👆 Clicker' : g === 'arcade' ? '🕹️ Arcade' : '🧩 Puzzle'}
+                    {g === 'clicker' ? 'Clicker' : g === 'arcade' ? 'Arcade' : 'Puzzle'}
                   </button>
                 ))}
               </div>
@@ -708,35 +621,26 @@ export default function Baby() {
           )}
         </div>
 
-        {/* RIGHT PANEL — desktop only */}
-        <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${CARD_BORDER}`, background: '#F5F4F2' }}>
-          <div className="p-6 space-y-4">
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
-              {petCard}
-            </div>
+        {/* RIGHT PANEL, desktop only */}
+        <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${INK}0D`, background: '#F5F4F2' }}>
+          <Panel tone="tint" accent={ACCENT} className="m-6 p-5">
+            {petCard}
             {baby && (
-              <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Little One</div>
-                <div className="font-nunito font-semibold text-sm text-[#09090F]">{baby.emoji} {baby.name}</div>
-                <div className="text-xs text-[#09090F]/50 font-nunito">
-                  {babyAge(baby.birthdate)} old · born {baby.birthdate}
-                </div>
+              <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${INK}0D` }}>
+                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Little one</div>
+                <div className="font-nunito text-sm" style={{ color: INK }}>{baby.emoji} {baby.name}</div>
+                <div className="font-nunito text-xs" style={{ color: MUTED }}>{babyAge(baby.birthdate)} old, born {baby.birthdate}</div>
                 {data.babies.length > 1 && (
-                  <button
-                    onClick={() => handleDeleteBaby(baby.id)}
-                    className="mt-2 text-xs font-nunito text-[#09090F]/30 hover:text-red-500 transition"
-                  >
+                  <button onClick={() => handleDeleteBaby(baby.id)} className="mt-2 font-nunito text-xs transition-opacity hover:opacity-70" style={{ color: MUTED }}>
                     Remove profile
                   </button>
                 )}
               </div>
             )}
-            <div className="rounded-xl p-3 text-xs font-nunito leading-relaxed" style={{ background: '#FAE8FF', border: '1px solid #F0ABFC' }}>
-              <strong className="text-fuchsia-700">Pet tip:</strong>{' '}
-              <span className="text-fuchsia-800">Events earn +5 XP (first {EVENT_XP_CAP}/day), growth entries +15, and milestones +25!</span>
+            <div className="font-nunito text-xs leading-relaxed mt-4 pt-4" style={{ color: MUTED, borderTop: `1px solid ${INK}0D` }}>
+              Events earn +5 XP, up to {EVENT_XP_CAP} a day, growth entries +15, and milestones +25.
             </div>
-          </div>
+          </Panel>
         </aside>
       </div>
     </div>

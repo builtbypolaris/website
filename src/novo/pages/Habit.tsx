@@ -14,20 +14,25 @@ import { PetRoom } from '../components/PetRoom'
 import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import Character from '../components/Character'
+import { INK, MUTED, Panel, NButton, NProgress } from '../components/ui'
 import HabitChain from '../games/HabitChain'
 import HabitRun from '../games/HabitRun'
 import HabitMaze from '../games/HabitMaze'
 import type { CharacterState, HabitData } from '../types'
 
 const ACCENT = '#2563EB'
-const CARD_BG = '#FFFFFF'
-const CARD_BORDER = '#09090F'
-const INPUT_BG = '#F0EEE8'
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
 type MainTab = 'today' | 'analytics' | 'manage' | 'pet' | 'games'
 
 const HABIT_ICONS = ['💪', '📚', '🧘', '🏃', '💧', '🍎', '😴', '✍️', '🎯', '🧹', '🌿', '🎨']
+const MAIN_TABS: { key: MainTab; label: string }[] = [
+  { key: 'today', label: 'Today' },
+  { key: 'analytics', label: 'Analytics' },
+  { key: 'manage', label: 'Habits' },
+  { key: 'pet', label: 'Pet' },
+  { key: 'games', label: 'Games' },
+]
 
 function getStreak(completions: string[]): number {
   if (!completions.length) return 0
@@ -81,7 +86,7 @@ export default function Habit() {
     getHabitData(userId).then(setData)
   }, [userId])
 
-  // Idle-day happiness decay — guarded to once per tracker per day
+  // Idle-day happiness decay, guarded to once per tracker per day
   useEffect(() => {
     if (!userId || !data) return
     applyHappinessDecay(userId, 'habit', data.character).then(c => {
@@ -106,7 +111,7 @@ export default function Habit() {
   if (!data) {
     return (
       <div className="h-full flex items-center justify-center" style={{ background: '#F5F4F2' }}>
-        <div className="font-nunito text-[#09090F]/40 text-sm">Loading…</div>
+        <div className="font-nunito text-sm" style={{ color: MUTED }}>Loading…</div>
       </div>
     )
   }
@@ -172,7 +177,7 @@ export default function Habit() {
       const updatedHabits = data.habits.map(h => h.id === id ? { ...h, completions } : h)
       if (updatedHabits.every(h => h.completions.includes(today)) && data.habits.length >= 2) {
         xpTotal += 50
-        toastMsg = `All habits done! +50 bonus XP!`
+        toastMsg = 'All habits done! +50 bonus XP!'
       }
     }
 
@@ -224,7 +229,7 @@ export default function Habit() {
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
       {layer}
       {toast && (
-        <div className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl font-nunito font-black text-white text-sm bounce-in" style={{ background: '#7C3AED', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}>
+        <div className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-2xl font-nunito font-semibold text-white text-sm bounce-in" style={{ background: '#7C3AED' }}>
           {toast}
         </div>
       )}
@@ -234,119 +239,92 @@ export default function Habit() {
         className="flex items-center justify-between px-6 py-3 sticky top-0 z-30"
         style={{ background: 'rgba(245,244,242,0.97)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E5E4E2' }}
       >
-        <button
-          onClick={() => navigate('/studios/dashboard')}
-          className="font-nunito text-sm text-[#09090F]/50 hover:text-[#09090F] transition"
-        >
-          ← Dashboard
+        <button onClick={() => navigate('/studios/dashboard')} className="font-nunito text-sm transition-opacity hover:opacity-70" style={{ color: MUTED }}>
+          Back
         </button>
-        <div className="font-nunito font-black uppercase tracking-wide text-[#09090F] text-base flex items-center gap-2">🌱 Habit Tracker <StreakBadge streak={streak} /></div>
-        <div className="w-16" />
+        <div className="font-nunito font-semibold text-sm flex items-center gap-2" style={{ color: INK }}>
+          Habits <StreakBadge streak={streak} />
+        </div>
+        <div className="w-10" />
       </header>
 
       <div className="flex flex-1 overflow-hidden">
         {/* MAIN */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-          {/* Mobile pet card */}
-          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-            <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
-            <Character
-              type="habit"
-              xp={data.character.xp}
-              happiness={data.character.happiness}
-              onEvolution={s => showToast(`Evolved to ${s.name}!`)}
-            />
+          {/* Mobile pet, plain */}
+          <div className="lg:hidden mb-5">
+            <Character type="habit" xp={data.character.xp} happiness={data.character.happiness} onEvolution={s => showToast(`Evolved to ${s.name}!`)} />
           </div>
 
-          {/* Today progress bar */}
-          <div className="flex items-center gap-5 p-5 rounded-xl mb-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+          {/* Today progress — plain, one hero number */}
+          <div className="flex items-center gap-5 mb-6">
             <div>
-              <div className="font-nunito font-black text-5xl leading-none" style={{ color: ACCENT }}>
-                {todayDone}<span className="text-2xl text-[#09090F]/30">/{totalHabits}</span>
+              <div className="font-nunito font-bold leading-none" style={{ color: ACCENT, fontSize: 44 }}>
+                {todayDone}<span style={{ color: MUTED, fontSize: 22 }}>/{totalHabits}</span>
               </div>
-              <div className="text-xs text-[#09090F]/50 font-nunito mt-1">habits today</div>
+              <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>habits today</div>
             </div>
             <div className="flex-1">
-              <div className="h-3 rounded-full overflow-hidden mb-1" style={{ background: '#E5E4E2' }}>
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{
-                    width: `${totalHabits > 0 ? (todayDone / totalHabits) * 100 : 0}%`,
-                    background: todayDone === totalHabits && totalHabits > 0 ? '#16A34A' : ACCENT,
-                  }}
-                />
-              </div>
+              <NProgress pct={totalHabits > 0 ? (todayDone / totalHabits) * 100 : 0} accent={todayDone === totalHabits && totalHabits > 0 ? '#16A34A' : ACCENT} height={6} />
               {todayDone === totalHabits && totalHabits > 0 && (
-                <div className="text-xs font-nunito font-bold text-green-600">Perfect day! 🎉</div>
+                <div className="font-nunito text-xs mt-1.5" style={{ color: '#16A34A' }}>Perfect day</div>
               )}
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1.5 mb-6 py-1">
-            {(['today', 'analytics', 'manage', 'pet', 'games'] as MainTab[]).map(t => (
+          <div className="flex mb-6 gap-5 overflow-x-auto scrollbar-hidden" style={{ borderBottom: `1px solid ${INK}12` }}>
+            {MAIN_TABS.map(t => (
               <button
-                key={t}
-                onClick={() => setMainTab(t)}
-                className="px-3 py-2 rounded-xl font-nunito text-sm transition"
-                style={mainTab === t
-                  ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
-                  : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
+                key={t.key}
+                onClick={() => setMainTab(t.key)}
+                className="pb-2.5 font-nunito text-sm whitespace-nowrap flex-shrink-0 transition-colors"
+                style={{
+                  color: mainTab === t.key ? INK : MUTED,
+                  fontWeight: mainTab === t.key ? 600 : 400,
+                  borderBottom: mainTab === t.key ? `2px solid ${ACCENT}` : '2px solid transparent',
+                }}
               >
-                {t === 'today' ? '☀️ Today' : t === 'analytics' ? '📊 Analytics' : t === 'manage' ? '📋 Habits' : t === 'pet' ? '🐾 Pet' : '🎮 Games'}
+                {t.label}
               </button>
             ))}
           </div>
 
           {/* TODAY TAB */}
           {mainTab === 'today' && (
-            <div className="space-y-2">
+            <div className="max-w-xl">
               {data.habits.length === 0 ? (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-4xl mb-3">🌱</div>
-                  <div className="font-nunito font-bold text-[#09090F] mb-1">No habits yet</div>
-                  <div className="text-sm text-[#09090F]/50 font-nunito mb-4">Set up habits to start tracking your daily wins</div>
-                  <button
-                    onClick={() => setMainTab('manage')}
-                    className="px-4 py-2 rounded-lg font-nunito font-bold text-sm text-white transition"
-                    style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-                  >
-                    Add your first habit
-                  </button>
+                <div className="py-10 text-center">
+                  <div className="font-nunito text-sm mb-3" style={{ color: INK }}>No habits yet</div>
+                  <div className="font-nunito text-xs mb-4" style={{ color: MUTED }}>Set up habits to start tracking your daily wins</div>
+                  <NButton onClick={() => setMainTab('manage')} accent={ACCENT}>Add your first habit</NButton>
                 </div>
               ) : (
-                data.habits.map(habit => {
+                data.habits.map((habit, i) => {
                   const done = habit.completions.includes(today)
                   const streak = getStreak(habit.completions)
                   return (
                     <div
                       key={habit.id}
-                      className="px-4 py-3.5 rounded-xl flex items-center gap-3 cursor-pointer transition"
-                      style={{
-                        background: CARD_BG,
-                        border: `3px solid ${done ? ACCENT + '50' : CARD_BORDER}`,
-                      }}
+                      className="flex items-center gap-3 py-3 cursor-pointer"
+                      style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}
                       onClick={() => handleToggleHabit(habit.id)}
                     >
                       <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 transition-all"
-                        style={{ background: done ? ACCENT : INPUT_BG, color: done ? '#fff' : 'inherit' }}
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-lg flex-shrink-0 transition-colors"
+                        style={{ background: done ? ACCENT : `${INK}08`, color: done ? '#fff' : 'inherit' }}
                       >
                         {done ? '✓' : habit.icon}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className={`font-nunito font-semibold text-sm ${done ? 'text-[#09090F]/40 line-through' : 'text-[#09090F]'}`}>
+                        <div className="font-nunito font-medium text-sm" style={{ color: INK, textDecoration: done ? 'line-through' : 'none', opacity: done ? 0.5 : 1 }}>
                           {habit.name}
                         </div>
-                        {streak > 0 && <div className="text-xs font-nunito text-orange-500">🔥 {streak} day streak</div>}
+                        {streak > 0 && <div className="font-nunito text-xs" style={{ color: '#EA580C' }}>{streak}-day streak</div>}
                       </div>
                       <div className="flex gap-0.5 flex-shrink-0">
                         {last7.map(d => (
-                          <div
-                            key={d}
-                            className="w-3 h-3 rounded-sm"
-                            style={{ background: habit.completions.includes(d) ? ACCENT : '#E5E4E2' }}
-                          />
+                          <div key={d} className="w-2.5 h-2.5 rounded-full" style={{ background: habit.completions.includes(d) ? ACCENT : `${INK}12` }} />
                         ))}
                       </div>
                     </div>
@@ -358,29 +336,26 @@ export default function Habit() {
 
           {/* ANALYTICS TAB */}
           {mainTab === 'analytics' && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-8 max-w-xl">
+              <div className="flex flex-wrap gap-x-8 gap-y-3">
                 {[
-                  { label: 'Perfect Days', value: String(perfectDays), sub: 'last 30 days', icon: '🌟' },
-                  { label: 'Best Streak', value: String(overallBestStreak), sub: 'days in a row', icon: '🔥' },
-                  { label: 'Total Completions', value: String(totalCompletions), sub: 'all time', icon: '✅' },
-                  { label: 'Active Streak', value: String(currentBestStreak), sub: 'best current', icon: '⚡' },
+                  { label: 'Perfect days, last 30', value: String(perfectDays) },
+                  { label: 'Best streak', value: String(overallBestStreak) },
+                  { label: 'Total completions', value: String(totalCompletions) },
+                  { label: 'Active streak', value: String(currentBestStreak) },
                 ].map(s => (
-                  <div key={s.label} className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                    <div className="text-xs font-nunito font-black uppercase tracking-widest mb-1" style={{ color: ACCENT }}>{s.label}</div>
-                    <div className="font-nunito font-bold text-3xl text-[#09090F]">{s.value}</div>
-                    <div className="text-xs font-nunito text-[#09090F]/50 mt-0.5">{s.icon} {s.sub}</div>
+                  <div key={s.label}>
+                    <div className="font-nunito font-bold text-xl leading-none" style={{ color: INK }}>{s.value}</div>
+                    <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{s.label}</div>
                   </div>
                 ))}
               </div>
 
-              <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-1" style={{ color: ACCENT }}>
-                  30-Day Heatmap
-                </div>
-                <div className="text-xs font-nunito text-[#09090F]/40 mb-4">Darker = more habits completed that day</div>
+              <div>
+                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>30-day heatmap</div>
+                <div className="font-nunito text-xs mb-4" style={{ color: MUTED }}>Darker means more habits completed that day</div>
                 {totalHabits === 0 ? (
-                  <div className="text-center py-4 text-[#09090F]/40 font-nunito text-sm">Add habits to see your heatmap</div>
+                  <div className="font-nunito text-sm" style={{ color: MUTED }}>Add habits to see your heatmap</div>
                 ) : (
                   <div className="grid gap-1" style={{ gridTemplateColumns: 'repeat(10, 1fr)' }}>
                     {heatmapData.map(({ date, ratio }) => {
@@ -390,9 +365,7 @@ export default function Habit() {
                           key={date}
                           className="rounded-sm aspect-square"
                           title={date}
-                          style={{
-                            background: ratio === 0 ? '#E5E4E2' : `rgba(37,99,235,${opacity})`,
-                          }}
+                          style={{ background: ratio === 0 ? `${INK}0D` : `rgba(37,99,235,${opacity})` }}
                         />
                       )
                     })}
@@ -401,10 +374,8 @@ export default function Habit() {
               </div>
 
               {data.habits.length > 0 && (
-                <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
-                    Habit Breakdown
-                  </div>
+                <div>
+                  <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Habit breakdown</div>
                   <div className="space-y-4">
                     {data.habits.map(habit => {
                       const streak = getStreak(habit.completions)
@@ -413,20 +384,15 @@ export default function Habit() {
                       const rate30 = Math.round((completionsLast30 / 30) * 100)
                       return (
                         <div key={habit.id}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-lg">{habit.icon}</span>
-                            <span className="font-nunito font-semibold text-sm text-[#09090F] flex-1">{habit.name}</span>
-                            <span className="text-xs font-nunito text-orange-500">🔥 {streak}</span>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-base">{habit.icon}</span>
+                            <span className="font-nunito text-sm flex-1" style={{ color: INK }}>{habit.name}</span>
+                            <span className="font-nunito text-xs" style={{ color: '#EA580C' }}>{streak}-day</span>
                           </div>
-                          <div className="h-1.5 rounded-full overflow-hidden mb-1" style={{ background: '#E5E4E2' }}>
-                            <div
-                              className="h-full rounded-full transition-all duration-700"
-                              style={{ width: `${rate30}%`, background: ACCENT }}
-                            />
-                          </div>
-                          <div className="flex justify-between text-xs font-nunito text-[#09090F]/40">
+                          <NProgress pct={rate30} accent={ACCENT} height={4} />
+                          <div className="flex justify-between font-nunito text-xs mt-1" style={{ color: MUTED }}>
                             <span>{rate30}% last 30 days</span>
-                            <span>Best: {best} days</span>
+                            <span>Best {best} days</span>
                           </div>
                         </div>
                       )
@@ -439,18 +405,15 @@ export default function Habit() {
 
           {/* MANAGE TAB */}
           {mainTab === 'manage' && (
-            <div className="space-y-3">
-              <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+            <div className="max-w-xl">
+              <Panel tone="tint" accent={ACCENT} className="p-4 mb-4">
                 <div className="flex flex-wrap gap-2 mb-3">
                   {HABIT_ICONS.map(icon => (
                     <button
                       key={icon}
                       onClick={() => setNewIcon(icon)}
-                      className="text-xl p-1.5 rounded-lg transition"
-                      style={{
-                        background: newIcon === icon ? ACCENT + '20' : 'transparent',
-                        outline: newIcon === icon ? `2px solid ${ACCENT}` : 'none',
-                      }}
+                      className="text-xl p-1.5 rounded-lg transition-colors"
+                      style={{ background: newIcon === icon ? `${ACCENT}25` : 'transparent' }}
                     >
                       {icon}
                     </button>
@@ -459,78 +422,55 @@ export default function Habit() {
                 <div className="flex flex-wrap gap-2">
                   <input
                     type="text"
-                    placeholder="Habit name..."
+                    placeholder="Habit name…"
                     value={newName}
                     onChange={e => setNewName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleAddHabit()}
-                    className="flex-1 min-w-[160px] rounded-lg px-3 py-2 font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
+                    className="flex-1 min-w-[160px] rounded-xl px-3 py-2 font-nunito text-sm outline-none"
+                    style={{ background: '#FFFFFF', color: INK }}
                   />
                   <select
                     value={newFreq}
                     onChange={e => setNewFreq(e.target.value as 'daily' | 'weekly')}
-                    className="px-3 py-2 rounded-lg font-nunito text-sm text-[#09090F] outline-none"
-                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
+                    className="px-3 py-2 rounded-xl font-nunito text-sm outline-none"
+                    style={{ background: '#FFFFFF', color: INK }}
                   >
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
                   </select>
-                  <button
-                    onClick={handleAddHabit}
-                    disabled={!newName.trim()}
-                    className="px-4 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40"
-                    style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-                  >
-                    Add
-                  </button>
+                  <NButton onClick={handleAddHabit} disabled={!newName.trim()} accent={ACCENT}>Add</NButton>
                 </div>
-              </div>
+              </Panel>
 
               {data.habits.length === 0 ? (
-                <div className="text-center py-10 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-4xl mb-2">🌱</div>
-                  <div className="font-nunito font-bold text-[#09090F] mb-1">No habits yet</div>
-                  <div className="text-sm text-[#09090F]/50 font-nunito">Use the form above to add your first habit</div>
+                <div className="py-10 text-center">
+                  <div className="font-nunito text-sm" style={{ color: INK }}>No habits yet</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Use the form above to add your first habit</div>
                 </div>
               ) : (
-                data.habits.map(habit => {
+                data.habits.map((habit, i) => {
                   const streak = getStreak(habit.completions)
                   const done = habit.completions.includes(today)
                   return (
-                    <div key={habit.id} className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                      <div className="flex items-center gap-3 mb-3">
-                        <span className="text-2xl">{habit.icon}</span>
+                    <div key={habit.id} className="py-4" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-xl">{habit.icon}</span>
                         <div className="flex-1">
-                          <div className="font-nunito font-semibold text-sm text-[#09090F]">{habit.name}</div>
-                          <div className="text-xs text-[#09090F]/50 font-nunito capitalize">{habit.frequency}</div>
+                          <div className="font-nunito font-medium text-sm" style={{ color: INK }}>{habit.name}</div>
+                          <div className="font-nunito text-xs capitalize" style={{ color: MUTED }}>{habit.frequency}</div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="text-xs font-nunito font-bold px-2 py-0.5 rounded-full"
-                            style={{
-                              background: done ? ACCENT + '20' : INPUT_BG,
-                              color: done ? ACCENT : 'rgba(9,9,15,0.4)',
-                            }}
-                          >
-                            {done ? '✓ Done' : 'Pending'}
-                          </span>
-                          <button onClick={() => handleDeleteHabit(habit.id)} className="text-[#09090F]/40 hover:text-red-500 transition text-sm">✕</button>
-                        </div>
+                        <span className="font-nunito text-xs" style={{ color: done ? ACCENT : MUTED }}>{done ? 'Done' : 'Pending'}</span>
+                        <button onClick={() => handleDeleteHabit(habit.id)} className="text-sm transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
                       </div>
-                      <div className="flex gap-5 text-xs font-nunito mb-2">
-                        <span className="text-[#09090F]/50">🔥 Streak: <strong className="text-orange-500">{streak}</strong></span>
-                        <span className="text-[#09090F]/50">✅ Total: <strong style={{ color: ACCENT }}>{habit.completions.length}</strong></span>
+                      <div className="flex gap-4 font-nunito text-xs mb-2" style={{ color: MUTED }}>
+                        <span>Streak <strong style={{ color: '#EA580C' }}>{streak}</strong></span>
+                        <span>Total <strong style={{ color: ACCENT }}>{habit.completions.length}</strong></span>
                       </div>
                       <div className="flex gap-1">
                         {last7.map(d => (
                           <div key={d} className="flex-1 flex flex-col items-center gap-0.5">
-                            <div
-                              className="w-full h-5 rounded-sm"
-                              style={{ background: habit.completions.includes(d) ? ACCENT + '90' : '#E5E4E2' }}
-                            />
-                            <div className="text-[#09090F]/40" style={{ fontSize: 9 }}>
-                              {['Su','Mo','Tu','We','Th','Fr','Sa'][new Date(d).getDay()]}
-                            </div>
+                            <div className="w-full h-4 rounded-sm" style={{ background: habit.completions.includes(d) ? ACCENT : `${INK}0D` }} />
+                            <div style={{ fontSize: 9, color: MUTED }}>{['Su','Mo','Tu','We','Th','Fr','Sa'][new Date(d).getDay()]}</div>
                           </div>
                         ))}
                       </div>
@@ -541,7 +481,7 @@ export default function Habit() {
             </div>
           )}
 
-          {/* GAMES TAB */}
+          {/* PET TAB */}
           {mainTab === 'pet' && (
             <div className="space-y-4 max-w-2xl">
               <DailyChallenges trackerId="habit" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
@@ -558,22 +498,20 @@ export default function Habit() {
           )}
 
           {mainTab === 'games' && (
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
-                <span className="text-xs text-[#09090F]/50 font-nunito">XP goes to your Habit Pet</span>
-              </div>
-              <div className="flex gap-1.5 mb-5 p-1 rounded-xl" style={{ background: INPUT_BG }}>
+            <div className="max-w-xl">
+              <div className="flex items-center gap-5 mb-5" style={{ borderBottom: `1px solid ${INK}12` }}>
                 {(['clicker', 'arcade', 'puzzle'] as GameTab[]).map(g => (
                   <button
                     key={g}
                     onClick={() => setGameTab(g)}
-                    className="flex-1 py-2 rounded-lg font-nunito text-sm transition"
-                    style={gameTab === g
-                      ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '2px 2px 0 #09090F' }
-                      : { color: 'rgba(9,9,15,0.4)' }}
+                    className="pb-2.5 font-nunito text-sm transition-colors"
+                    style={{
+                      color: gameTab === g ? INK : MUTED,
+                      fontWeight: gameTab === g ? 600 : 400,
+                      borderBottom: gameTab === g ? `2px solid ${ACCENT}` : '2px solid transparent',
+                    }}
                   >
-                    {g === 'clicker' ? '👆 Clicker' : g === 'arcade' ? '🕹️ Arcade' : '🧩 Puzzle'}
+                    {g === 'clicker' ? 'Clicker' : g === 'arcade' ? 'Arcade' : 'Puzzle'}
                   </button>
                 ))}
               </div>
@@ -584,30 +522,21 @@ export default function Habit() {
           )}
         </div>
 
-        {/* RIGHT PANEL — desktop only */}
-        <aside
-          className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto"
-          style={{ borderLeft: `1px solid ${CARD_BORDER}`, background: '#F5F4F2' }}
-        >
-          <div className="p-6 space-y-4">
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
-                Your Pet
-              </div>
-              <Character
-                type="habit"
-                xp={data.character.xp}
-                happiness={data.character.happiness}
-                prestige={data.character.prestige}
-                onEvolution={s => showToast(`Evolved to ${s.name}!`)}
-                onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`)}
-              />
+        {/* RIGHT PANEL, desktop only */}
+        <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${INK}0D`, background: '#F5F4F2' }}>
+          <Panel tone="tint" accent={ACCENT} className="m-6 p-5">
+            <Character
+              type="habit"
+              xp={data.character.xp}
+              happiness={data.character.happiness}
+              prestige={data.character.prestige}
+              onEvolution={s => showToast(`Evolved to ${s.name}!`)}
+              onPrestige={p => showToast(`Prestige ${p}! Pet reborn!`)}
+            />
+            <div className="font-nunito text-xs leading-relaxed mt-4 pt-4" style={{ color: MUTED, borderTop: `1px solid ${INK}0D` }}>
+              Complete all habits daily for a +50 XP bonus. 7-day streaks add +20 extra per habit.
             </div>
-            <div className="rounded-xl p-3 text-xs font-nunito leading-relaxed" style={{ background: '#DBEAFE', border: '1px solid #BFDBFE' }}>
-              <strong className="text-blue-700">Pet tip:</strong>{' '}
-              <span className="text-blue-800">Complete all habits daily for +50 XP bonus. 7-day streaks give +20 extra per habit!</span>
-            </div>
-          </div>
+          </Panel>
         </aside>
       </div>
     </div>

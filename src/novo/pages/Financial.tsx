@@ -13,6 +13,7 @@ import { PetRoom } from '../components/PetRoom'
 import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { FINANCIAL_STAGES, getStageFromXP } from '../data/creatures'
+import { INK, MUTED, Panel, NButton, NProgress } from '../components/ui'
 import Character from '../components/Character'
 import MoneyRain from '../games/MoneyRain'
 import BudgetDodge from '../games/BudgetDodge'
@@ -28,9 +29,6 @@ type GameTab = 'clicker' | 'arcade' | 'puzzle'
 type MainTab = 'overview' | 'log' | 'analytics' | 'pet' | 'games'
 
 const ACCENT = '#B45309'
-const CARD_BG = '#FFFFFF'
-const CARD_BORDER = '#09090F'
-const INPUT_BG = '#F0EEE8'
 const INCOME_COLOR = '#16A34A'
 const EXPENSE_COLOR = '#DC2626'
 
@@ -40,6 +38,14 @@ function shortRp(n: number) {
   if (n >= 1_000) return `${Math.round(n / 1_000)}K`
   return String(n)
 }
+
+const MAIN_TABS: { key: MainTab; label: string }[] = [
+  { key: 'overview', label: 'Overview' },
+  { key: 'log', label: 'Log' },
+  { key: 'analytics', label: 'Analytics' },
+  { key: 'pet', label: 'Pet' },
+  { key: 'games', label: 'Games' },
+]
 
 export default function Financial() {
   const navigate = useNavigate()
@@ -65,7 +71,7 @@ export default function Financial() {
     getFinancialData(userId).then(setData)
   }, [userId])
 
-  // Idle-day happiness decay — guarded to once per tracker per day
+  // Idle-day happiness decay, guarded to once per tracker per day
   useEffect(() => {
     if (!userId || !data) return
     applyHappinessDecay(userId, 'financial', data.character).then(c => {
@@ -92,7 +98,7 @@ export default function Financial() {
   if (!data) {
     return (
       <div className="h-full flex items-center justify-center" style={{ background: '#F5F4F2' }}>
-        <div className="font-nunito text-[#09090F]/40 text-sm">Loading…</div>
+        <div className="font-nunito text-sm" style={{ color: MUTED }}>Loading…</div>
       </div>
     )
   }
@@ -106,7 +112,6 @@ export default function Financial() {
   const uniqueDays = new Set(data.transactions.map(t => t.date)).size || 1
   const dailyAvgExpense = Math.round(totalExpense / uniqueDays)
 
-  // ── Pet strip ─────────────────────────────────────────────
   const petStage = getStageFromXP(FINANCIAL_STAGES, data.character.xp)
 
   // ── Analytics: monthly data (last 6 months) ───────────────
@@ -198,7 +203,7 @@ export default function Financial() {
   const filtered = data.transactions.filter(t => filter === 'all' || t.type === filter)
   const recent3  = data.transactions.slice(0, 3)
 
-  const healthLabel = healthScore >= 70 ? '💚 Healthy' : healthScore >= 40 ? '💛 Fair' : '❤️ At risk'
+  const healthLabel = healthScore >= 70 ? 'Healthy' : healthScore >= 40 ? 'Fair' : 'At risk'
   const healthColor = healthScore >= 70 ? INCOME_COLOR : healthScore >= 40 ? ACCENT : EXPENSE_COLOR
 
   const txToday = data.transactions.filter(t => t.date === todayStr())
@@ -210,13 +215,12 @@ export default function Financial() {
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
-
       {layer}
 
       {toast && (
         <div
-          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl font-nunito font-black text-white text-sm bounce-in"
-          style={{ background: toast.good ? '#16A34A' : '#DC2626', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
+          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-2xl font-nunito font-semibold text-white text-sm bounce-in"
+          style={{ background: toast.good ? '#16A34A' : '#DC2626' }}
         >
           {toast.msg}
         </div>
@@ -227,60 +231,54 @@ export default function Financial() {
         className="flex items-center justify-between px-4 md:px-6 py-3 sticky top-0 z-30 flex-shrink-0"
         style={{ background: 'rgba(245,244,242,0.97)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E5E4E2' }}
       >
-        <button
-          onClick={() => navigate('/studios/dashboard')}
-          className="w-8 h-8 flex items-center justify-center rounded-lg font-nunito text-[#09090F]/50 hover:text-[#09090F] hover:bg-black/5 transition"
-        >
-          ←
+        <button onClick={() => navigate('/studios/dashboard')} className="font-nunito text-sm transition-opacity hover:opacity-70" style={{ color: MUTED }}>
+          Back
         </button>
-        <div className="font-nunito font-black uppercase tracking-wide text-[#09090F] text-sm md:text-base flex items-center gap-2">💰 Financial Tracker <StreakBadge streak={streak} /></div>
-        <div className="hidden lg:flex items-center gap-1.5 text-xs font-nunito text-[#09090F]/50 bg-black/5 px-2.5 py-1.5 rounded-lg">
+        <div className="font-nunito font-semibold text-sm flex items-center gap-2" style={{ color: INK }}>
+          Financial <StreakBadge streak={streak} />
+        </div>
+        <div className="hidden lg:flex items-center gap-1.5 text-xs font-nunito" style={{ color: MUTED }}>
           <span>{petStage.emoji}</span>
           <span>{data.character.xp} XP</span>
         </div>
-        <div className="lg:hidden w-8" />
+        <div className="lg:hidden w-10" />
       </header>
 
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
 
-          {/* Mobile pet card */}
-          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-            <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
-            <Character type="financial" xp={data.character.xp} happiness={data.character.happiness} prestige={data.character.prestige} onEvolution={s => showToast(`Evolved to ${s.name}!`, true)} onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`, true)} />
+          {/* Mobile pet, plain — no box */}
+          <div className="lg:hidden mb-5">
+            <Character type="financial" xp={data.character.xp} happiness={data.character.happiness} prestige={data.character.prestige} onEvolution={s => showToast(`Evolved to ${s.name}!`, true)} onPrestige={p => showToast(`Prestige ${p}! Pet reborn!`, true)} />
           </div>
 
-          {/* Metrics strip */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
+          {/* Metrics — plain typographic row, no boxed tiles */}
+          <div className="flex flex-wrap gap-x-8 gap-y-3 mb-6">
             {[
-              { label: 'Income',   value: formatRp(totalIncome),  color: INCOME_COLOR },
+              { label: 'Income', value: formatRp(totalIncome), color: INCOME_COLOR },
               { label: 'Expenses', value: formatRp(totalExpense), color: EXPENSE_COLOR },
-              { label: 'Net',      value: `${net >= 0 ? '+' : ''}${formatRp(net)}`, color: net >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
-              { label: 'Savings',  value: `${savingsRate}%`,      color: healthColor },
+              { label: 'Net', value: `${net >= 0 ? '+' : ''}${formatRp(net)}`, color: net >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
+              { label: 'Savings', value: `${savingsRate}%`, color: healthColor },
             ].map(m => (
-              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                <div className="font-nunito font-black text-base md:text-xl mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
-                <div className="text-[10px] font-nunito font-black uppercase tracking-widest text-[#09090F]/45">{m.label}</div>
+              <div key={m.label}>
+                <div className="font-nunito font-bold text-lg md:text-xl leading-none" style={{ color: m.color }}>{m.value}</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{m.label}</div>
               </div>
             ))}
           </div>
 
-          {/* Tabs */}
-          <div className="flex mb-5 overflow-x-auto scrollbar-hidden gap-1.5 py-1">
-            {([
-              { key: 'overview',  label: '📊 Overview' },
-              { key: 'log',       label: '📋 Log' },
-              { key: 'analytics', label: '📈 Analytics' },
-              { key: 'pet', label: '🐾 Pet' },
-              { key: 'games',     label: '🎮 Games' },
-            ] as { key: MainTab; label: string }[]).map(t => (
+          {/* Tabs — plain text, underline indicates active */}
+          <div className="flex mb-6 overflow-x-auto scrollbar-hidden gap-5" style={{ borderBottom: `1px solid ${INK}12` }}>
+            {MAIN_TABS.map(t => (
               <button
                 key={t.key}
                 onClick={() => setMainTab(t.key)}
-                className="px-3 md:px-4 py-2 rounded-xl font-nunito text-sm transition whitespace-nowrap flex-shrink-0"
-                style={mainTab === t.key
-                  ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
-                  : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
+                className="pb-2.5 font-nunito text-sm whitespace-nowrap flex-shrink-0 transition-colors"
+                style={{
+                  color: mainTab === t.key ? INK : MUTED,
+                  fontWeight: mainTab === t.key ? 600 : 400,
+                  borderBottom: mainTab === t.key ? `2px solid ${ACCENT}` : '2px solid transparent',
+                }}
               >
                 {t.label}
               </button>
@@ -289,24 +287,22 @@ export default function Financial() {
 
           {/* ── OVERVIEW ─────────────────────────────────────── */}
           {mainTab === 'overview' && (
-            <div className="space-y-4">
+            <div className="space-y-6 max-w-xl">
 
-              {/* Add transaction */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>
-                  Add Transaction
-                </div>
+              {/* Add transaction — the one panel on this tab, it's real input UI */}
+              <Panel tone="tint" accent={ACCENT} className="p-5">
+                <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Add transaction</div>
                 <div className="flex gap-2 mb-3">
                   {(['income', 'expense'] as const).map(t => (
                     <button
                       key={t}
                       onClick={() => setForm(f => ({ ...f, type: t, category: t === 'income' ? INCOME_CATS[0] : EXPENSE_CATS[0] }))}
-                      className="flex-1 py-2 rounded-lg font-nunito text-sm font-semibold transition"
+                      className="flex-1 py-2 rounded-full font-nunito text-sm font-semibold transition-colors"
                       style={form.type === t
-                        ? { background: t === 'income' ? '#DCFCE7' : '#FEE2E2', color: t === 'income' ? INCOME_COLOR : EXPENSE_COLOR }
-                        : { background: INPUT_BG, color: 'rgba(9,9,15,0.4)', border: `3px solid ${CARD_BORDER}` }}
+                        ? { background: t === 'income' ? INCOME_COLOR : EXPENSE_COLOR, color: '#FFFFFF' }
+                        : { background: 'transparent', color: MUTED }}
                     >
-                      {t === 'income' ? '+ Income' : '− Expense'}
+                      {t === 'income' ? 'Income' : 'Expense'}
                     </button>
                   ))}
                 </div>
@@ -317,14 +313,14 @@ export default function Financial() {
                     value={form.amount}
                     onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleAddTransaction()}
-                    className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
+                    className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                    style={{ background: '#FFFFFF', color: INK }}
                   />
                   <select
                     value={form.category}
                     onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                    className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none"
-                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
+                    className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                    style={{ background: '#FFFFFF', color: INK }}
                   >
                     {cats.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -336,65 +332,55 @@ export default function Financial() {
                     value={form.description}
                     onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleAddTransaction()}
-                    className="flex-1 px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
+                    className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                    style={{ background: '#FFFFFF', color: INK }}
                   />
-                  <button
-                    onClick={handleAddTransaction}
-                    disabled={!form.amount}
-                    className="px-5 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                    style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-                  >
+                  <NButton onClick={handleAddTransaction} disabled={!form.amount} accent={ACCENT}>
                     Add
-                  </button>
+                  </NButton>
                 </div>
-              </div>
+              </Panel>
 
-              {/* Cashflow health */}
+              {/* Cashflow health — plain content, no box */}
               {data.transactions.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Cashflow Health</div>
-                  <div className="flex items-center gap-4 mb-3">
-                    <div className="text-4xl font-nunito font-black leading-none" style={{ color: healthColor }}>{healthScore}</div>
+                <div>
+                  <div className="font-nunito font-semibold text-sm mb-2" style={{ color: INK }}>Cashflow health</div>
+                  <div className="flex items-center gap-4 mb-2">
+                    <div className="font-nunito font-bold leading-none" style={{ color: healthColor, fontSize: 34 }}>{healthScore}</div>
                     <div className="flex-1">
-                      <div className="font-nunito font-semibold text-sm text-[#09090F] mb-0.5">{healthLabel}</div>
-                      <div className="text-xs text-[#09090F]/50 font-nunito">{savingsRate}% savings rate</div>
+                      <div className="font-nunito text-sm" style={{ color: INK }}>{healthLabel}</div>
+                      <div className="font-nunito text-xs" style={{ color: MUTED }}>{savingsRate}% savings rate</div>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <div className="text-xs text-[#09090F]/40 font-nunito mb-0.5">daily avg spend</div>
-                      <div className="font-nunito font-semibold text-sm text-[#09090F]">{formatRp(dailyAvgExpense)}</div>
+                      <div className="font-nunito text-xs" style={{ color: MUTED }}>daily avg spend</div>
+                      <div className="font-nunito text-sm" style={{ color: INK }}>{formatRp(dailyAvgExpense)}</div>
                     </div>
                   </div>
-                  <div className="h-2 rounded-full overflow-hidden" style={{ background: '#E5E4E2' }}>
-                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${healthScore}%`, background: healthColor }} />
-                  </div>
+                  <NProgress pct={healthScore} accent={healthColor} height={5} />
                 </div>
               )}
 
-              {/* Recent transactions */}
+              {/* Recent transactions — plain divided list */}
               {recent3.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Recent</div>
-                    <button onClick={() => setMainTab('log')} className="text-xs font-nunito transition hover:opacity-70" style={{ color: ACCENT }}>
-                      See all →
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>Recent</div>
+                    <button onClick={() => setMainTab('log')} className="font-nunito text-xs transition-opacity hover:opacity-70" style={{ color: ACCENT }}>
+                      See all
                     </button>
                   </div>
-                  <div className="space-y-2.5">
-                    {recent3.map(tx => (
-                      <div key={tx.id} className="flex items-center gap-3">
-                        <div
-                          className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-                          style={{ background: tx.type === 'income' ? '#DCFCE7' : '#FEE2E2', color: tx.type === 'income' ? INCOME_COLOR : EXPENSE_COLOR }}
-                        >
-                          {tx.type === 'income' ? '↑' : '↓'}
-                        </div>
+                  <div>
+                    {recent3.map((tx, i) => (
+                      <div key={tx.id} className="flex items-center gap-3 py-2.5" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                        <span className="font-nunito text-sm flex-shrink-0" style={{ color: tx.type === 'income' ? INCOME_COLOR : EXPENSE_COLOR }}>
+                          {tx.type === 'income' ? '+' : '−'}
+                        </span>
                         <div className="flex-1 min-w-0">
-                          <div className="font-nunito text-sm text-[#09090F] truncate">{tx.description}</div>
-                          <div className="text-xs text-[#09090F]/40 font-nunito">{tx.category} · {tx.date}</div>
+                          <div className="font-nunito text-sm truncate" style={{ color: INK }}>{tx.description}</div>
+                          <div className="font-nunito text-xs" style={{ color: MUTED }}>{tx.category} · {tx.date}</div>
                         </div>
                         <span className="font-nunito font-semibold text-sm flex-shrink-0" style={{ color: tx.type === 'income' ? INCOME_COLOR : EXPENSE_COLOR }}>
-                          {tx.type === 'income' ? '+' : '−'}{formatRp(tx.amount)}
+                          {formatRp(tx.amount)}
                         </span>
                       </div>
                     ))}
@@ -403,10 +389,9 @@ export default function Financial() {
               )}
 
               {data.transactions.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-5xl mb-3">💰</div>
-                  <div className="font-nunito font-semibold text-[#09090F] mb-1">No transactions yet</div>
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Add your first income or expense above to start tracking</div>
+                <div className="py-10 text-center">
+                  <div className="font-nunito text-sm" style={{ color: INK }}>No transactions yet</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Add your first income or expense above to start tracking</div>
                 </div>
               )}
             </div>
@@ -414,49 +399,42 @@ export default function Financial() {
 
           {/* ── LOG ──────────────────────────────────────────── */}
           {mainTab === 'log' && (
-            <div className="space-y-2">
-              <div className="flex gap-2 mb-4">
+            <div className="max-w-xl">
+              <div className="flex gap-5 mb-5">
                 {(['all', 'income', 'expense'] as const).map(f => (
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
-                    className="px-3 py-1.5 rounded-lg font-nunito text-xs font-semibold transition"
-                    style={filter === f
-                      ? { background: ACCENT, color: '#fff', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }
-                      : { background: CARD_BG, color: 'rgba(9,9,15,0.4)', border: `3px solid ${CARD_BORDER}` }}
+                    className="font-nunito text-sm transition-colors"
+                    style={{ color: filter === f ? INK : MUTED, fontWeight: filter === f ? 600 : 400 }}
                   >
-                    {f === 'all' ? `All (${data.transactions.length})` : f === 'income' ? '+ Income' : '− Expense'}
+                    {f === 'all' ? `All (${data.transactions.length})` : f === 'income' ? 'Income' : 'Expense'}
                   </button>
                 ))}
               </div>
 
               {filtered.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-3xl mb-2">🗒️</div>
-                  <div className="text-sm text-[#09090F]/50 font-nunito">
-                    {data.transactions.length === 0 ? 'No transactions yet. Add one in Overview' : 'No transactions match this filter'}
-                  </div>
+                <div className="py-10 text-center font-nunito text-sm" style={{ color: MUTED }}>
+                  {data.transactions.length === 0 ? 'No transactions yet. Add one in Overview' : 'No transactions match this filter'}
                 </div>
               )}
 
-              {filtered.map(tx => (
-                <div key={tx.id} className="px-4 py-3 rounded-xl flex items-center gap-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0"
-                    style={{ background: tx.type === 'income' ? '#DCFCE7' : '#FEE2E2', color: tx.type === 'income' ? INCOME_COLOR : EXPENSE_COLOR }}
-                  >
-                    {tx.type === 'income' ? '↑' : '↓'}
-                  </div>
+              {filtered.map((tx, i) => (
+                <div key={tx.id} className="flex items-center gap-3 py-3" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                  <span className="font-nunito text-sm flex-shrink-0" style={{ color: tx.type === 'income' ? INCOME_COLOR : EXPENSE_COLOR }}>
+                    {tx.type === 'income' ? '+' : '−'}
+                  </span>
                   <div className="flex-1 min-w-0">
-                    <div className="font-nunito font-semibold text-sm text-[#09090F] truncate">{tx.description}</div>
-                    <div className="text-xs text-[#09090F]/50 font-nunito">{tx.category} · {tx.date}</div>
+                    <div className="font-nunito font-medium text-sm truncate" style={{ color: INK }}>{tx.description}</div>
+                    <div className="font-nunito text-xs" style={{ color: MUTED }}>{tx.category} · {tx.date}</div>
                   </div>
-                  <span className="font-nunito font-bold text-sm flex-shrink-0" style={{ color: tx.type === 'income' ? INCOME_COLOR : EXPENSE_COLOR }}>
-                    {tx.type === 'income' ? '+' : '−'}{formatRp(tx.amount)}
+                  <span className="font-nunito font-semibold text-sm flex-shrink-0" style={{ color: tx.type === 'income' ? INCOME_COLOR : EXPENSE_COLOR }}>
+                    {formatRp(tx.amount)}
                   </span>
                   <button
                     onClick={() => handleDeleteTransaction(tx.id)}
-                    className="w-7 h-7 flex items-center justify-center rounded-lg text-[#09090F]/30 hover:text-red-500 hover:bg-red-50 transition flex-shrink-0"
+                    className="text-sm flex-shrink-0 transition-opacity hover:opacity-70"
+                    style={{ color: MUTED }}
                   >
                     ✕
                   </button>
@@ -467,32 +445,31 @@ export default function Financial() {
 
           {/* ── ANALYTICS ────────────────────────────────────── */}
           {mainTab === 'analytics' && (
-            <div className="space-y-4">
+            <div className="space-y-8 max-w-xl">
               {data.transactions.length === 0 ? (
-                <div className="text-center py-14 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-4xl mb-3">📈</div>
-                  <div className="font-nunito font-semibold text-[#09090F] mb-1">No data yet</div>
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Add some transactions to unlock analytics</div>
+                <div className="py-10 text-center">
+                  <div className="font-nunito text-sm" style={{ color: INK }}>No data yet</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Add some transactions to unlock analytics</div>
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-wrap gap-x-8 gap-y-3">
                     {[
-                      { label: 'Transactions',    value: String(data.transactions.length), color: '#09090F' },
-                      { label: 'Daily avg spend', value: formatRp(dailyAvgExpense),         color: EXPENSE_COLOR },
-                      { label: 'Net balance',     value: `${net >= 0 ? '+' : ''}${shortRp(net)}`, color: net >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
-                      { label: 'Health score',    value: `${healthScore} / 100`,             color: healthColor },
+                      { label: 'Transactions', value: String(data.transactions.length), color: INK },
+                      { label: 'Daily avg spend', value: formatRp(dailyAvgExpense), color: EXPENSE_COLOR },
+                      { label: 'Net balance', value: `${net >= 0 ? '+' : ''}${shortRp(net)}`, color: net >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
+                      { label: 'Health score', value: `${healthScore}/100`, color: healthColor },
                     ].map(s => (
-                      <div key={s.label} className="rounded-xl p-3.5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                        <div className="font-nunito font-bold text-lg mb-0.5" style={{ color: s.color }}>{s.value}</div>
-                        <div className="text-xs text-[#09090F]/50 font-nunito">{s.label}</div>
+                      <div key={s.label}>
+                        <div className="font-nunito font-bold text-lg leading-none" style={{ color: s.color }}>{s.value}</div>
+                        <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{s.label}</div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                    <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
-                      Income vs Expenses · Last 6 Months
+                  <div>
+                    <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>
+                      Income vs expenses, last 6 months
                     </div>
                     <div className="flex items-end gap-2" style={{ height: BAR_MAX_H + 8 }}>
                       {monthlyData.map(m => (
@@ -501,52 +478,43 @@ export default function Financial() {
                             <div
                               title={`Income: ${formatRp(m.income)}`}
                               className="flex-1 rounded-t-sm transition-all duration-500"
-                              style={{ height: m.income > 0 ? Math.max(4, (m.income / maxMonthly) * BAR_MAX_H) : 0, background: INCOME_COLOR + '80' }}
+                              style={{ height: m.income > 0 ? Math.max(4, (m.income / maxMonthly) * BAR_MAX_H) : 0, background: INCOME_COLOR }}
                             />
                             <div
                               title={`Expenses: ${formatRp(m.expense)}`}
                               className="flex-1 rounded-t-sm transition-all duration-500"
-                              style={{ height: m.expense > 0 ? Math.max(4, (m.expense / maxMonthly) * BAR_MAX_H) : 0, background: EXPENSE_COLOR + '80' }}
+                              style={{ height: m.expense > 0 ? Math.max(4, (m.expense / maxMonthly) * BAR_MAX_H) : 0, background: EXPENSE_COLOR }}
                             />
                           </div>
-                          <div className="text-center mt-1.5 text-[10px] text-[#09090F]/40 font-nunito">{m.label}</div>
+                          <div className="text-center mt-1.5 font-nunito text-[10px]" style={{ color: MUTED }}>{m.label}</div>
                         </div>
                       ))}
                     </div>
-                    <div className="flex gap-4 mt-3 pt-3 border-t" style={{ borderColor: CARD_BORDER }}>
+                    <div className="flex gap-4 mt-3">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded-sm" style={{ background: INCOME_COLOR + '80' }} />
-                        <span className="text-xs font-nunito text-[#09090F]/60">Income</span>
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ background: INCOME_COLOR }} />
+                        <span className="font-nunito text-xs" style={{ color: MUTED }}>Income</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded-sm" style={{ background: EXPENSE_COLOR + '80' }} />
-                        <span className="text-xs font-nunito text-[#09090F]/60">Expenses</span>
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ background: EXPENSE_COLOR }} />
+                        <span className="font-nunito text-xs" style={{ color: MUTED }}>Expenses</span>
                       </div>
                     </div>
                   </div>
 
                   {topExpenses.length > 0 && (
-                    <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                      <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
-                        Top Spending Categories
-                      </div>
+                    <div>
+                      <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Top spending categories</div>
                       <div className="space-y-3">
-                        {topExpenses.map(([cat, amt], i) => (
+                        {topExpenses.map(([cat, amt]) => (
                           <div key={cat}>
-                            <div className="flex justify-between text-xs font-nunito mb-1.5">
-                              <span className="font-semibold text-[#09090F]">
-                                {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`} {cat}
-                              </span>
-                              <span className="text-[#09090F]/60">
+                            <div className="flex justify-between font-nunito text-xs mb-1.5">
+                              <span style={{ color: INK }}>{cat}</span>
+                              <span style={{ color: MUTED }}>
                                 {totalExpense > 0 ? Math.round((amt / totalExpense) * 100) : 0}% · {formatRp(amt)}
                               </span>
                             </div>
-                            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#E5E4E2' }}>
-                              <div
-                                className="h-full rounded-full transition-all duration-500"
-                                style={{ width: `${totalExpense > 0 ? (amt / totalExpense) * 100 : 0}%`, background: EXPENSE_COLOR + '99' }}
-                              />
-                            </div>
+                            <NProgress pct={totalExpense > 0 ? (amt / totalExpense) * 100 : 0} accent={EXPENSE_COLOR} height={4} />
                           </div>
                         ))}
                       </div>
@@ -554,25 +522,18 @@ export default function Financial() {
                   )}
 
                   {incomeSources.length > 0 && (
-                    <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                      <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>
-                        Income Sources
-                      </div>
+                    <div>
+                      <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Income sources</div>
                       <div className="space-y-3">
                         {incomeSources.map(([cat, amt]) => (
                           <div key={cat}>
-                            <div className="flex justify-between text-xs font-nunito mb-1.5">
-                              <span className="font-semibold text-[#09090F]">{cat}</span>
-                              <span className="text-[#09090F]/60">
+                            <div className="flex justify-between font-nunito text-xs mb-1.5">
+                              <span style={{ color: INK }}>{cat}</span>
+                              <span style={{ color: MUTED }}>
                                 {totalIncome > 0 ? Math.round((amt / totalIncome) * 100) : 0}% · {formatRp(amt)}
                               </span>
                             </div>
-                            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#E5E4E2' }}>
-                              <div
-                                className="h-full rounded-full transition-all duration-500"
-                                style={{ width: `${totalIncome > 0 ? (amt / totalIncome) * 100 : 0}%`, background: INCOME_COLOR + '99' }}
-                              />
-                            </div>
+                            <NProgress pct={totalIncome > 0 ? (amt / totalIncome) * 100 : 0} accent={INCOME_COLOR} height={4} />
                           </div>
                         ))}
                       </div>
@@ -583,7 +544,7 @@ export default function Financial() {
             </div>
           )}
 
-          {/* ── GAMES ────────────────────────────────────────── */}
+          {/* ── PET ──────────────────────────────────────────── */}
           {mainTab === 'pet' && (
             <div className="space-y-4 max-w-2xl">
               <DailyChallenges trackerId="financial" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
@@ -599,23 +560,22 @@ export default function Financial() {
             </div>
           )}
 
+          {/* ── GAMES ────────────────────────────────────────── */}
           {mainTab === 'games' && (
-            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
-                <span className="text-xs text-[#09090F]/50 font-nunito">XP → Financial Pet</span>
-              </div>
-              <div className="flex gap-1.5 mb-5 p-1 rounded-xl" style={{ background: INPUT_BG }}>
+            <div className="max-w-xl">
+              <div className="flex items-center gap-5 mb-5" style={{ borderBottom: `1px solid ${INK}12` }}>
                 {(['clicker', 'arcade', 'puzzle'] as GameTab[]).map(g => (
                   <button
                     key={g}
                     onClick={() => setGameTab(g)}
-                    className="flex-1 py-2 rounded-lg font-nunito text-sm transition"
-                    style={gameTab === g
-                      ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '2px 2px 0 #09090F' }
-                      : { color: 'rgba(9,9,15,0.4)' }}
+                    className="pb-2.5 font-nunito text-sm transition-colors"
+                    style={{
+                      color: gameTab === g ? INK : MUTED,
+                      fontWeight: gameTab === g ? 600 : 400,
+                      borderBottom: gameTab === g ? `2px solid ${ACCENT}` : '2px solid transparent',
+                    }}
                   >
-                    {g === 'clicker' ? '👆 Clicker' : g === 'arcade' ? '🕹️ Arcade' : '🧩 Puzzle'}
+                    {g === 'clicker' ? 'Clicker' : g === 'arcade' ? 'Arcade' : 'Puzzle'}
                   </button>
                 ))}
               </div>
@@ -626,28 +586,22 @@ export default function Financial() {
           )}
         </div>
 
-        {/* RIGHT PANEL — desktop only */}
-        <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${CARD_BORDER}`, background: '#F5F4F2' }}>
-          <div className="p-6 space-y-4">
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
-              <Character type="financial" xp={data.character.xp} happiness={data.character.happiness} prestige={data.character.prestige} onEvolution={s => showToast(`Evolved to ${s.name}!`, true)} onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`, true)} />
-            </div>
-            <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Cashflow Health</div>
-              <div className="h-2 rounded-full overflow-hidden mb-2" style={{ background: '#E5E4E2' }}>
-                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${healthScore}%`, background: healthColor }} />
-              </div>
-              <div className="flex justify-between text-xs font-nunito">
-                <span className="text-[#09090F]/60">{healthLabel}</span>
-                <span className="text-[#09090F]/50">{savingsRate}% savings</span>
+        {/* RIGHT PANEL, desktop only */}
+        <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${INK}0D`, background: '#F5F4F2' }}>
+          <Panel tone="tint" accent={ACCENT} className="m-6 p-5">
+            <Character type="financial" xp={data.character.xp} happiness={data.character.happiness} prestige={data.character.prestige} onEvolution={s => showToast(`Evolved to ${s.name}!`, true)} onPrestige={p => showToast(`Prestige ${p}! Pet reborn!`, true)} />
+            <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${INK}0D` }}>
+              <div className="font-nunito font-semibold text-sm mb-2" style={{ color: INK }}>Cashflow health</div>
+              <NProgress pct={healthScore} accent={healthColor} height={5} />
+              <div className="flex justify-between font-nunito text-xs mt-1.5">
+                <span style={{ color: MUTED }}>{healthLabel}</span>
+                <span style={{ color: MUTED }}>{savingsRate}% savings</span>
               </div>
             </div>
-            <div className="rounded-xl p-3 text-xs font-nunito leading-relaxed" style={{ background: '#FEF3C7', border: '1px solid #FDE68A' }}>
-              <strong className="text-amber-700">Pet tip:</strong>{' '}
-              <span className="text-amber-800">Healthier cashflow = faster pet growth. Keep savings above 20% for max XP!</span>
+            <div className="font-nunito text-xs leading-relaxed mt-4" style={{ color: MUTED }}>
+              Healthier cashflow means faster pet growth. Keep savings above 20% for max XP.
             </div>
-          </div>
+          </Panel>
         </aside>
       </div>
     </div>

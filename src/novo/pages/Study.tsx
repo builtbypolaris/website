@@ -17,6 +17,7 @@ import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { STUDY_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
+import { INK, MUTED, Panel, NButton, NProgress } from '../components/ui'
 import FocusBurst from '../games/FocusBurst'
 import DeadlineDodge from '../games/DeadlineDodge'
 import FlashOrder from '../games/FlashOrder'
@@ -28,9 +29,13 @@ type GameTab = 'clicker' | 'arcade' | 'puzzle'
 type MainTab = 'overview' | 'study' | 'subjects' | 'pet' | 'games'
 
 const ACCENT = '#6D28D9'
-const CARD_BG = '#FFFFFF'
-const CARD_BORDER = '#09090F'
-const INPUT_BG = '#F0EEE8'
+const MAIN_TABS: { key: MainTab; label: string }[] = [
+  { key: 'overview', label: 'Overview' },
+  { key: 'study', label: 'Study' },
+  { key: 'subjects', label: 'Subjects' },
+  { key: 'pet', label: 'Pet' },
+  { key: 'games', label: 'Games' },
+]
 
 function fmtHours(minutes: number) {
   const h = minutes / 60
@@ -74,7 +79,7 @@ export default function Study() {
     getStudyData(userId).then(setData)
   }, [userId])
 
-  // Idle-day happiness decay — guarded to once per tracker per day
+  // Idle-day happiness decay, guarded to once per tracker per day
   useEffect(() => {
     if (!userId || !data) return
     applyHappinessDecay(userId, 'study', data.character).then(c => {
@@ -106,11 +111,10 @@ export default function Study() {
     })
   }
 
-
   if (!data) {
     return (
       <div className="h-full flex items-center justify-center" style={{ background: '#F5F4F2' }}>
-        <div className="font-nunito text-[#09090F]/40 text-sm">Loading…</div>
+        <div className="font-nunito text-sm" style={{ color: MUTED }}>Loading…</div>
       </div>
     )
   }
@@ -148,14 +152,14 @@ export default function Study() {
   const logSession = async (minutes: number, subjectId: string, notes: string) => {
     if (!subjectId || minutes <= 0) return false
     const firstToday = !data.sessions.some(s => s.date === todayStr())
-    // Sessions under 10 minutes barely count — no first-of-day bonus either
+    // Sessions under 10 minutes barely count, no first-of-day bonus either
     const xpGain = minutes < 10 ? 2 : Math.min(30, Math.floor(minutes / 5)) + (firstToday ? 10 : 0)
     try {
       const sess = await dbAddSession(userId, { subjectId, durationMinutes: minutes, notes, date: todayStr() })
       const before = data.character
       setData(d => d ? { ...d, sessions: [sess, ...d.sessions], character: addXP(before, xpGain) } : d)
       runAward(before, xpGain)
-      showToast(firstToday ? `+${xpGain} XP (first session today!)` : `+${xpGain} XP!`)
+      showToast(firstToday ? `+${xpGain} XP, first session today!` : `+${xpGain} XP!`)
       return true
     } catch {
       showToast('Failed to save session', false)
@@ -248,7 +252,7 @@ export default function Study() {
       happiness={data.character.happiness}
       prestige={data.character.prestige}
       onEvolution={s => showToast(`Evolved to ${s.name}!`, true)}
-      onPrestige={p => showToast(`✨ Prestige ${p}! Pet reborn!`, true)}
+      onPrestige={p => showToast(`Prestige ${p}! Pet reborn!`, true)}
     />
   )
 
@@ -261,14 +265,10 @@ export default function Study() {
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
-
       {layer}
 
       {toast && (
-        <div
-          className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-xl font-nunito font-black text-white text-sm bounce-in"
-          style={{ background: toast.good ? '#16A34A' : '#DC2626', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-        >
+        <div className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-2xl font-nunito font-semibold text-white text-sm bounce-in" style={{ background: toast.good ? '#16A34A' : '#DC2626' }}>
           {toast.msg}
         </div>
       )}
@@ -278,60 +278,52 @@ export default function Study() {
         className="flex items-center justify-between px-4 md:px-6 py-3 sticky top-0 z-30 flex-shrink-0"
         style={{ background: 'rgba(245,244,242,0.97)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E5E4E2' }}
       >
-        <button
-          onClick={() => navigate('/studios/dashboard')}
-          className="w-8 h-8 flex items-center justify-center rounded-lg font-nunito text-[#09090F]/50 hover:text-[#09090F] hover:bg-black/5 transition"
-        >
-          ←
+        <button onClick={() => navigate('/studios/dashboard')} className="font-nunito text-sm transition-opacity hover:opacity-70" style={{ color: MUTED }}>
+          Back
         </button>
-        <div className="font-nunito font-black uppercase tracking-wide text-[#09090F] text-sm md:text-base flex items-center gap-2">📚 Study Tracker <StreakBadge streak={dayStreak} /></div>
-        <div className="hidden lg:flex items-center gap-1.5 text-xs font-nunito text-[#09090F]/50 bg-black/5 px-2.5 py-1.5 rounded-lg">
+        <div className="font-nunito font-semibold text-sm flex items-center gap-2" style={{ color: INK }}>
+          Study <StreakBadge streak={dayStreak} />
+        </div>
+        <div className="hidden lg:flex items-center gap-1.5 font-nunito text-xs" style={{ color: MUTED }}>
           <span>{petStage.emoji}</span>
           <span>{data.character.xp} XP</span>
         </div>
-        <div className="lg:hidden w-8" />
+        <div className="lg:hidden w-10" />
       </header>
 
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
 
-          {/* Mobile pet card */}
-          <div className="lg:hidden rounded-xl p-5 mb-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-            <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
-            {petCard}
-          </div>
+          {/* Mobile pet, plain */}
+          <div className="lg:hidden mb-5">{petCard}</div>
 
-          {/* Metrics strip */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-5">
+          {/* Metrics */}
+          <div className="flex flex-wrap gap-x-8 gap-y-3 mb-6">
             {[
               { label: 'This week', value: fmtHours(weekMinutes), color: ACCENT },
-              { label: 'Total hours', value: fmtHours(totalMinutes), color: '#09090F' },
-              { label: 'Day streak', value: `${streak}🔥`, color: '#D97706' },
+              { label: 'Total hours', value: fmtHours(totalMinutes), color: INK },
+              { label: 'Day streak', value: String(streak), color: '#D97706' },
               { label: 'Next exam', value: nextExam ? `${daysUntil(nextExam.examDate!)}d` : '—', color: nextExam && daysUntil(nextExam.examDate!) <= 7 ? '#DC2626' : '#16A34A' },
             ].map(m => (
-              <div key={m.label} className="rounded-xl p-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                <div className="font-nunito font-black text-base md:text-xl mb-0.5 truncate" style={{ color: m.color }}>{m.value}</div>
-                <div className="text-[10px] font-nunito font-black uppercase tracking-widest text-[#09090F]/45">{m.label}</div>
+              <div key={m.label}>
+                <div className="font-nunito font-bold text-lg md:text-xl leading-none" style={{ color: m.color }}>{m.value}</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{m.label}</div>
               </div>
             ))}
           </div>
 
           {/* Tabs */}
-          <div className="flex mb-5 overflow-x-auto scrollbar-hidden gap-1.5 py-1">
-            {([
-              { key: 'overview', label: '📊 Overview' },
-              { key: 'study',    label: '⏱️ Study' },
-              { key: 'subjects', label: '📚 Subjects' },
-              { key: 'pet', label: '🐾 Pet' },
-              { key: 'games',    label: '🎮 Games' },
-            ] as { key: MainTab; label: string }[]).map(t => (
+          <div className="flex mb-6 overflow-x-auto scrollbar-hidden gap-5" style={{ borderBottom: `1px solid ${INK}12` }}>
+            {MAIN_TABS.map(t => (
               <button
                 key={t.key}
                 onClick={() => setMainTab(t.key)}
-                className="px-3 md:px-4 py-2 rounded-xl font-nunito text-sm transition whitespace-nowrap flex-shrink-0"
-                style={mainTab === t.key
-                  ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F', fontWeight: 800 }
-                  : { color: 'rgba(9,9,15,0.45)', border: '2.5px solid transparent', fontWeight: 700 }}
+                className="pb-2.5 font-nunito text-sm whitespace-nowrap flex-shrink-0 transition-colors"
+                style={{
+                  color: mainTab === t.key ? INK : MUTED,
+                  fontWeight: mainTab === t.key ? 600 : 400,
+                  borderBottom: mainTab === t.key ? `2px solid ${ACCENT}` : '2px solid transparent',
+                }}
               >
                 {t.label}
               </button>
@@ -340,11 +332,11 @@ export default function Study() {
 
           {/* ── OVERVIEW ─────────────────────────────────────── */}
           {mainTab === 'overview' && (
-            <div className="space-y-4">
+            <div className="space-y-8 max-w-xl">
 
               {upcomingExams.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Upcoming Exams</div>
+                <div>
+                  <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Upcoming exams</div>
                   <div className="space-y-2.5">
                     {upcomingExams.map(s => {
                       const days = daysUntil(s.examDate!)
@@ -353,16 +345,11 @@ export default function Study() {
                         <div key={s.id} className="flex items-center gap-3">
                           <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: s.color }} />
                           <div className="flex-1 min-w-0">
-                            <div className="font-nunito font-semibold text-sm text-[#09090F] truncate">{s.name}</div>
-                            <div className="text-xs text-[#09090F]/40 font-nunito">{s.examDate} · {fmtHours(minutesFor(s.id))} studied</div>
+                            <div className="font-nunito text-sm truncate" style={{ color: INK }}>{s.name}</div>
+                            <div className="font-nunito text-xs" style={{ color: MUTED }}>{s.examDate} · {fmtHours(minutesFor(s.id))} studied</div>
                           </div>
-                          <span
-                            className="font-nunito font-bold text-xs px-2.5 py-1 rounded-full flex-shrink-0"
-                            style={urgent
-                              ? { background: '#FEE2E2', color: '#DC2626' }
-                              : { background: ACCENT + '15', color: ACCENT }}
-                          >
-                            {days === 0 ? 'Today!' : `${days} day${days === 1 ? '' : 's'}`}
+                          <span className="font-nunito text-xs flex-shrink-0" style={{ color: urgent ? '#DC2626' : ACCENT }}>
+                            {days === 0 ? 'Today' : `${days} day${days === 1 ? '' : 's'}`}
                           </span>
                         </div>
                       )
@@ -372,11 +359,11 @@ export default function Study() {
               )}
 
               {recentSessions.length > 0 && (
-                <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                <div>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Recent Sessions</div>
-                    <button onClick={() => setMainTab('study')} className="text-xs font-nunito transition hover:opacity-70" style={{ color: ACCENT }}>
-                      Log more →
+                    <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>Recent sessions</div>
+                    <button onClick={() => setMainTab('study')} className="font-nunito text-xs transition-opacity hover:opacity-70" style={{ color: ACCENT }}>
+                      Log more
                     </button>
                   </div>
                   <div className="space-y-2.5">
@@ -386,12 +373,10 @@ export default function Study() {
                         <div key={sess.id} className="flex items-center gap-3">
                           <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: subj?.color ?? '#9CA3AF' }} />
                           <div className="flex-1 min-w-0">
-                            <div className="font-nunito text-sm text-[#09090F] truncate">{subj?.name ?? 'Unknown'}{sess.notes ? ` · ${sess.notes}` : ''}</div>
-                            <div className="text-xs text-[#09090F]/40 font-nunito">{sess.date}</div>
+                            <div className="font-nunito text-sm truncate" style={{ color: INK }}>{subj?.name ?? 'Unknown'}{sess.notes ? ` · ${sess.notes}` : ''}</div>
+                            <div className="font-nunito text-xs" style={{ color: MUTED }}>{sess.date}</div>
                           </div>
-                          <span className="font-nunito font-semibold text-sm flex-shrink-0" style={{ color: ACCENT }}>
-                            {sess.durationMinutes} min
-                          </span>
+                          <span className="font-nunito font-medium text-sm flex-shrink-0" style={{ color: ACCENT }}>{sess.durationMinutes} min</span>
                         </div>
                       )
                     })}
@@ -400,10 +385,9 @@ export default function Study() {
               )}
 
               {data.subjects.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-5xl mb-3">📚</div>
-                  <div className="font-nunito font-semibold text-[#09090F] mb-1">No subjects yet</div>
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Add your subjects in the Subjects tab, then start logging study time</div>
+                <div className="py-10 text-center">
+                  <div className="font-nunito text-sm" style={{ color: INK }}>No subjects yet</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Add your subjects in the Subjects tab, then start logging study time</div>
                 </div>
               )}
             </div>
@@ -411,70 +395,52 @@ export default function Study() {
 
           {/* ── STUDY (timer + log) ──────────────────────────── */}
           {mainTab === 'study' && (
-            <div className="space-y-4">
+            <div className="space-y-5 max-w-xl">
 
-              {/* Timer */}
-              <div className="rounded-xl p-4 md:p-5 text-center" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Study Timer</div>
+              {/* Timer — the one loud panel on this tab */}
+              <Panel accent={ACCENT} tone="fill" className="p-6 text-center">
                 <div
-                  className="font-nunito font-black mb-4"
-                  style={{ fontSize: 56, lineHeight: 1, color: timerRunning ? ACCENT : '#09090F', fontVariantNumeric: 'tabular-nums' }}
+                  className="font-nunito font-bold text-white mb-4"
+                  style={{ fontSize: 56, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}
                 >
                   {fmtTimer(timerSeconds)}
                 </div>
                 <div className="flex justify-center gap-2">
                   {!timerRunning && timerSeconds === 0 && (
-                    <button
-                      onClick={() => setTimerRunning(true)}
-                      className="px-6 py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition active:scale-95"
-                      style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-                    >
-                      ▶ Start
-                    </button>
+                    <NButton onClick={() => setTimerRunning(true)} variant="ghost" accent="#FFFFFF" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                      Start
+                    </NButton>
                   )}
                   {timerRunning && (
-                    <button
-                      onClick={() => setTimerRunning(false)}
-                      className="px-6 py-2.5 font-nunito font-bold text-sm rounded-lg transition active:scale-95"
-                      style={{ background: INPUT_BG, color: '#09090F', border: `3px solid ${CARD_BORDER}` }}
-                    >
-                      ⏸ Pause
-                    </button>
+                    <NButton onClick={() => setTimerRunning(false)} variant="ghost" accent="#FFFFFF" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                      Pause
+                    </NButton>
                   )}
                   {!timerRunning && timerSeconds > 0 && (
-                    <button
-                      onClick={() => setTimerRunning(true)}
-                      className="px-6 py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition active:scale-95"
-                      style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-                    >
-                      ▶ Resume
-                    </button>
+                    <NButton onClick={() => setTimerRunning(true)} variant="ghost" accent="#FFFFFF" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                      Resume
+                    </NButton>
                   )}
                   {timerSeconds > 0 && (
-                    <button
-                      onClick={handleStopTimer}
-                      className="px-6 py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition active:scale-95"
-                      style={{ background: '#DC2626' }}
-                    >
-                      ⏹ Stop & log
-                    </button>
+                    <NButton onClick={handleStopTimer} accent="#FFFFFF" style={{ color: ACCENT }}>
+                      Stop & log
+                    </NButton>
                   )}
                 </div>
-              </div>
+              </Panel>
 
               {/* Log form */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>Log Session</div>
+              <Panel tone="tint" accent={ACCENT} className="p-4">
                 {data.subjects.length === 0 ? (
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Add a subject first in the Subjects tab.</div>
+                  <div className="font-nunito text-xs" style={{ color: MUTED }}>Add a subject first in the Subjects tab.</div>
                 ) : (
                   <>
                     <div className="grid grid-cols-2 gap-2 mb-2">
                       <select
                         value={logForm.subjectId}
                         onChange={e => setLogForm(f => ({ ...f, subjectId: e.target.value }))}
-                        className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none"
-                        style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
+                        className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                        style={{ background: '#FFFFFF', color: INK }}
                       >
                         <option value="">Subject…</option>
                         {data.subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -485,8 +451,8 @@ export default function Study() {
                         value={logForm.minutes}
                         onChange={e => setLogForm(f => ({ ...f, minutes: e.target.value }))}
                         onKeyDown={e => e.key === 'Enter' && handleLogManual()}
-                        className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                        style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
+                        className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                        style={{ background: '#FFFFFF', color: INK }}
                       />
                     </div>
                     <div className="flex gap-2">
@@ -496,41 +462,29 @@ export default function Study() {
                         value={logForm.notes}
                         onChange={e => setLogForm(f => ({ ...f, notes: e.target.value }))}
                         onKeyDown={e => e.key === 'Enter' && handleLogManual()}
-                        className="flex-1 px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                        style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
+                        className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                        style={{ background: '#FFFFFF', color: INK }}
                       />
-                      <button
-                        onClick={handleLogManual}
-                        disabled={!logForm.subjectId || !logForm.minutes}
-                        className="px-5 py-2 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                        style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-                      >
-                        Log
-                      </button>
+                      <NButton onClick={handleLogManual} disabled={!logForm.subjectId || !logForm.minutes} accent={ACCENT}>Log</NButton>
                     </div>
                   </>
                 )}
-              </div>
+              </Panel>
 
               {/* Session history */}
               {recentSessions.length > 0 && (
-                <div className="space-y-2">
-                  {recentSessions.map(sess => {
+                <div>
+                  {recentSessions.map((sess, i) => {
                     const subj = subjectById(sess.subjectId)
                     return (
-                      <div key={sess.id} className="px-4 py-3 rounded-xl flex items-center gap-3" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
+                      <div key={sess.id} className="flex items-center gap-3 py-2.5" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
                         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: subj?.color ?? '#9CA3AF' }} />
                         <div className="flex-1 min-w-0">
-                          <div className="font-nunito font-semibold text-sm text-[#09090F] truncate">{subj?.name ?? 'Unknown'}</div>
-                          <div className="text-xs text-[#09090F]/50 font-nunito">{sess.date}{sess.notes ? ` · ${sess.notes}` : ''}</div>
+                          <div className="font-nunito text-sm truncate" style={{ color: INK }}>{subj?.name ?? 'Unknown'}</div>
+                          <div className="font-nunito text-xs" style={{ color: MUTED }}>{sess.date}{sess.notes ? ` · ${sess.notes}` : ''}</div>
                         </div>
-                        <span className="font-nunito font-bold text-sm flex-shrink-0" style={{ color: ACCENT }}>{sess.durationMinutes} min</span>
-                        <button
-                          onClick={() => handleDeleteSession(sess.id)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-[#09090F]/30 hover:text-red-500 hover:bg-red-50 transition flex-shrink-0"
-                        >
-                          ✕
-                        </button>
+                        <span className="font-nunito font-medium text-sm flex-shrink-0" style={{ color: ACCENT }}>{sess.durationMinutes} min</span>
+                        <button onClick={() => handleDeleteSession(sess.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
                       </div>
                     )
                   })}
@@ -541,18 +495,16 @@ export default function Study() {
 
           {/* ── SUBJECTS ─────────────────────────────────────── */}
           {mainTab === 'subjects' && (
-            <div className="space-y-4">
+            <div className="max-w-xl">
 
-              {/* Add subject */}
-              <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-3" style={{ color: ACCENT }}>New Subject</div>
+              <Panel tone="tint" accent={ACCENT} className="p-4 mb-5">
                 <div className="flex gap-1.5 mb-2">
                   {SUBJECT_COLORS.map(c => (
                     <button
                       key={c}
                       onClick={() => setSubjectForm(f => ({ ...f, color: c }))}
-                      className="w-8 h-8 rounded-lg transition"
-                      style={{ background: c, outline: subjectForm.color === c ? `2px solid #09090F` : 'none', outlineOffset: 2 }}
+                      className="w-8 h-8 rounded-full transition-opacity"
+                      style={{ background: c, opacity: subjectForm.color === c ? 1 : 0.45 }}
                     />
                   ))}
                 </div>
@@ -563,37 +515,30 @@ export default function Study() {
                     value={subjectForm.name}
                     onChange={e => setSubjectForm(f => ({ ...f, name: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleAddSubject()}
-                    className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none placeholder-[#09090F]/30"
-                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
+                    className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                    style={{ background: '#FFFFFF', color: INK }}
                   />
                   <input
                     type="date"
                     value={subjectForm.examDate}
                     onChange={e => setSubjectForm(f => ({ ...f, examDate: e.target.value }))}
-                    className="px-3 py-2.5 rounded-lg font-nunito text-sm text-[#09090F] outline-none"
-                    style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
+                    className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                    style={{ background: '#FFFFFF', color: INK }}
                   />
                 </div>
-                <button
-                  onClick={handleAddSubject}
-                  disabled={!subjectForm.name}
-                  className="w-full py-2.5 text-white font-nunito font-bold text-sm rounded-lg transition disabled:opacity-40 active:scale-95"
-                  style={{ background: ACCENT, border: '2.5px solid #09090F', boxShadow: '3px 3px 0 #09090F' }}
-                >
-                  Add Subject
-                </button>
-                <div className="text-xs text-[#09090F]/30 font-nunito mt-2">Exam date is optional. Set it to get a countdown.</div>
-              </div>
+                <NButton onClick={handleAddSubject} disabled={!subjectForm.name} accent={ACCENT} className="w-full">Add subject</NButton>
+                <div className="font-nunito text-xs mt-2" style={{ color: MUTED }}>Exam date is optional. Set it to get a countdown.</div>
+              </Panel>
 
-              {data.subjects.map(s => {
+              {data.subjects.map((s, i) => {
                 const mins = minutesFor(s.id)
                 return (
-                  <div key={s.id} className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                    <div className="flex items-center gap-3 mb-3">
+                  <div key={s.id} className="py-4" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                    <div className="flex items-center gap-3 mb-2">
                       <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: s.color }} />
                       <div className="flex-1 min-w-0">
-                        <div className="font-nunito font-bold text-sm text-[#09090F] truncate">{s.name}</div>
-                        <div className="text-xs text-[#09090F]/50 font-nunito">
+                        <div className="font-nunito font-medium text-sm truncate" style={{ color: INK }}>{s.name}</div>
+                        <div className="font-nunito text-xs" style={{ color: MUTED }}>
                           {fmtHours(mins)} total
                           {s.examDate && ` · exam ${s.examDate} (${daysUntil(s.examDate) >= 0 ? `${daysUntil(s.examDate)}d left` : 'passed'})`}
                         </div>
@@ -602,37 +547,26 @@ export default function Study() {
                         type="date"
                         value={s.examDate ?? ''}
                         onChange={e => handleSetExamDate(s.id, e.target.value)}
-                        className="px-2 py-1.5 rounded-lg font-nunito text-xs text-[#09090F] outline-none flex-shrink-0"
-                        style={{ background: INPUT_BG, border: `2.5px solid ${CARD_BORDER}` }}
+                        className="px-2 py-1.5 rounded-lg font-nunito text-xs outline-none flex-shrink-0"
+                        style={{ background: '#F0EEE8', color: INK }}
                       />
-                      <button
-                        onClick={() => handleDeleteSubject(s.id)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-[#09090F]/30 hover:text-red-500 hover:bg-red-50 transition flex-shrink-0"
-                      >
-                        ✕
-                      </button>
+                      <button onClick={() => handleDeleteSubject(s.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
                     </div>
-                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#E5E4E2' }}>
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${(mins / maxSubjectMinutes) * 100}%`, background: s.color }}
-                      />
-                    </div>
+                    <NProgress pct={(mins / maxSubjectMinutes) * 100} accent={s.color} height={4} />
                   </div>
                 )
               })}
 
               {data.subjects.length === 0 && (
-                <div className="text-center py-12 rounded-xl" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                  <div className="text-5xl mb-3">📚</div>
-                  <div className="font-nunito font-semibold text-[#09090F] mb-1">No subjects yet</div>
-                  <div className="text-xs text-[#09090F]/40 font-nunito">Add your first subject above to start tracking study time</div>
+                <div className="py-10 text-center">
+                  <div className="font-nunito text-sm" style={{ color: INK }}>No subjects yet</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Add your first subject above to start tracking study time</div>
                 </div>
               )}
             </div>
           )}
 
-          {/* ── GAMES ────────────────────────────────────────── */}
+          {/* ── PET ──────────────────────────────────────────── */}
           {mainTab === 'pet' && (
             <div className="space-y-4 max-w-2xl">
               <DailyChallenges trackerId="study" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
@@ -649,22 +583,20 @@ export default function Study() {
           )}
 
           {mainTab === 'games' && (
-            <div className="rounded-xl p-4 md:p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-xs font-nunito font-black uppercase tracking-widest" style={{ color: ACCENT }}>Mini Games</div>
-                <span className="text-xs text-[#09090F]/50 font-nunito">XP → Study Pet</span>
-              </div>
-              <div className="flex gap-1.5 mb-5 p-1 rounded-xl" style={{ background: INPUT_BG }}>
+            <div className="max-w-xl">
+              <div className="flex items-center gap-5 mb-5" style={{ borderBottom: `1px solid ${INK}12` }}>
                 {(['clicker', 'arcade', 'puzzle'] as GameTab[]).map(g => (
                   <button
                     key={g}
                     onClick={() => setGameTab(g)}
-                    className="flex-1 py-2 rounded-lg font-nunito text-sm transition"
-                    style={gameTab === g
-                      ? { background: ACCENT, color: '#FFFFFF', border: '2.5px solid #09090F', boxShadow: '2px 2px 0 #09090F' }
-                      : { color: 'rgba(9,9,15,0.4)' }}
+                    className="pb-2.5 font-nunito text-sm transition-colors"
+                    style={{
+                      color: gameTab === g ? INK : MUTED,
+                      fontWeight: gameTab === g ? 600 : 400,
+                      borderBottom: gameTab === g ? `2px solid ${ACCENT}` : '2px solid transparent',
+                    }}
                   >
-                    {g === 'clicker' ? '👆 Clicker' : g === 'arcade' ? '🕹️ Arcade' : '🧩 Puzzle'}
+                    {g === 'clicker' ? 'Clicker' : g === 'arcade' ? 'Arcade' : 'Puzzle'}
                   </button>
                 ))}
               </div>
@@ -675,27 +607,21 @@ export default function Study() {
           )}
         </div>
 
-        {/* RIGHT PANEL — desktop only */}
-        <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${CARD_BORDER}`, background: '#F5F4F2' }}>
-          <div className="p-6 space-y-4">
-            <div className="rounded-xl p-5" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-              <div className="text-xs font-nunito font-black uppercase tracking-widest mb-4" style={{ color: ACCENT }}>Your Pet</div>
-              {petCard}
-            </div>
+        {/* RIGHT PANEL, desktop only */}
+        <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${INK}0D`, background: '#F5F4F2' }}>
+          <Panel tone="tint" accent={ACCENT} className="m-6 p-5">
+            {petCard}
             {nextExam && (
-              <div className="rounded-xl p-4" style={{ background: CARD_BG, border: `3px solid ${CARD_BORDER}`, boxShadow: '4px 4px 0 #09090F' }}>
-                <div className="text-xs font-nunito font-black uppercase tracking-widest mb-2" style={{ color: ACCENT }}>Next Exam</div>
-                <div className="font-nunito font-semibold text-sm text-[#09090F]">{nextExam.name}</div>
-                <div className="text-xs text-[#09090F]/50 font-nunito">
-                  {nextExam.examDate} · {daysUntil(nextExam.examDate!)} days left
-                </div>
+              <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${INK}0D` }}>
+                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Next exam</div>
+                <div className="font-nunito text-sm" style={{ color: INK }}>{nextExam.name}</div>
+                <div className="font-nunito text-xs" style={{ color: MUTED }}>{nextExam.examDate} · {daysUntil(nextExam.examDate!)} days left</div>
               </div>
             )}
-            <div className="rounded-xl p-3 text-xs font-nunito leading-relaxed" style={{ background: '#EDE9FE', border: '1px solid #DDD6FE' }}>
-              <strong className="text-violet-700">Pet tip:</strong>{' '}
-              <span className="text-violet-800">Every 5 minutes studied = 1 XP (max 30/session). First session of the day earns +10 bonus XP!</span>
+            <div className="font-nunito text-xs leading-relaxed mt-4 pt-4" style={{ color: MUTED, borderTop: `1px solid ${INK}0D` }}>
+              Every 5 minutes studied earns 1 XP, up to 30 per session. The first session of the day earns +10 bonus.
             </div>
-          </div>
+          </Panel>
         </aside>
       </div>
     </div>
