@@ -66,7 +66,8 @@ export default function Financial() {
   const [form, setForm] = useState({ type: 'income' as 'income' | 'expense', amount: '', category: INCOME_CATS[0], description: '' })
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all')
   const [budgetInputs, setBudgetInputs] = useState<Record<string, string>>({})
-  const [recurForm, setRecurForm] = useState({ name: '', amount: '', type: 'expense' as 'income' | 'expense', category: EXPENSE_CATS[0], dueDay: '1' })
+  const [recurForm, setRecurForm] = useState({ name: '', amount: '', type: 'expense' as 'income' | 'expense', category: EXPENSE_CATS[0], dueDay: '' })
+  const [recurAlreadyPaid, setRecurAlreadyPaid] = useState(false)
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
   const [streak, setStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
@@ -113,7 +114,7 @@ export default function Financial() {
     )
   }
 
-  // ── Core stats ────────────────────────────────────────────
+  // ── Core stats (all time — used in Analytics, which is explicitly historical) ──
   const totalIncome  = data.transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
   const totalExpense = data.transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
   const net = totalIncome - totalExpense
@@ -121,6 +122,16 @@ export default function Financial() {
   const healthScore = Math.min(100, Math.max(0, savingsRate * 1.5 + (net > 0 ? 20 : -20) + 30))
   const uniqueDays = new Set(data.transactions.map(t => t.date)).size || 1
   const dailyAvgExpense = Math.round(totalExpense / uniqueDays)
+
+  // ── This month's stats — what Overview and Cashflow health actually show ──
+  const monthTx = data.transactions.filter(t => t.date.startsWith(currentMonth()))
+  const monthIncome = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
+  const monthExpense = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+  const monthNet = monthIncome - monthExpense
+  const monthSavingsRate = monthIncome > 0 ? Math.round((monthNet / monthIncome) * 100) : 0
+  const monthHealthScore = Math.min(100, Math.max(0, monthSavingsRate * 1.5 + (monthNet > 0 ? 20 : -20) + 30))
+  const monthUniqueDays = new Set(monthTx.map(t => t.date)).size || 1
+  const monthDailyAvgExpense = Math.round(monthExpense / monthUniqueDays)
 
   const petStage = getStageFromXP(FINANCIAL_STAGES, data.character.xp)
 
@@ -200,14 +211,22 @@ export default function Financial() {
     const newRate   = newIncome > 0 ? (newNet / newIncome) * 100 : 0
 
     let xpGain: number
+    let xpNote: string | null = null
     if (form.type === 'income') {
       xpGain = newRate > 30 ? 25 : newRate > 20 ? 20 : newRate > 10 ? 12 : 8
+    } else if (newIncome === 0) {
+      // No income on record yet to compare against — logging an expense first is
+      // completely normal, so this isn't judged against a savings rate that doesn't exist.
+      xpGain = 5
+      xpNote = 'Log your income too so XP can reflect your real savings rate.'
+    } else if (newRate >= 20) {
+      xpGain = 2
+    } else if (newRate >= 0) {
+      xpGain = -5
+    } else if (newRate >= -20) {
+      xpGain = -10
     } else {
-      if (newIncome === 0)      xpGain = -10
-      else if (newRate >= 20)   xpGain =   2
-      else if (newRate >= 0)    xpGain =  -5
-      else if (newRate >= -20)  xpGain = -10
-      else                      xpGain = -20
+      xpGain = -20
     }
 
     try {
@@ -220,7 +239,8 @@ export default function Financial() {
       })
       applyXP(xpGain, { transactions: [tx, ...data.transactions] })
       setForm(f => ({ ...f, amount: '', description: '' }))
-      if (xpGain > 0) showToast(`+${xpGain} XP!`, true)
+      if (xpNote) showToast(`+${xpGain} XP. ${xpNote}`, true)
+      else if (xpGain > 0) showToast(`+${xpGain} XP!`, true)
       else showToast(`${xpGain} XP. Watch your cashflow!`, false)
     } catch {
       showToast('Failed to save transaction', false)
@@ -263,17 +283,24 @@ export default function Financial() {
 
   // ── Recurring actions ────────────────────────────────────
   const handleAddRecurring = async () => {
-    if (!recurForm.name || !recurForm.amount) return
+    if (!recurForm.name || !recurForm.amount || !recurForm.dueDay) return
     try {
       const item = await dbAddRecurring(userId, {
         name: recurForm.name,
         amount: Math.abs(Number(recurForm.amount)),
         type: recurForm.type,
         category: recurForm.category,
-        dueDay: Math.min(31, Math.max(1, Number(recurForm.dueDay) || 1)),
+        dueDay: Math.min(31, Math.max(1, Number(recurForm.dueDay))),
       })
-      setData(d => d ? { ...d, recurring: [...d.recurring, item] } : d)
-      setRecurForm({ name: '', amount: '', type: 'expense', category: EXPENSE_CATS[0], dueDay: '1' })
+      let finalItem = item
+      if (recurAlreadyPaid) {
+        const month = currentMonth()
+        await dbSetRecurringPaid(item.id, userId, month, true, todayStr())
+        finalItem = { ...item, payments: [{ month, paidAt: todayStr() }] }
+      }
+      setData(d => d ? { ...d, recurring: [...d.recurring, finalItem] } : d)
+      setRecurForm({ name: '', amount: '', type: 'expense', category: EXPENSE_CATS[0], dueDay: '' })
+      setRecurAlreadyPaid(false)
       showToast('Recurring bill added!')
     } catch {
       showToast('Failed to add recurring bill', false)
@@ -310,8 +337,9 @@ export default function Financial() {
   const filtered = data.transactions.filter(t => filter === 'all' || t.type === filter)
   const recent3  = data.transactions.slice(0, 3)
 
-  const healthLabel = healthScore >= 70 ? 'Healthy' : healthScore >= 40 ? 'Fair' : 'At risk'
   const healthColor = healthScore >= 70 ? INCOME_COLOR : healthScore >= 40 ? ACCENT : EXPENSE_COLOR
+  const monthHealthLabel = monthHealthScore >= 70 ? 'Healthy' : monthHealthScore >= 40 ? 'Fair' : 'At risk'
+  const monthHealthColor = monthHealthScore >= 70 ? INCOME_COLOR : monthHealthScore >= 40 ? ACCENT : EXPENSE_COLOR
 
   const txToday = data.transactions.filter(t => t.date === todayStr())
   const dailyChallenges = [
@@ -360,12 +388,13 @@ export default function Financial() {
           </div>
 
           {/* Metrics — plain typographic row, no boxed tiles */}
+          <div className="font-nunito text-xs mb-1.5" style={{ color: MUTED }}>This month</div>
           <div className="flex flex-wrap gap-x-8 gap-y-3 mb-6">
             {[
-              { label: 'Income', value: formatRp(totalIncome), color: INCOME_COLOR },
-              { label: 'Expenses', value: formatRp(totalExpense), color: EXPENSE_COLOR },
-              { label: 'Net', value: `${net >= 0 ? '+' : ''}${formatRp(net)}`, color: net >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
-              { label: 'Savings', value: `${savingsRate}%`, color: healthColor },
+              { label: 'Income', value: formatRp(monthIncome), color: INCOME_COLOR },
+              { label: 'Expenses', value: formatRp(monthExpense), color: EXPENSE_COLOR },
+              { label: 'Net', value: `${monthNet >= 0 ? '+' : ''}${formatRp(monthNet)}`, color: monthNet >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
+              { label: 'Savings', value: `${monthSavingsRate}%`, color: monthHealthColor },
             ].map(m => (
               <div key={m.label}>
                 <div className="font-nunito font-bold text-lg md:text-xl leading-none" style={{ color: m.color }}>{m.value}</div>
@@ -404,7 +433,7 @@ export default function Financial() {
                   ))}
                   {nextBill && (
                     <div className="font-nunito text-xs" style={{ color: isRecurOverdue(nextBill) ? EXPENSE_COLOR : MUTED }}>
-                      {nextBill.name} {isRecurOverdue(nextBill) ? 'is overdue' : `due on day ${nextBill.dueDay}`}, {formatRp(nextBill.amount)}
+                      {nextBill.name} {isRecurOverdue(nextBill) ? `is overdue — was due on day ${nextBill.dueDay} this month` : `renews on day ${nextBill.dueDay}`}, {formatRp(nextBill.amount)}
                     </div>
                   )}
                 </div>
@@ -467,19 +496,22 @@ export default function Financial() {
               {/* Cashflow health — plain content, no box */}
               {data.transactions.length > 0 && (
                 <div>
-                  <div className="font-nunito font-semibold text-sm mb-2" style={{ color: INK }}>Cashflow health</div>
+                  <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Cashflow health</div>
+                  <div className="font-nunito text-xs mb-2" style={{ color: MUTED }}>
+                    Based on this month's savings rate — the % of income you've kept after expenses so far this month.
+                  </div>
                   <div className="flex items-center gap-4 mb-2">
-                    <div className="font-nunito font-bold leading-none" style={{ color: healthColor, fontSize: 34 }}>{healthScore}</div>
+                    <div className="font-nunito font-bold leading-none" style={{ color: monthHealthColor, fontSize: 34 }}>{monthHealthScore}</div>
                     <div className="flex-1">
-                      <div className="font-nunito text-sm" style={{ color: INK }}>{healthLabel}</div>
-                      <div className="font-nunito text-xs" style={{ color: MUTED }}>{savingsRate}% savings rate</div>
+                      <div className="font-nunito text-sm" style={{ color: INK }}>{monthHealthLabel}</div>
+                      <div className="font-nunito text-xs" style={{ color: MUTED }}>{monthSavingsRate}% savings rate this month</div>
                     </div>
                     <div className="text-right flex-shrink-0">
                       <div className="font-nunito text-xs" style={{ color: MUTED }}>daily avg spend</div>
-                      <div className="font-nunito text-sm" style={{ color: INK }}>{formatRp(dailyAvgExpense)}</div>
+                      <div className="font-nunito text-sm" style={{ color: INK }}>{formatRp(monthDailyAvgExpense)}</div>
                     </div>
                   </div>
-                  <NProgress pct={healthScore} accent={healthColor} height={5} />
+                  <NProgress pct={monthHealthScore} accent={monthHealthColor} height={5} />
                 </div>
               )}
 
@@ -612,7 +644,8 @@ export default function Financial() {
               </div>
 
               <div>
-                <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Recurring bills</div>
+                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Recurring bills</div>
+                <div className="font-nunito text-xs mb-4" style={{ color: MUTED }}>Bills or income that repeat every month. Mark paid each time it renews to log it and keep your streak going.</div>
                 <Panel tone="tint" accent={ACCENT} className="p-4 mb-4">
                   <div className="flex gap-2 mb-2">
                     {(['expense', 'income'] as const).map(t => (
@@ -650,14 +683,28 @@ export default function Financial() {
                       {(recurForm.type === 'income' ? INCOME_CATS : EXPENSE_CATS).map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                     <input
-                      type="number" min={1} max={31} placeholder="Due day (1-31)" value={recurForm.dueDay}
-                      onChange={e => setRecurForm(f => ({ ...f, dueDay: e.target.value }))}
+                      type="number" min={1} max={31} placeholder="Renews on day (1-31)" value={recurForm.dueDay}
+                      onChange={e => { setRecurForm(f => ({ ...f, dueDay: e.target.value })); setRecurAlreadyPaid(false) }}
                       onKeyDown={e => e.key === 'Enter' && handleAddRecurring()}
                       className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                       style={{ background: '#FFFFFF', color: INK }}
                     />
                   </div>
-                  <NButton onClick={handleAddRecurring} disabled={!recurForm.name || !recurForm.amount} accent={ACCENT} className="w-full">
+                  <div className="font-nunito text-xs mb-2" style={{ color: MUTED }}>
+                    The day of the month it renews — e.g. Netflix renews on the 14th → type 14.
+                  </div>
+                  {recurForm.dueDay !== '' && Number(recurForm.dueDay) > 0 && Number(recurForm.dueDay) < new Date().getDate() && (
+                    <label className="flex items-start gap-2 mb-3 font-nunito text-xs cursor-pointer" style={{ color: INK }}>
+                      <input
+                        type="checkbox"
+                        checked={recurAlreadyPaid}
+                        onChange={e => setRecurAlreadyPaid(e.target.checked)}
+                        className="mt-0.5"
+                      />
+                      <span>Day {recurForm.dueDay} already passed this month — check this if you've already paid, otherwise it'll show as overdue.</span>
+                    </label>
+                  )}
+                  <NButton onClick={handleAddRecurring} disabled={!recurForm.name || !recurForm.amount || !recurForm.dueDay} accent={ACCENT} className="w-full">
                     Add recurring
                   </NButton>
                 </Panel>
@@ -671,8 +718,8 @@ export default function Financial() {
                         <div className="font-nunito font-medium text-sm truncate" style={{ color: overdue ? EXPENSE_COLOR : INK }}>
                           {r.name}
                         </div>
-                        <div className="font-nunito text-xs" style={{ color: MUTED }}>
-                          {r.type === 'income' ? '+' : '−'}{formatRp(r.amount)} · due day {r.dueDay} · {r.category}
+                        <div className="font-nunito text-xs" style={{ color: overdue ? EXPENSE_COLOR : MUTED }}>
+                          {r.type === 'income' ? '+' : '−'}{formatRp(r.amount)} · {overdue ? `overdue — was due day ${r.dueDay} this month` : `renews day ${r.dueDay}`} · {r.category}
                         </div>
                       </div>
                       {paid ? (
@@ -704,6 +751,7 @@ export default function Financial() {
                 </div>
               ) : (
                 <>
+                  <div className="font-nunito text-xs mb-1.5" style={{ color: MUTED }}>All time</div>
                   <div className="flex flex-wrap gap-x-8 gap-y-3">
                     {[
                       { label: 'Transactions', value: String(data.transactions.length), color: INK },
@@ -720,11 +768,14 @@ export default function Financial() {
 
                   {netWorthSeries.length >= 2 && (
                     <div>
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between mb-1">
                         <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>Net worth trend</div>
                         <span className="font-nunito text-xs" style={{ color: MUTED }}>
                           {formatRp(netWorthSeries[0])} → {formatRp(netWorthSeries[netWorthSeries.length - 1])}
                         </span>
+                      </div>
+                      <div className="font-nunito text-xs mb-2" style={{ color: MUTED }}>
+                        Running total of everything you've ever logged: income in, expenses out.
                       </div>
                       <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full" style={{ height: 100 }}>
                         <polyline points={netWorthPoints} fill="none" stroke={netWorthColor} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
@@ -862,11 +913,12 @@ export default function Financial() {
           <Panel tone="tint" accent={ACCENT} className="m-6 p-5">
             <Character type="financial" xp={data.character.xp} happiness={data.character.happiness} prestige={data.character.prestige} onEvolution={s => showToast(`Evolved to ${s.name}!`, true)} onPrestige={p => showToast(`Prestige ${p}! Pet reborn!`, true)} />
             <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${INK}0D` }}>
-              <div className="font-nunito font-semibold text-sm mb-2" style={{ color: INK }}>Cashflow health</div>
-              <NProgress pct={healthScore} accent={healthColor} height={5} />
+              <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Cashflow health</div>
+              <div className="font-nunito text-xs mb-2" style={{ color: MUTED }}>Based on this month's savings rate.</div>
+              <NProgress pct={monthHealthScore} accent={monthHealthColor} height={5} />
               <div className="flex justify-between font-nunito text-xs mt-1.5">
-                <span style={{ color: MUTED }}>{healthLabel}</span>
-                <span style={{ color: MUTED }}>{savingsRate}% savings</span>
+                <span style={{ color: MUTED }}>{monthHealthLabel}</span>
+                <span style={{ color: MUTED }}>{monthSavingsRate}% savings this month</span>
               </div>
             </div>
             {nextBill && (
@@ -874,7 +926,7 @@ export default function Financial() {
                 <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Next bill</div>
                 <div className="font-nunito text-sm" style={{ color: INK }}>{nextBill.name}</div>
                 <div className="font-nunito text-xs" style={{ color: isRecurOverdue(nextBill) ? EXPENSE_COLOR : MUTED }}>
-                  {formatRp(nextBill.amount)} · {isRecurOverdue(nextBill) ? 'overdue' : `due day ${nextBill.dueDay}`}
+                  {formatRp(nextBill.amount)} · {isRecurOverdue(nextBill) ? `overdue — was due day ${nextBill.dueDay} this month` : `renews day ${nextBill.dueDay}`}
                 </div>
               </div>
             )}
