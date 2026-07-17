@@ -453,7 +453,7 @@ function buildHtml(lang = 'en') {
 
   <!-- Footer -->
   <div class="footer">
-    <span class="footer-left">PT. Aurora Polaris Digital</span>
+    <span class="footer-left">Polaris</span>
     <div class="footer-line"></div>
     <span class="footer-right">${text.footer}</span>
   </div>
