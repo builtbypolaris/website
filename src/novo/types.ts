@@ -57,6 +57,13 @@ export interface FinancialData {
 export type Priority = 'low' | 'medium' | 'high'
 
 export type TaskStatus = 'todo' | 'in_progress' | 'done'
+export type Recurrence = 'none' | 'daily' | 'weekly'
+
+export interface Subtask {
+  id: string
+  title: string
+  completed: boolean
+}
 
 export interface Task {
   id: string
@@ -64,9 +71,11 @@ export interface Task {
   completed: boolean
   priority: Priority
   status: TaskStatus
+  recurrence: Recurrence
   dueDate?: string
   createdAt: string
   completedAt?: string
+  subtasks: Subtask[]
 }
 
 export interface TodoData {

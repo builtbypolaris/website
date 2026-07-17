@@ -77,9 +77,20 @@ create table if not exists public.tasks (
   completed    boolean default false not null,
   priority     text default 'medium' check (priority in ('low', 'medium', 'high')),
   status       text default 'todo' not null check (status in ('todo', 'in_progress', 'done')),
+  recurrence   text default 'none' not null check (recurrence in ('none', 'daily', 'weekly')),
   due_date     date,
   created_at   timestamptz default now(),
   completed_at timestamptz
+);
+
+create table if not exists public.task_subtasks (
+  id          uuid default gen_random_uuid() primary key,
+  task_id     uuid references public.tasks(id) on delete cascade not null,
+  user_id     uuid references auth.users(id) on delete cascade not null,
+  title       text not null,
+  completed   boolean default false not null,
+  order_index integer default 0 not null,
+  created_at  timestamptz default now()
 );
 
 -- 5. HABITS
@@ -430,6 +441,7 @@ alter table public.profiles         enable row level security;
 alter table public.characters       enable row level security;
 alter table public.transactions     enable row level security;
 alter table public.tasks            enable row level security;
+alter table public.task_subtasks    enable row level security;
 alter table public.habits           enable row level security;
 alter table public.habit_completions enable row level security;
 alter table public.savings_goals        enable row level security;
@@ -480,6 +492,9 @@ create policy "transactions: own rows" on public.transactions
 
 -- tasks
 create policy "tasks: own rows" on public.tasks
+  for all using (auth.uid() = user_id);
+
+create policy "task_subtasks: own rows" on public.task_subtasks
   for all using (auth.uid() = user_id);
 
 -- habits
