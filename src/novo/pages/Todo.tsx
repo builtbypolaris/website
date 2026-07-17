@@ -17,7 +17,7 @@ import { PetRoom } from '../components/PetRoom'
 import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import Character from '../components/Character'
-import { INK, MUTED, Panel, NButton, NProgress } from '../components/ui'
+import { INK, MUTED, Panel, NButton, NProgress, StableLabel } from '../components/ui'
 import TaskTap from '../games/TaskTap'
 import TaskRush from '../games/TaskRush'
 import PriorityPuzzle from '../games/PriorityPuzzle'
@@ -129,10 +129,10 @@ export default function Todo() {
   const tr = TODO_T[lang]
   const changeLang = (l: Lang) => { localStorage.setItem(LANG_KEY, l); setLang(l) }
 
-  const MAIN_TABS = MAIN_TAB_KEYS.map(key => ({
-    key,
-    label: { overview: tr.tabOverview, tasks: tr.tabTasks, projects: tr.tabProjects, calendar: tr.tabCalendar, analytics: tr.tabAnalytics, pet: tr.tabPet, games: tr.tabGames }[key],
-  }))
+  const tabLabelKey = (key: MainTab): keyof TodoDict => ({
+    overview: 'tabOverview', tasks: 'tabTasks', projects: 'tabProjects', calendar: 'tabCalendar', analytics: 'tabAnalytics', pet: 'tabPet', games: 'tabGames',
+  } as const)[key]
+  const MAIN_TABS = MAIN_TAB_KEYS.map(key => ({ key, label: tr[tabLabelKey(key)] as string, enLabel: TODO_T.en[tabLabelKey(key)] as string, idLabel: TODO_T.id[tabLabelKey(key)] as string }))
   const STATUS_COLUMNS = STATUS_COLUMN_KEYS.map(key => ({
     key,
     label: { todo: tr.colTodo, in_progress: tr.colInProgress, done: tr.colDone }[key],
@@ -827,7 +827,7 @@ export default function Todo() {
                     borderBottom: mainTab === t.key ? `2px solid ${ACCENT}` : isTourTarget ? `2px solid ${ACCENT}80` : '2px solid transparent',
                   }}
                 >
-                  {t.label}
+                  <StableLabel a={t.enLabel} b={t.idLabel} active={lang === 'en' ? 'a' : 'b'} />
                 </button>
               )
             })}
@@ -891,7 +891,11 @@ export default function Todo() {
                       ? { background: ACCENT, color: '#FFFFFF', boxShadow: `0 3px 10px ${ACCENT}50` }
                       : { background: `${INK}08`, color: MUTED }}
                   >
-                    {v === 'list' ? tr.viewList : tr.viewBoard}
+                    <StableLabel
+                      a={v === 'list' ? TODO_T.en.viewList : TODO_T.en.viewBoard}
+                      b={v === 'list' ? TODO_T.id.viewList : TODO_T.id.viewBoard}
+                      active={lang === 'en' ? 'a' : 'b'}
+                    />
                   </button>
                 ))}
               </div>
@@ -1241,7 +1245,11 @@ export default function Todo() {
                       borderBottom: gameTab === g ? `2px solid ${ACCENT}` : '2px solid transparent',
                     }}
                   >
-                    {g === 'clicker' ? tr.gameClicker : g === 'arcade' ? tr.gameArcade : tr.gamePuzzle}
+                    <StableLabel
+                      a={g === 'clicker' ? TODO_T.en.gameClicker : g === 'arcade' ? TODO_T.en.gameArcade : TODO_T.en.gamePuzzle}
+                      b={g === 'clicker' ? TODO_T.id.gameClicker : g === 'arcade' ? TODO_T.id.gameArcade : TODO_T.id.gamePuzzle}
+                      active={lang === 'en' ? 'a' : 'b'}
+                    />
                   </button>
                 ))}
               </div>

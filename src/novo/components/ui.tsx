@@ -76,6 +76,28 @@ export function Panel({
   )
 }
 
+// ── StableLabel ──────────────────────────────────────────────
+// Renders both language variants stacked in the same grid cell (one
+// hidden via visibility, not display, so it still occupies space).
+// CSS grid auto-sizes the track to the widest child, so the label's
+// footprint is always max(width(a), width(b)) — switching which one
+// is visible never changes surrounding layout/position.
+
+export function StableLabel({ a, b, active, className, style }: {
+  a: string
+  b: string
+  active: 'a' | 'b'
+  className?: string
+  style?: CSSProperties
+}) {
+  return (
+    <span className={`inline-grid ${className ?? ''}`} style={style}>
+      <span style={{ gridArea: '1 / 1', visibility: active === 'a' ? 'visible' : 'hidden', whiteSpace: 'nowrap' }}>{a}</span>
+      <span style={{ gridArea: '1 / 1', visibility: active === 'b' ? 'visible' : 'hidden', whiteSpace: 'nowrap' }}>{b}</span>
+    </span>
+  )
+}
+
 // ── NProgress ────────────────────────────────────────────────
 
 export function NProgress({ pct, accent, track = `${INK}14`, height = 8 }: { pct: number; accent: string; track?: string; height?: number }) {

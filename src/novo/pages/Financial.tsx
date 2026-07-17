@@ -18,20 +18,22 @@ import { PetRoom } from '../components/PetRoom'
 import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { FINANCIAL_STAGES, getStageFromXP } from '../data/creatures'
-import { INK, MUTED, Panel, NButton, NProgress } from '../components/ui'
+import { INK, MUTED, Panel, NButton, NProgress, StableLabel } from '../components/ui'
 import Character from '../components/Character'
 import MoneyRain from '../games/MoneyRain'
 import BudgetDodge from '../games/BudgetDodge'
 import MoneyMatch from '../games/MoneyMatch'
 import type { CharacterState, FinancialData } from '../types'
+import { FIN_T, CATEGORY_WORD, MONTH_SHORT, type Lang, type FinancialDict } from './Financial.i18n'
 
 const INCOME_CATS = ['Salary', 'Freelance', 'Investment', 'Gift', 'Other']
 const EXPENSE_CATS = ['Food', 'Transport', 'Shopping', 'Health', 'Bills', 'Entertainment', 'Other']
-const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const BAR_MAX_H = 112
+const LANG_KEY = 'novo-lang'
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
 type MainTab = 'overview' | 'log' | 'budgets' | 'analytics' | 'pet' | 'games'
+const MAIN_TAB_KEYS: MainTab[] = ['overview', 'log', 'budgets', 'analytics', 'pet', 'games']
 
 const ACCENT = '#B45309'
 const INCOME_COLOR = '#16A34A'
@@ -46,29 +48,13 @@ function shortRp(n: number) {
 }
 function currentMonth() { return todayStr().slice(0, 7) }
 
-const MAIN_TABS: { key: MainTab; label: string }[] = [
-  { key: 'overview', label: 'Overview' },
-  { key: 'log', label: 'Log' },
-  { key: 'budgets', label: 'Budgets' },
-  { key: 'analytics', label: 'Analytics' },
-  { key: 'pet', label: 'Pet' },
-  { key: 'games', label: 'Games' },
-]
-
 const introKey = (userId: string) => `novo-intro-financial-seen-${userId}`
 
-const TOUR_STEPS: { tab: MainTab; text: string }[] = [
-  { tab: 'overview', text: 'Add income or expenses here — this month\'s numbers update as you go.' },
-  { tab: 'log', text: 'Every transaction you\'ve ever logged, filterable and searchable.' },
-  { tab: 'budgets', text: 'Set a monthly limit per category, and add bills or income that repeat every month.' },
-  { tab: 'analytics', text: 'Net worth trend, spending breakdown, income vs expenses over time.' },
-  { tab: 'pet', text: 'Your pet grows from real activity — logging, budgeting, paying bills on time.' },
-  { tab: 'games', text: 'Optional mini-games for bonus XP, whenever you want a break.' },
-]
-
-function TourCoachmark({ step, targetEl, onNext, onSkip }: {
+function TourCoachmark({ step, steps, targetEl, tr, onNext, onSkip }: {
   step: number
+  steps: { tab: MainTab; text: string }[]
   targetEl: HTMLButtonElement | null
+  tr: FinancialDict
   onNext: () => void
   onSkip: () => void
 }) {
@@ -86,7 +72,7 @@ function TourCoachmark({ step, targetEl, onNext, onSkip }: {
   }, [targetEl, step])
 
   if (!pos) return null
-  const last = step === TOUR_STEPS.length - 1
+  const last = step === steps.length - 1
 
   return (
     <div
@@ -94,14 +80,14 @@ function TourCoachmark({ step, targetEl, onNext, onSkip }: {
       style={{ top: pos.top, left: pos.left, transform: 'translateX(-50%)', zIndex: 9990, width: 260 }}
     >
       <Panel tone="fill" accent={ACCENT} className="p-4">
-        <div className="font-nunito text-xs text-white/70 mb-1.5">{step + 1} / {TOUR_STEPS.length}</div>
-        <div className="font-nunito text-sm text-white leading-relaxed mb-3">{TOUR_STEPS[step].text}</div>
+        <div className="font-nunito text-xs text-white/70 mb-1.5">{step + 1} / {steps.length}</div>
+        <div className="font-nunito text-sm text-white leading-relaxed mb-3">{steps[step].text}</div>
         <div className="flex items-center justify-between">
           <button onClick={onSkip} className="font-nunito text-xs text-white/60 hover:text-white/90 transition-colors">
-            Skip tour
+            {tr.tourSkip}
           </button>
           <NButton onClick={onNext} style={{ background: '#FFFFFF', color: ACCENT }} size="sm">
-            {last ? 'Done' : 'Next'}
+            {last ? tr.tourDone : tr.tourNext}
           </NButton>
         </div>
       </Panel>
@@ -128,7 +114,27 @@ export default function Financial() {
   const [missions, setMissions] = useState<MissionRow[]>([])
   const [tourStep, setTourStep] = useState<number | null>(null)
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const [lang, setLang] = useState<Lang>(() => (localStorage.getItem(LANG_KEY) as Lang | null) ?? 'en')
   const { celebrate, layer } = useCelebrations()
+
+  const tr = FIN_T[lang]
+  const changeLang = (l: Lang) => { localStorage.setItem(LANG_KEY, l); setLang(l) }
+  const categoryLabel = (cat: string) => CATEGORY_WORD[lang][cat] ?? cat
+  const MONTH_LABELS = MONTH_SHORT[lang]
+
+  const tabLabelKey = (key: MainTab): keyof FinancialDict => ({
+    overview: 'tabOverview', log: 'tabLog', budgets: 'tabBudgets', analytics: 'tabAnalytics', pet: 'tabPet', games: 'tabGames',
+  } as const)[key]
+  const MAIN_TABS = MAIN_TAB_KEYS.map(key => ({ key, label: tr[tabLabelKey(key)] as string, enLabel: FIN_T.en[tabLabelKey(key)] as string, idLabel: FIN_T.id[tabLabelKey(key)] as string }))
+
+  const TOUR_STEPS: { tab: MainTab; text: string }[] = [
+    { tab: 'overview', text: tr.tourOverview },
+    { tab: 'log', text: tr.tourLog },
+    { tab: 'budgets', text: tr.tourBudgets },
+    { tab: 'analytics', text: tr.tourAnalytics },
+    { tab: 'pet', text: tr.tourPet },
+    { tab: 'games', text: tr.tourGames },
+  ]
 
   useEffect(() => {
     if (!userId) return
@@ -137,11 +143,13 @@ export default function Financial() {
     getWeekMissions(userId).then(setMissions)
     getFinancialData(userId).then(setData)
     if (!localStorage.getItem(introKey(userId))) setTourStep(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
 
   useEffect(() => {
     if (tourStep === null) return
     setMainTab(TOUR_STEPS[tourStep].tab)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tourStep])
 
   const endTour = () => {
@@ -187,7 +195,7 @@ export default function Financial() {
   if (!data) {
     return (
       <div className="h-full flex items-center justify-center" style={{ background: '#F5F4F2' }}>
-        <div className="font-nunito text-sm" style={{ color: MUTED }}>Loading…</div>
+        <div className="font-nunito text-sm" style={{ color: MUTED }}>{tr.loading}</div>
       </div>
     )
   }
@@ -296,7 +304,7 @@ export default function Financial() {
       // No income on record yet to compare against — logging an expense first is
       // completely normal, so this isn't judged against a savings rate that doesn't exist.
       xpGain = 5
-      xpNote = 'Log your income too so XP can reflect your real savings rate.'
+      xpNote = tr.xpNoteLogIncome
     } else if (newRate >= 20) {
       xpGain = 2
     } else if (newRate >= 0) {
@@ -317,11 +325,11 @@ export default function Financial() {
       })
       applyXP(xpGain, { transactions: [tx, ...data.transactions] })
       setForm(f => ({ ...f, amount: '', description: '' }))
-      if (xpNote) showToast(`+${xpGain} XP. ${xpNote}`, true)
-      else if (xpGain > 0) showToast(`+${xpGain} XP!`, true)
-      else showToast(`${xpGain} XP. Watch your cashflow!`, false)
+      if (xpNote) showToast(tr.xpWithNote(xpGain, xpNote), true)
+      else if (xpGain > 0) showToast(tr.normalXp(xpGain), true)
+      else showToast(`${xpGain} XP. ${tr.watchCashflow}`, false)
     } catch {
-      showToast('Failed to save transaction', false)
+      showToast(tr.failedToSaveTransaction, false)
     }
   }
 
@@ -340,7 +348,7 @@ export default function Financial() {
     const before = data.character
     setData(d => d ? { ...d, character: addXP(before, xp) } : d)
     runAward(before, xp)
-    showToast(`${title}: +${xp} XP!`)
+    showToast(tr.challengeClaimed(title, xp))
   }
 
   // ── Budget actions ───────────────────────────────────────
@@ -379,9 +387,9 @@ export default function Financial() {
       setData(d => d ? { ...d, recurring: [...d.recurring, finalItem] } : d)
       setRecurForm({ name: '', amount: '', type: 'expense', category: EXPENSE_CATS[0], dueDay: '' })
       setRecurAlreadyPaid(false)
-      showToast('Recurring bill added!')
+      showToast(tr.recurringAdded)
     } catch {
-      showToast('Failed to add recurring bill', false)
+      showToast(tr.failedToAddRecurring, false)
     }
   }
 
@@ -405,9 +413,9 @@ export default function Financial() {
       })
       const nextRecurring = data.recurring.map(x => x.id === r.id ? { ...x, payments: [{ month, paidAt: todayStr() }, ...x.payments] } : x)
       applyXP(xpGain, { recurring: nextRecurring, transactions: [tx, ...data.transactions] })
-      showToast(daysLate <= 0 ? `Paid on time! +${xpGain} XP!` : daysLate > 7 ? `${xpGain} XP. Over a week late.` : `Paid! +${xpGain} XP`, xpGain > 0)
+      showToast(daysLate <= 0 ? tr.paidOnTime(xpGain) : daysLate > 7 ? tr.paidLate(xpGain) : tr.paidNormal(xpGain), xpGain > 0)
     } catch {
-      showToast('Failed to mark paid', false)
+      showToast(tr.failedToMarkPaid, false)
     }
   }
 
@@ -416,21 +424,21 @@ export default function Financial() {
   const recent3  = data.transactions.slice(0, 3)
 
   const healthColor = healthScore >= 70 ? INCOME_COLOR : healthScore >= 40 ? ACCENT : EXPENSE_COLOR
-  const monthHealthLabel = monthHealthScore >= 70 ? 'Healthy' : monthHealthScore >= 40 ? 'Fair' : 'At risk'
+  const monthHealthLabel = monthHealthScore >= 70 ? tr.healthHealthy : monthHealthScore >= 40 ? tr.healthFair : tr.healthAtRisk
   const monthHealthColor = monthHealthScore >= 70 ? INCOME_COLOR : monthHealthScore >= 40 ? ACCENT : EXPENSE_COLOR
 
   const txToday = data.transactions.filter(t => t.date === todayStr())
   const dailyChallenges = [
-    { id: 'log2', title: 'Log 2 transactions', emoji: '🧾', xp: 15, met: txToday.length >= 2 },
-    { id: 'income', title: 'Log an income', emoji: '💵', xp: 20, met: txToday.some(t => t.type === 'income') },
-    { id: 'log5', title: 'Log 5 transactions', emoji: '📚', xp: 30, met: txToday.length >= 5 },
+    { id: 'log2', title: tr.challengeLog2, emoji: '🧾', xp: 15, met: txToday.length >= 2 },
+    { id: 'income', title: tr.challengeLogIncome, emoji: '💵', xp: 20, met: txToday.some(t => t.type === 'income') },
+    { id: 'log5', title: tr.challengeLog5, emoji: '📚', xp: 30, met: txToday.length >= 5 },
   ]
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
       {layer}
       {tourStep !== null && (
-        <TourCoachmark step={tourStep} targetEl={tabRefs.current[tourStep] ?? null} onNext={advanceTour} onSkip={endTour} />
+        <TourCoachmark step={tourStep} steps={TOUR_STEPS} targetEl={tabRefs.current[tourStep] ?? null} tr={tr} onNext={advanceTour} onSkip={endTour} />
       )}
 
       {toast && (
@@ -447,20 +455,33 @@ export default function Financial() {
         className="flex items-center justify-between px-4 md:px-6 py-3 sticky top-0 z-30 flex-shrink-0"
         style={{ background: 'rgba(245,244,242,0.97)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E5E4E2' }}
       >
-        <button onClick={() => navigate('/studios/dashboard')} className="font-nunito text-sm transition-opacity hover:opacity-70" style={{ color: MUTED }}>
-          Back
+        <button onClick={() => navigate('/studios/dashboard')} className="font-nunito text-sm transition-opacity hover:opacity-70 flex-shrink-0" style={{ color: MUTED }}>
+          {tr.back}
         </button>
-        <div className="font-nunito font-semibold text-sm flex items-center gap-2" style={{ color: INK }}>
-          Financial <StreakBadge streak={streak} />
+        <div className="font-nunito font-semibold text-sm flex items-center gap-2 flex-shrink-0" style={{ color: INK }}>
+          {tr.headerTitle} <StreakBadge streak={streak} />
         </div>
-        <div className="hidden lg:flex items-center gap-3 text-xs font-nunito" style={{ color: MUTED }}>
-          <span>{petStage.emoji}</span>
-          <span>{data.character.xp} XP</span>
-          <button onClick={() => setTourStep(0)} className="transition-opacity hover:opacity-70" style={{ color: MUTED }}>
-            How this works
-          </button>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="hidden lg:flex items-center gap-3 text-xs font-nunito" style={{ color: MUTED }}>
+            <span>{petStage.emoji}</span>
+            <span>{data.character.xp} XP</span>
+            <button onClick={() => setTourStep(0)} className="transition-opacity hover:opacity-70" style={{ color: MUTED }}>
+              {tr.howThisWorks}
+            </button>
+          </div>
+          <div className="flex rounded-full overflow-hidden" style={{ background: `${INK}08` }}>
+            {(['en', 'id'] as Lang[]).map(l => (
+              <button
+                key={l}
+                onClick={() => changeLang(l)}
+                className="px-2.5 py-1 font-nunito text-xs font-semibold transition-colors"
+                style={lang === l ? { background: ACCENT, color: '#FFFFFF' } : { color: MUTED }}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="lg:hidden w-10" />
       </header>
 
       <div className="flex flex-1 overflow-hidden">
@@ -468,17 +489,17 @@ export default function Financial() {
 
           {/* Mobile pet, plain — no box */}
           <div className="lg:hidden mb-5">
-            <Character type="financial" xp={data.character.xp} happiness={data.character.happiness} prestige={data.character.prestige} onEvolution={s => showToast(`Evolved to ${s.name}!`, true)} onPrestige={p => showToast(`Prestige ${p}! Pet reborn!`, true)} />
+            <Character type="financial" xp={data.character.xp} happiness={data.character.happiness} prestige={data.character.prestige} onEvolution={s => showToast(tr.evolved(s.name), true)} onPrestige={p => showToast(tr.prestige(p), true)} />
           </div>
 
           {/* Metrics — plain typographic row, no boxed tiles */}
-          <div className="font-nunito text-xs mb-1.5" style={{ color: MUTED }}>This month</div>
+          <div className="font-nunito text-xs mb-1.5" style={{ color: MUTED }}>{tr.thisMonth}</div>
           <div className="flex flex-wrap gap-x-8 gap-y-3 mb-6">
             {[
-              { label: 'Income', value: formatRp(monthIncome), color: INCOME_COLOR },
-              { label: 'Expenses', value: formatRp(monthExpense), color: EXPENSE_COLOR },
-              { label: 'Net', value: `${monthNet >= 0 ? '+' : ''}${formatRp(monthNet)}`, color: monthNet >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
-              { label: 'Savings', value: `${monthSavingsRate}%`, color: monthHealthColor },
+              { label: tr.metricIncome, value: formatRp(monthIncome), color: INCOME_COLOR },
+              { label: tr.metricExpenses, value: formatRp(monthExpense), color: EXPENSE_COLOR },
+              { label: tr.metricNet, value: `${monthNet >= 0 ? '+' : ''}${formatRp(monthNet)}`, color: monthNet >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
+              { label: tr.metricSavings, value: `${monthSavingsRate}%`, color: monthHealthColor },
             ].map(m => (
               <div key={m.label}>
                 <div className="font-nunito font-bold text-lg md:text-xl leading-none" style={{ color: m.color }}>{m.value}</div>
@@ -504,7 +525,7 @@ export default function Financial() {
                     ...(isTourTarget ? { boxShadow: `0 0 0 3px ${ACCENT}80, 0 3px 10px ${ACCENT}50` } : {}),
                   }}
                 >
-                  {t.label}
+                  <StableLabel a={t.enLabel} b={t.idLabel} active={lang === 'en' ? 'a' : 'b'} />
                 </button>
               )
             })}
@@ -519,12 +540,12 @@ export default function Financial() {
                 <div className="space-y-1">
                   {budgetAlerts.map(a => (
                     <div key={a.cat} className="font-nunito text-xs" style={{ color: a.pct >= 100 ? EXPENSE_COLOR : WARN_COLOR }}>
-                      {a.cat} is at {a.pct}% of its {formatRp(a.budget!.monthlyLimit)} budget
+                      {tr.budgetAlertLine(categoryLabel(a.cat), a.pct, formatRp(a.budget!.monthlyLimit))}
                     </div>
                   ))}
                   {nextBill && (
                     <div className="font-nunito text-xs" style={{ color: isRecurOverdue(nextBill) ? EXPENSE_COLOR : MUTED }}>
-                      {nextBill.name} {isRecurOverdue(nextBill) ? `is overdue — was due on day ${nextBill.dueDay} this month` : `renews on day ${nextBill.dueDay}`}, {formatRp(nextBill.amount)}
+                      {isRecurOverdue(nextBill) ? tr.billOverdueLine(nextBill.name, nextBill.dueDay) : tr.billRenewsLine(nextBill.name, nextBill.dueDay)}, {formatRp(nextBill.amount)}
                     </div>
                   )}
                 </div>
@@ -532,7 +553,7 @@ export default function Financial() {
 
               {/* Add transaction — the one panel on this tab, it's real input UI */}
               <Panel tone="tint" accent={ACCENT} className="p-5">
-                <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Add transaction</div>
+                <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>{tr.addTransaction}</div>
                 <div className="flex gap-2 mb-3">
                   {(['income', 'expense'] as const).map(t => (
                     <button
@@ -543,14 +564,18 @@ export default function Financial() {
                         ? { background: t === 'income' ? INCOME_COLOR : EXPENSE_COLOR, color: '#FFFFFF' }
                         : { background: 'transparent', color: MUTED }}
                     >
-                      {t === 'income' ? 'Income' : 'Expense'}
+                      <StableLabel
+                        a={t === 'income' ? FIN_T.en.toggleIncome : FIN_T.en.toggleExpense}
+                        b={t === 'income' ? FIN_T.id.toggleIncome : FIN_T.id.toggleExpense}
+                        active={lang === 'en' ? 'a' : 'b'}
+                      />
                     </button>
                   ))}
                 </div>
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   <input
                     type="number"
-                    placeholder="Amount (Rp)"
+                    placeholder={tr.amountPlaceholder}
                     value={form.amount}
                     onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleAddTransaction()}
@@ -563,13 +588,13 @@ export default function Financial() {
                     className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                     style={{ background: '#FFFFFF', color: INK }}
                   >
-                    {cats.map(c => <option key={c} value={c}>{c}</option>)}
+                    {cats.map(c => <option key={c} value={c}>{categoryLabel(c)}</option>)}
                   </select>
                 </div>
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Description (optional)"
+                    placeholder={tr.descriptionPlaceholder}
                     value={form.description}
                     onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleAddTransaction()}
@@ -577,7 +602,7 @@ export default function Financial() {
                     style={{ background: '#FFFFFF', color: INK }}
                   />
                   <NButton onClick={handleAddTransaction} disabled={!form.amount} accent={ACCENT}>
-                    Add
+                    {tr.add}
                   </NButton>
                 </div>
               </Panel>
@@ -587,18 +612,18 @@ export default function Financial() {
               {/* Cashflow health — plain content, no box */}
               {data.transactions.length > 0 && (
                 <div>
-                  <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Cashflow health</div>
+                  <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>{tr.cashflowHealth}</div>
                   <div className="font-nunito text-xs mb-2" style={{ color: MUTED }}>
-                    Based on this month's savings rate — the % of income you've kept after expenses so far this month.
+                    {tr.cashflowHealthCaption}
                   </div>
                   <div className="flex items-center gap-4 mb-2">
                     <div className="font-nunito font-bold leading-none" style={{ color: monthHealthColor, fontSize: 34 }}>{monthHealthScore}</div>
                     <div className="flex-1">
                       <div className="font-nunito text-sm" style={{ color: INK }}>{monthHealthLabel}</div>
-                      <div className="font-nunito text-xs" style={{ color: MUTED }}>{monthSavingsRate}% savings rate this month</div>
+                      <div className="font-nunito text-xs" style={{ color: MUTED }}>{tr.savingsRateThisMonth(monthSavingsRate)}</div>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <div className="font-nunito text-xs" style={{ color: MUTED }}>daily avg spend</div>
+                      <div className="font-nunito text-xs" style={{ color: MUTED }}>{tr.dailyAvgSpend}</div>
                       <div className="font-nunito text-sm" style={{ color: INK }}>{formatRp(monthDailyAvgExpense)}</div>
                     </div>
                   </div>
@@ -610,9 +635,9 @@ export default function Financial() {
               {recent3.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>Recent</div>
+                    <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>{tr.recent}</div>
                     <button onClick={() => setMainTab('log')} className="font-nunito text-xs transition-opacity hover:opacity-70" style={{ color: ACCENT }}>
-                      See all
+                      {tr.seeAll}
                     </button>
                   </div>
                   <div>
@@ -623,7 +648,7 @@ export default function Financial() {
                         </span>
                         <div className="flex-1 min-w-0">
                           <div className="font-nunito text-sm truncate" style={{ color: INK }}>{tx.description}</div>
-                          <div className="font-nunito text-xs" style={{ color: MUTED }}>{tx.category} · {tx.date}</div>
+                          <div className="font-nunito text-xs" style={{ color: MUTED }}>{categoryLabel(tx.category)} · {tx.date}</div>
                         </div>
                         <span className="font-nunito font-semibold text-sm flex-shrink-0" style={{ color: tx.type === 'income' ? INCOME_COLOR : EXPENSE_COLOR }}>
                           {formatRp(tx.amount)}
@@ -636,8 +661,8 @@ export default function Financial() {
 
               {data.transactions.length === 0 && (
                 <div className="py-10 text-center">
-                  <div className="font-nunito text-sm" style={{ color: INK }}>No transactions yet</div>
-                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Add your first income or expense above to start tracking</div>
+                  <div className="font-nunito text-sm" style={{ color: INK }}>{tr.noTransactionsYet}</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{tr.addFirstTransaction}</div>
                 </div>
               )}
             </div>
@@ -655,14 +680,14 @@ export default function Financial() {
                     className="font-nunito text-sm transition-colors"
                     style={{ color: filter === f ? INK : MUTED, fontWeight: filter === f ? 600 : 400 }}
                   >
-                    {f === 'all' ? `All (${data.transactions.length})` : f === 'income' ? 'Income' : 'Expense'}
+                    {f === 'all' ? tr.filterAll(data.transactions.length) : f === 'income' ? tr.filterIncome : tr.filterExpense}
                   </button>
                 ))}
               </div>
 
               {filtered.length === 0 && (
                 <div className="py-10 text-center font-nunito text-sm" style={{ color: MUTED }}>
-                  {data.transactions.length === 0 ? 'No transactions yet. Add one in Overview' : 'No transactions match this filter'}
+                  {data.transactions.length === 0 ? tr.noTransactionsYetAddOne : tr.noTransactionsMatchFilter}
                 </div>
               )}
 
@@ -673,7 +698,7 @@ export default function Financial() {
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="font-nunito font-medium text-sm truncate" style={{ color: INK }}>{tx.description}</div>
-                    <div className="font-nunito text-xs" style={{ color: MUTED }}>{tx.category} · {tx.date}</div>
+                    <div className="font-nunito text-xs" style={{ color: MUTED }}>{categoryLabel(tx.category)} · {tx.date}</div>
                   </div>
                   <span className="font-nunito font-semibold text-sm flex-shrink-0" style={{ color: tx.type === 'income' ? INCOME_COLOR : EXPENSE_COLOR }}>
                     {formatRp(tx.amount)}
@@ -695,8 +720,8 @@ export default function Financial() {
             <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-10">
 
               <div>
-                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Category budgets</div>
-                <div className="font-nunito text-xs mb-4" style={{ color: MUTED }}>Set a monthly limit per category. Leave blank for no limit.</div>
+                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>{tr.categoryBudgetsHeading}</div>
+                <div className="font-nunito text-xs mb-4" style={{ color: MUTED }}>{tr.categoryBudgetsCaption}</div>
                 <div className="space-y-4">
                   {EXPENSE_CATS.map(cat => {
                     const budget = budgetFor(cat)
@@ -708,10 +733,10 @@ export default function Financial() {
                     return (
                       <div key={cat}>
                         <div className="flex items-center justify-between gap-3 mb-1.5">
-                          <span className="font-nunito text-sm" style={{ color: INK }}>{cat}</span>
+                          <span className="font-nunito text-sm" style={{ color: INK }}>{categoryLabel(cat)}</span>
                           <input
                             type="number"
-                            placeholder="No limit"
+                            placeholder={tr.noLimitPlaceholder}
                             value={budgetInputs[cat] ?? (budget ? String(budget.monthlyLimit) : '')}
                             onChange={e => setBudgetInputs(f => ({ ...f, [cat]: e.target.value }))}
                             onBlur={() => handleBudgetBlur(cat)}
@@ -723,8 +748,8 @@ export default function Financial() {
                           <>
                             <NProgress pct={pct} accent={color} height={4} />
                             <div className="flex justify-between font-nunito text-xs mt-1" style={{ color: over ? EXPENSE_COLOR : MUTED }}>
-                              <span>{formatRp(spent)} spent</span>
-                              <span>{over ? 'Over budget' : `of ${formatRp(budget.monthlyLimit)}`}</span>
+                              <span>{tr.spentLabel(formatRp(spent))}</span>
+                              <span>{over ? tr.overBudget : tr.ofLimit(formatRp(budget.monthlyLimit))}</span>
                             </div>
                           </>
                         )}
@@ -735,8 +760,8 @@ export default function Financial() {
               </div>
 
               <div>
-                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Recurring bills</div>
-                <div className="font-nunito text-xs mb-4" style={{ color: MUTED }}>Bills or income that repeat every month. Mark paid each time it renews to log it and keep your streak going.</div>
+                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>{tr.recurringBillsHeading}</div>
+                <div className="font-nunito text-xs mb-4" style={{ color: MUTED }}>{tr.recurringBillsCaption}</div>
                 <Panel tone="tint" accent={ACCENT} className="p-4 mb-4">
                   <div className="flex gap-2 mb-2">
                     {(['expense', 'income'] as const).map(t => (
@@ -748,19 +773,23 @@ export default function Financial() {
                           ? { background: t === 'income' ? INCOME_COLOR : EXPENSE_COLOR, color: '#FFFFFF' }
                           : { background: 'transparent', color: MUTED }}
                       >
-                        {t === 'income' ? 'Income' : 'Bill'}
+                        <StableLabel
+                          a={t === 'income' ? FIN_T.en.toggleIncome : FIN_T.en.toggleBill}
+                          b={t === 'income' ? FIN_T.id.toggleIncome : FIN_T.id.toggleBill}
+                          active={lang === 'en' ? 'a' : 'b'}
+                        />
                       </button>
                     ))}
                   </div>
                   <div className="grid grid-cols-2 gap-2 mb-2">
                     <input
-                      type="text" placeholder="Name (e.g. Netflix)" value={recurForm.name}
+                      type="text" placeholder={tr.namePlaceholder} value={recurForm.name}
                       onChange={e => setRecurForm(f => ({ ...f, name: e.target.value }))}
                       className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                       style={{ background: '#FFFFFF', color: INK }}
                     />
                     <input
-                      type="number" placeholder="Amount (Rp)" value={recurForm.amount}
+                      type="number" placeholder={tr.amountPlaceholder} value={recurForm.amount}
                       onChange={e => setRecurForm(f => ({ ...f, amount: e.target.value }))}
                       className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                       style={{ background: '#FFFFFF', color: INK }}
@@ -771,10 +800,10 @@ export default function Financial() {
                       className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                       style={{ background: '#FFFFFF', color: INK }}
                     >
-                      {(recurForm.type === 'income' ? INCOME_CATS : EXPENSE_CATS).map(c => <option key={c} value={c}>{c}</option>)}
+                      {(recurForm.type === 'income' ? INCOME_CATS : EXPENSE_CATS).map(c => <option key={c} value={c}>{categoryLabel(c)}</option>)}
                     </select>
                     <input
-                      type="number" min={1} max={31} placeholder="Renews on day (1-31)" value={recurForm.dueDay}
+                      type="number" min={1} max={31} placeholder={tr.renewsOnDayPlaceholder} value={recurForm.dueDay}
                       onChange={e => { setRecurForm(f => ({ ...f, dueDay: e.target.value })); setRecurAlreadyPaid(false) }}
                       onKeyDown={e => e.key === 'Enter' && handleAddRecurring()}
                       className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
@@ -782,7 +811,7 @@ export default function Financial() {
                     />
                   </div>
                   <div className="font-nunito text-xs mb-2" style={{ color: MUTED }}>
-                    The day of the month it renews — e.g. Netflix renews on the 14th → type 14.
+                    {tr.renewsCaption}
                   </div>
                   {recurForm.dueDay !== '' && Number(recurForm.dueDay) > 0 && Number(recurForm.dueDay) < new Date().getDate() && (
                     <label className="flex items-start gap-2 mb-3 font-nunito text-xs cursor-pointer" style={{ color: INK }}>
@@ -792,11 +821,11 @@ export default function Financial() {
                         onChange={e => setRecurAlreadyPaid(e.target.checked)}
                         className="mt-0.5"
                       />
-                      <span>Day {recurForm.dueDay} already passed this month — check this if you've already paid, otherwise it'll show as overdue.</span>
+                      <span>{tr.alreadyPaidCheckbox(recurForm.dueDay)}</span>
                     </label>
                   )}
                   <NButton onClick={handleAddRecurring} disabled={!recurForm.name || !recurForm.amount || !recurForm.dueDay} accent={ACCENT} className="w-full">
-                    Add recurring
+                    {tr.addRecurring}
                   </NButton>
                 </Panel>
 
@@ -810,14 +839,14 @@ export default function Financial() {
                           {r.name}
                         </div>
                         <div className="font-nunito text-xs" style={{ color: overdue ? EXPENSE_COLOR : MUTED }}>
-                          {r.type === 'income' ? '+' : '−'}{formatRp(r.amount)} · {overdue ? `overdue — was due day ${r.dueDay} this month` : `renews day ${r.dueDay}`} · {r.category}
+                          {r.type === 'income' ? '+' : '−'}{formatRp(r.amount)} · {overdue ? tr.recurOverdue(r.dueDay) : tr.recurRenews(r.dueDay)} · {categoryLabel(r.category)}
                         </div>
                       </div>
                       {paid ? (
-                        <span className="font-nunito text-xs flex-shrink-0" style={{ color: INCOME_COLOR }}>Paid this month</span>
+                        <span className="font-nunito text-xs flex-shrink-0" style={{ color: INCOME_COLOR }}>{tr.paidThisMonth}</span>
                       ) : (
                         <button onClick={() => handleMarkRecurringPaid(r)} className="font-nunito text-xs flex-shrink-0" style={{ color: overdue ? EXPENSE_COLOR : ACCENT }}>
-                          Mark paid
+                          {tr.markPaid}
                         </button>
                       )}
                       <button onClick={() => handleDeleteRecurring(r.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
@@ -826,7 +855,7 @@ export default function Financial() {
                 })}
 
                 {data.recurring.length === 0 && (
-                  <div className="font-nunito text-xs" style={{ color: MUTED }}>No recurring bills yet. Add rent, subscriptions, or a salary above.</div>
+                  <div className="font-nunito text-xs" style={{ color: MUTED }}>{tr.noRecurringYet}</div>
                 )}
               </div>
             </div>
@@ -837,18 +866,18 @@ export default function Financial() {
             <div className="space-y-8 max-w-5xl">
               {data.transactions.length === 0 ? (
                 <div className="py-10 text-center">
-                  <div className="font-nunito text-sm" style={{ color: INK }}>No data yet</div>
-                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Add some transactions to unlock analytics</div>
+                  <div className="font-nunito text-sm" style={{ color: INK }}>{tr.noDataYet}</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{tr.addTransactionsToUnlock}</div>
                 </div>
               ) : (
                 <>
-                  <div className="font-nunito text-xs mb-1.5" style={{ color: MUTED }}>All time</div>
+                  <div className="font-nunito text-xs mb-1.5" style={{ color: MUTED }}>{tr.allTime}</div>
                   <div className="flex flex-wrap gap-x-8 gap-y-3">
                     {[
-                      { label: 'Transactions', value: String(data.transactions.length), color: INK },
-                      { label: 'Daily avg spend', value: formatRp(dailyAvgExpense), color: EXPENSE_COLOR },
-                      { label: 'Net balance', value: `${net >= 0 ? '+' : ''}${shortRp(net)}`, color: net >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
-                      { label: 'Health score', value: `${healthScore}/100`, color: healthColor },
+                      { label: tr.analyticsTransactions, value: String(data.transactions.length), color: INK },
+                      { label: tr.dailyAvgSpend, value: formatRp(dailyAvgExpense), color: EXPENSE_COLOR },
+                      { label: tr.netBalance, value: `${net >= 0 ? '+' : ''}${shortRp(net)}`, color: net >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
+                      { label: tr.healthScore, value: `${healthScore}/100`, color: healthColor },
                     ].map(s => (
                       <div key={s.label}>
                         <div className="font-nunito font-bold text-lg leading-none" style={{ color: s.color }}>{s.value}</div>
@@ -860,13 +889,13 @@ export default function Financial() {
                   {netWorthSeries.length >= 2 && (
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>Net worth trend</div>
+                        <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>{tr.netWorthTrend}</div>
                         <span className="font-nunito text-xs" style={{ color: MUTED }}>
                           {formatRp(netWorthSeries[0])} → {formatRp(netWorthSeries[netWorthSeries.length - 1])}
                         </span>
                       </div>
                       <div className="font-nunito text-xs mb-2" style={{ color: MUTED }}>
-                        Running total of everything you've ever logged: income in, expenses out.
+                        {tr.netWorthCaption}
                       </div>
                       <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full" style={{ height: 100 }}>
                         <polyline points={netWorthPoints} fill="none" stroke={netWorthColor} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
@@ -880,19 +909,19 @@ export default function Financial() {
 
                   <div>
                     <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>
-                      Income vs expenses, last 6 months
+                      {tr.incomeVsExpenses}
                     </div>
                     <div className="flex items-end gap-2" style={{ height: BAR_MAX_H + 8 }}>
                       {monthlyData.map(m => (
                         <div key={m.label} className="flex-1 flex flex-col">
                           <div className="flex items-end gap-0.5 flex-1">
                             <div
-                              title={`Income: ${formatRp(m.income)}`}
+                              title={`${tr.legendIncome}: ${formatRp(m.income)}`}
                               className="flex-1 rounded-t-sm transition-all duration-500"
                               style={{ height: m.income > 0 ? Math.max(4, (m.income / maxMonthly) * BAR_MAX_H) : 0, background: INCOME_COLOR }}
                             />
                             <div
-                              title={`Expenses: ${formatRp(m.expense)}`}
+                              title={`${tr.legendExpenses}: ${formatRp(m.expense)}`}
                               className="flex-1 rounded-t-sm transition-all duration-500"
                               style={{ height: m.expense > 0 ? Math.max(4, (m.expense / maxMonthly) * BAR_MAX_H) : 0, background: EXPENSE_COLOR }}
                             />
@@ -904,11 +933,11 @@ export default function Financial() {
                     <div className="flex gap-4 mt-3">
                       <div className="flex items-center gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full" style={{ background: INCOME_COLOR }} />
-                        <span className="font-nunito text-xs" style={{ color: MUTED }}>Income</span>
+                        <span className="font-nunito text-xs" style={{ color: MUTED }}>{tr.legendIncome}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full" style={{ background: EXPENSE_COLOR }} />
-                        <span className="font-nunito text-xs" style={{ color: MUTED }}>Expenses</span>
+                        <span className="font-nunito text-xs" style={{ color: MUTED }}>{tr.legendExpenses}</span>
                       </div>
                     </div>
                   </div>
@@ -917,12 +946,12 @@ export default function Financial() {
                     <div className="grid lg:grid-cols-2 gap-x-10 gap-y-8">
                       {topExpenses.length > 0 && (
                         <div>
-                          <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Top spending categories</div>
+                          <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>{tr.topSpendingCategories}</div>
                           <div className="space-y-3">
                             {topExpenses.map(([cat, amt]) => (
                               <div key={cat}>
                                 <div className="flex justify-between font-nunito text-xs mb-1.5">
-                                  <span style={{ color: INK }}>{cat}</span>
+                                  <span style={{ color: INK }}>{categoryLabel(cat)}</span>
                                   <span style={{ color: MUTED }}>
                                     {totalExpense > 0 ? Math.round((amt / totalExpense) * 100) : 0}% · {formatRp(amt)}
                                   </span>
@@ -936,12 +965,12 @@ export default function Financial() {
 
                       {incomeSources.length > 0 && (
                         <div>
-                          <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Income sources</div>
+                          <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>{tr.incomeSources}</div>
                           <div className="space-y-3">
                             {incomeSources.map(([cat, amt]) => (
                               <div key={cat}>
                                 <div className="flex justify-between font-nunito text-xs mb-1.5">
-                                  <span style={{ color: INK }}>{cat}</span>
+                                  <span style={{ color: INK }}>{categoryLabel(cat)}</span>
                                   <span style={{ color: MUTED }}>
                                     {totalIncome > 0 ? Math.round((amt / totalIncome) * 100) : 0}% · {formatRp(amt)}
                                   </span>
@@ -988,7 +1017,11 @@ export default function Financial() {
                       ? { background: ACCENT, color: '#FFFFFF', boxShadow: `0 3px 10px ${ACCENT}50` }
                       : { background: `${INK}08`, color: MUTED }}
                   >
-                    {g === 'clicker' ? 'Clicker' : g === 'arcade' ? 'Arcade' : 'Puzzle'}
+                    <StableLabel
+                      a={g === 'clicker' ? FIN_T.en.gameClicker : g === 'arcade' ? FIN_T.en.gameArcade : FIN_T.en.gamePuzzle}
+                      b={g === 'clicker' ? FIN_T.id.gameClicker : g === 'arcade' ? FIN_T.id.gameArcade : FIN_T.id.gamePuzzle}
+                      active={lang === 'en' ? 'a' : 'b'}
+                    />
                   </button>
                 ))}
               </div>
@@ -1002,27 +1035,27 @@ export default function Financial() {
         {/* RIGHT PANEL, desktop only */}
         <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${INK}0D`, background: '#F5F4F2' }}>
           <Panel tone="tint" accent={ACCENT} className="m-6 p-5">
-            <Character type="financial" xp={data.character.xp} happiness={data.character.happiness} prestige={data.character.prestige} onEvolution={s => showToast(`Evolved to ${s.name}!`, true)} onPrestige={p => showToast(`Prestige ${p}! Pet reborn!`, true)} />
+            <Character type="financial" xp={data.character.xp} happiness={data.character.happiness} prestige={data.character.prestige} onEvolution={s => showToast(tr.evolved(s.name), true)} onPrestige={p => showToast(tr.prestige(p), true)} />
             <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${INK}0D` }}>
-              <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Cashflow health</div>
-              <div className="font-nunito text-xs mb-2" style={{ color: MUTED }}>Based on this month's savings rate.</div>
+              <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>{tr.cashflowHealth}</div>
+              <div className="font-nunito text-xs mb-2" style={{ color: MUTED }}>{tr.cashflowHealthCaptionShort}</div>
               <NProgress pct={monthHealthScore} accent={monthHealthColor} height={5} />
               <div className="flex justify-between font-nunito text-xs mt-1.5">
                 <span style={{ color: MUTED }}>{monthHealthLabel}</span>
-                <span style={{ color: MUTED }}>{monthSavingsRate}% savings this month</span>
+                <span style={{ color: MUTED }}>{tr.savingsThisMonth(monthSavingsRate)}</span>
               </div>
             </div>
             {nextBill && (
               <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${INK}0D` }}>
-                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Next bill</div>
+                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>{tr.nextBill}</div>
                 <div className="font-nunito text-sm" style={{ color: INK }}>{nextBill.name}</div>
                 <div className="font-nunito text-xs" style={{ color: isRecurOverdue(nextBill) ? EXPENSE_COLOR : MUTED }}>
-                  {formatRp(nextBill.amount)} · {isRecurOverdue(nextBill) ? `overdue — was due day ${nextBill.dueDay} this month` : `renews day ${nextBill.dueDay}`}
+                  {formatRp(nextBill.amount)} · {isRecurOverdue(nextBill) ? tr.recurOverdue(nextBill.dueDay) : tr.recurRenews(nextBill.dueDay)}
                 </div>
               </div>
             )}
             <div className="font-nunito text-xs leading-relaxed mt-4 pt-4" style={{ color: MUTED, borderTop: `1px solid ${INK}0D` }}>
-              Healthier cashflow means faster pet growth. Keep savings above 20% for max XP.
+              {tr.sidebarTip}
             </div>
           </Panel>
         </aside>
