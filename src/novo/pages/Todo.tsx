@@ -765,14 +765,14 @@ export default function Todo() {
         style={{ background: 'rgba(245,244,242,0.97)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E5E4E2' }}
       >
         <button onClick={() => navigate('/studios/dashboard')} className="font-nunito text-sm transition-opacity hover:opacity-70 flex-shrink-0" style={{ color: MUTED }}>
-          {tr.back}
+          <StableLabel a={TODO_T.en.back} b={TODO_T.id.back} active={lang === 'en' ? 'a' : 'b'} />
         </button>
         <div className="font-nunito font-semibold text-sm flex items-center gap-2 flex-shrink-0" style={{ color: INK }}>
           {tr.headerTitle} <StreakBadge streak={streak} />
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           <button onClick={() => setTourStep(0)} className="hidden md:block font-nunito text-xs transition-opacity hover:opacity-70" style={{ color: MUTED }}>
-            {tr.howThisWorks}
+            <StableLabel a={TODO_T.en.howThisWorks} b={TODO_T.id.howThisWorks} active={lang === 'en' ? 'a' : 'b'} />
           </button>
           <div className="flex rounded-full overflow-hidden" style={{ background: `${INK}08` }}>
             {(['en', 'id'] as Lang[]).map(l => (
@@ -800,13 +800,15 @@ export default function Todo() {
           {/* Metrics */}
           <div className="flex flex-wrap gap-x-8 gap-y-3 mb-6">
             {[
-              { label: tr.metricTotal, value: String(totalTasks), color: INK },
-              { label: tr.metricActive, value: String(activeTasks), color: '#B45309' },
-              { label: tr.metricDone, value: String(doneTasks), color: ACCENT },
+              { key: 'total', en: TODO_T.en.metricTotal, id: TODO_T.id.metricTotal, value: String(totalTasks), color: INK },
+              { key: 'active', en: TODO_T.en.metricActive, id: TODO_T.id.metricActive, value: String(activeTasks), color: '#B45309' },
+              { key: 'done', en: TODO_T.en.metricDone, id: TODO_T.id.metricDone, value: String(doneTasks), color: ACCENT },
             ].map(m => (
-              <div key={m.label}>
+              <div key={m.key}>
                 <div className="font-nunito font-bold text-xl leading-none" style={{ color: m.color }}>{m.value}</div>
-                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{m.label}</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
+                  <StableLabel a={m.en} b={m.id} active={lang === 'en' ? 'a' : 'b'} />
+                </div>
               </div>
             ))}
           </div>

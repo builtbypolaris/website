@@ -456,17 +456,17 @@ export default function Financial() {
         style={{ background: 'rgba(245,244,242,0.97)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E5E4E2' }}
       >
         <button onClick={() => navigate('/studios/dashboard')} className="font-nunito text-sm transition-opacity hover:opacity-70 flex-shrink-0" style={{ color: MUTED }}>
-          {tr.back}
+          <StableLabel a={FIN_T.en.back} b={FIN_T.id.back} active={lang === 'en' ? 'a' : 'b'} />
         </button>
         <div className="font-nunito font-semibold text-sm flex items-center gap-2 flex-shrink-0" style={{ color: INK }}>
-          {tr.headerTitle} <StreakBadge streak={streak} />
+          <StableLabel a={FIN_T.en.headerTitle} b={FIN_T.id.headerTitle} active={lang === 'en' ? 'a' : 'b'} /> <StreakBadge streak={streak} />
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           <div className="hidden lg:flex items-center gap-3 text-xs font-nunito" style={{ color: MUTED }}>
             <span>{petStage.emoji}</span>
             <span>{data.character.xp} XP</span>
             <button onClick={() => setTourStep(0)} className="transition-opacity hover:opacity-70" style={{ color: MUTED }}>
-              {tr.howThisWorks}
+              <StableLabel a={FIN_T.en.howThisWorks} b={FIN_T.id.howThisWorks} active={lang === 'en' ? 'a' : 'b'} />
             </button>
           </div>
           <div className="flex rounded-full overflow-hidden" style={{ background: `${INK}08` }}>
@@ -496,14 +496,16 @@ export default function Financial() {
           <div className="font-nunito text-xs mb-1.5" style={{ color: MUTED }}>{tr.thisMonth}</div>
           <div className="flex flex-wrap gap-x-8 gap-y-3 mb-6">
             {[
-              { label: tr.metricIncome, value: formatRp(monthIncome), color: INCOME_COLOR },
-              { label: tr.metricExpenses, value: formatRp(monthExpense), color: EXPENSE_COLOR },
-              { label: tr.metricNet, value: `${monthNet >= 0 ? '+' : ''}${formatRp(monthNet)}`, color: monthNet >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
-              { label: tr.metricSavings, value: `${monthSavingsRate}%`, color: monthHealthColor },
+              { key: 'income', en: FIN_T.en.metricIncome, id: FIN_T.id.metricIncome, value: formatRp(monthIncome), color: INCOME_COLOR },
+              { key: 'expenses', en: FIN_T.en.metricExpenses, id: FIN_T.id.metricExpenses, value: formatRp(monthExpense), color: EXPENSE_COLOR },
+              { key: 'net', en: FIN_T.en.metricNet, id: FIN_T.id.metricNet, value: `${monthNet >= 0 ? '+' : ''}${formatRp(monthNet)}`, color: monthNet >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
+              { key: 'savings', en: FIN_T.en.metricSavings, id: FIN_T.id.metricSavings, value: `${monthSavingsRate}%`, color: monthHealthColor },
             ].map(m => (
-              <div key={m.label}>
+              <div key={m.key}>
                 <div className="font-nunito font-bold text-lg md:text-xl leading-none" style={{ color: m.color }}>{m.value}</div>
-                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{m.label}</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
+                  <StableLabel a={m.en} b={m.id} active={lang === 'en' ? 'a' : 'b'} />
+                </div>
               </div>
             ))}
           </div>
@@ -874,14 +876,16 @@ export default function Financial() {
                   <div className="font-nunito text-xs mb-1.5" style={{ color: MUTED }}>{tr.allTime}</div>
                   <div className="flex flex-wrap gap-x-8 gap-y-3">
                     {[
-                      { label: tr.analyticsTransactions, value: String(data.transactions.length), color: INK },
-                      { label: tr.dailyAvgSpend, value: formatRp(dailyAvgExpense), color: EXPENSE_COLOR },
-                      { label: tr.netBalance, value: `${net >= 0 ? '+' : ''}${shortRp(net)}`, color: net >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
-                      { label: tr.healthScore, value: `${healthScore}/100`, color: healthColor },
+                      { key: 'tx', en: FIN_T.en.analyticsTransactions, id: FIN_T.id.analyticsTransactions, value: String(data.transactions.length), color: INK },
+                      { key: 'avg', en: FIN_T.en.dailyAvgSpend, id: FIN_T.id.dailyAvgSpend, value: formatRp(dailyAvgExpense), color: EXPENSE_COLOR },
+                      { key: 'net', en: FIN_T.en.netBalance, id: FIN_T.id.netBalance, value: `${net >= 0 ? '+' : ''}${shortRp(net)}`, color: net >= 0 ? INCOME_COLOR : EXPENSE_COLOR },
+                      { key: 'health', en: FIN_T.en.healthScore, id: FIN_T.id.healthScore, value: `${healthScore}/100`, color: healthColor },
                     ].map(s => (
-                      <div key={s.label}>
+                      <div key={s.key}>
                         <div className="font-nunito font-bold text-lg leading-none" style={{ color: s.color }}>{s.value}</div>
-                        <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{s.label}</div>
+                        <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
+                          <StableLabel a={s.en} b={s.id} active={lang === 'en' ? 'a' : 'b'} />
+                        </div>
                       </div>
                     ))}
                   </div>
