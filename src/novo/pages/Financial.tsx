@@ -55,6 +55,46 @@ const MAIN_TABS: { key: MainTab; label: string }[] = [
   { key: 'games', label: 'Games' },
 ]
 
+const introKey = (userId: string) => `novo-intro-financial-seen-${userId}`
+
+const INTRO_ITEMS = [
+  { label: 'Overview', line: 'Add income or expenses and see this month\'s numbers at a glance.' },
+  { label: 'Log', line: 'Your full transaction history — filter and delete entries.' },
+  { label: 'Budgets', line: 'Set a monthly limit per category, and add recurring bills or income.' },
+  { label: 'Analytics', line: 'Net worth trend, spending breakdown, and 6-month history.' },
+  { label: 'Pet', line: 'Your pet grows from real activity here — logging, budgeting, paying bills on time.' },
+  { label: 'Games', line: 'Optional mini-games for bonus XP.' },
+]
+
+function IntroModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center p-5" style={{ zIndex: 9990, background: 'rgba(20,18,27,0.75)' }}>
+      <div className="bounce-in rounded-3xl p-6 md:p-8 max-w-md w-full" style={{ background: '#FAF9F6' }}>
+        <div className="mb-5">
+          <div className="text-4xl mb-3">💰</div>
+          <h2 className="font-nunito font-semibold text-xl mb-1.5" style={{ color: INK }}>Quick tour of Financial</h2>
+          <p className="font-nunito text-sm leading-relaxed" style={{ color: MUTED }}>
+            Six tabs, each does one thing:
+          </p>
+        </div>
+
+        <div className="space-y-3 mb-6">
+          {INTRO_ITEMS.map(item => (
+            <div key={item.label}>
+              <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>{item.label}</div>
+              <div className="font-nunito text-xs leading-relaxed" style={{ color: MUTED }}>{item.line}</div>
+            </div>
+          ))}
+        </div>
+
+        <NButton accent={ACCENT} size="lg" onClick={onClose} className="w-full">
+          Got it
+        </NButton>
+      </div>
+    </div>
+  )
+}
+
 export default function Financial() {
   const navigate = useNavigate()
   const { session } = useAuth()
@@ -72,6 +112,7 @@ export default function Financial() {
   const [streak, setStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
   const [missions, setMissions] = useState<MissionRow[]>([])
+  const [showIntro, setShowIntro] = useState(false)
   const { celebrate, layer } = useCelebrations()
 
   useEffect(() => {
@@ -80,7 +121,13 @@ export default function Financial() {
     getBadges(userId, 'financial').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
     getWeekMissions(userId).then(setMissions)
     getFinancialData(userId).then(setData)
+    if (!localStorage.getItem(introKey(userId))) setShowIntro(true)
   }, [userId])
+
+  const dismissIntro = () => {
+    localStorage.setItem(introKey(userId), '1')
+    setShowIntro(false)
+  }
 
   // Idle-day happiness decay, guarded to once per tracker per day
   useEffect(() => {
@@ -351,6 +398,7 @@ export default function Financial() {
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
       {layer}
+      {showIntro && <IntroModal onClose={dismissIntro} />}
 
       {toast && (
         <div
@@ -372,9 +420,12 @@ export default function Financial() {
         <div className="font-nunito font-semibold text-sm flex items-center gap-2" style={{ color: INK }}>
           Financial <StreakBadge streak={streak} />
         </div>
-        <div className="hidden lg:flex items-center gap-1.5 text-xs font-nunito" style={{ color: MUTED }}>
+        <div className="hidden lg:flex items-center gap-3 text-xs font-nunito" style={{ color: MUTED }}>
           <span>{petStage.emoji}</span>
           <span>{data.character.xp} XP</span>
+          <button onClick={() => setShowIntro(true)} className="transition-opacity hover:opacity-70" style={{ color: MUTED }}>
+            How this works
+          </button>
         </div>
         <div className="lg:hidden w-10" />
       </header>
