@@ -76,6 +76,7 @@ create table if not exists public.tasks (
   title        text not null,
   completed    boolean default false not null,
   priority     text default 'medium' check (priority in ('low', 'medium', 'high')),
+  status       text default 'todo' not null check (status in ('todo', 'in_progress', 'done')),
   due_date     date,
   created_at   timestamptz default now(),
   completed_at timestamptz

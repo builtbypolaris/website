@@ -18,7 +18,7 @@ import { INK, MUTED, Panel, NButton, NProgress } from '../components/ui'
 import TaskTap from '../games/TaskTap'
 import TaskRush from '../games/TaskRush'
 import PriorityPuzzle from '../games/PriorityPuzzle'
-import type { CharacterState, TodoData, Task, Priority } from '../types'
+import type { CharacterState, TodoData, Task, Priority, TaskStatus } from '../types'
 
 const ACCENT = '#16A34A'
 const BAR_MAX_H = 80
@@ -42,6 +42,12 @@ const MAIN_TABS: { key: MainTab; label: string }[] = [
   { key: 'games', label: 'Games' },
 ]
 
+const STATUS_COLUMNS: { key: TaskStatus; label: string }[] = [
+  { key: 'todo', label: 'To do' },
+  { key: 'in_progress', label: 'In progress' },
+  { key: 'done', label: 'Done' },
+]
+
 export default function Todo() {
   const navigate = useNavigate()
   const { session } = useAuth()
@@ -51,6 +57,8 @@ export default function Todo() {
   const [mainTab, setMainTab] = useState<MainTab>('tasks')
   const [gameTab, setGameTab] = useState<GameTab>('clicker')
   const [filter, setFilter] = useState<FilterTab>('all')
+  const [taskView, setTaskView] = useState<'list' | 'board'>('list')
+  const [draggedId, setDraggedId] = useState<string | null>(null)
   const [newTitle, setNewTitle] = useState('')
   const [newPriority, setNewPriority] = useState<Priority>('medium')
   const [newDue, setNewDue] = useState('')
@@ -137,13 +145,17 @@ export default function Todo() {
     }
   }
 
-  const handleToggleTask = async (id: string) => {
+  // statusOverride lets the board's drag-and-drop land a task in a specific
+  // column (e.g. dropped straight onto "In progress") instead of the default
+  // todo/done swap the plain checkbox uses.
+  const handleToggleTask = async (id: string, statusOverride?: TaskStatus) => {
     if (!data) return
     const task = data.tasks.find(t => t.id === id)
     if (!task) return
 
     const nowCompleted = !task.completed
     const completedAt = nowCompleted ? todayStr() : undefined
+    const nextStatus: TaskStatus = statusOverride ?? (nowCompleted ? 'done' : 'todo')
 
     let xpTotal = 0
     if (nowCompleted) {
@@ -162,12 +174,28 @@ export default function Todo() {
     const before = data.character
     setData(d => d ? {
       ...d,
-      tasks: d.tasks.map(t => t.id === id ? { ...t, completed: nowCompleted, completedAt } : t),
+      tasks: d.tasks.map(t => t.id === id ? { ...t, completed: nowCompleted, completedAt, status: nextStatus } : t),
       character: nowCompleted ? addXP(before, xpTotal) : d.character,
     } : d)
 
-    await dbUpdateTask(id, { completed: nowCompleted, completedAt })
+    await dbUpdateTask(id, { completed: nowCompleted, completedAt: completedAt ?? null, status: nextStatus })
     if (nowCompleted) runAward(before, xpTotal)
+  }
+
+  // Board drag-and-drop: only crosses into/out of Done through the exact same
+  // logic as the checkbox above, so dragging and ticking always earn identically.
+  // A pure To do <-> In progress move is organizational only — no XP, no toast.
+  const handleDropOnColumn = async (status: TaskStatus, taskId: string) => {
+    if (!data) return
+    const task = data.tasks.find(t => t.id === taskId)
+    if (!task || task.status === status) return
+
+    if (status === 'done' || task.status === 'done') {
+      await handleToggleTask(taskId, status)
+      return
+    }
+    setData(d => d ? { ...d, tasks: d.tasks.map(t => t.id === taskId ? { ...t, status } : t) } : d)
+    await dbUpdateTask(taskId, { status })
   }
 
   const handleDeleteTask = async (id: string) => {
@@ -202,11 +230,14 @@ export default function Todo() {
 
   const isOverdue = (t: Task) => !!(t.dueDate && !t.completed && t.dueDate < todayStr())
   const isDueToday = (t: Task) => t.dueDate === todayStr() && !t.completed
+  const weekFromNow = new Date()
+  weekFromNow.setDate(weekFromNow.getDate() + 7)
+  const weekFromNowStr = weekFromNow.toISOString().split('T')[0]
+  const isDueThisWeek = (t: Task) => !!t.dueDate && !t.completed && t.dueDate > todayStr() && t.dueDate <= weekFromNowStr
 
-  const dueToday = data.tasks.filter(isDueToday).sort((a, b) => {
-    const p = { high: 0, medium: 1, low: 2 }
-    return p[a.priority] - p[b.priority]
-  })
+  const priorityRank = { high: 0, medium: 1, low: 2 } as const
+  const dueToday = data.tasks.filter(isDueToday).sort((a, b) => priorityRank[a.priority] - priorityRank[b.priority])
+  const dueThisWeek = data.tasks.filter(isDueThisWeek).sort((a, b) => (a.dueDate ?? '').localeCompare(b.dueDate ?? ''))
 
   const filtered = data.tasks.filter(t => {
     if (filter === 'active') return !t.completed
@@ -219,6 +250,40 @@ export default function Todo() {
   })
 
   const overdueCount = data.tasks.filter(isOverdue).length
+
+  const renderAddTaskForm = () => (
+    <Panel tone="tint" accent={ACCENT} className="p-4">
+      <input
+        type="text"
+        placeholder="What do you need to do?"
+        value={newTitle}
+        onChange={e => setNewTitle(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && handleAddTask()}
+        className="w-full rounded-xl px-3 py-2.5 font-nunito text-sm outline-none mb-2"
+        style={{ background: '#FFFFFF', color: INK }}
+      />
+      <div className="flex flex-wrap gap-2">
+        <select
+          value={newPriority}
+          onChange={e => setNewPriority(e.target.value as Priority)}
+          className="flex-1 min-w-[130px] px-3 py-2 rounded-xl font-nunito text-sm outline-none"
+          style={{ background: '#FFFFFF', color: INK }}
+        >
+          <option value="high">High (+25 XP)</option>
+          <option value="medium">Medium (+15 XP)</option>
+          <option value="low">Low (+10 XP)</option>
+        </select>
+        <input
+          type="date"
+          value={newDue}
+          onChange={e => setNewDue(e.target.value)}
+          className="flex-1 min-w-[130px] px-3 py-2 rounded-xl font-nunito text-sm outline-none"
+          style={{ background: '#FFFFFF', color: INK }}
+        />
+        <NButton onClick={handleAddTask} disabled={!newTitle.trim()} accent={ACCENT}>Add</NButton>
+      </div>
+    </Panel>
+  )
 
   const renderTask = (task: Task, i: number) => {
     const pc = PRIORITY_CONFIG[task.priority]
@@ -251,6 +316,37 @@ export default function Todo() {
           </div>
         </div>
         <button onClick={() => handleDeleteTask(task.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
+      </div>
+    )
+  }
+
+  const renderCard = (task: Task) => {
+    const pc = PRIORITY_CONFIG[task.priority]
+    const overdue = isOverdue(task)
+    const dueT = isDueToday(task)
+    return (
+      <div
+        key={task.id}
+        draggable
+        onDragStart={() => setDraggedId(task.id)}
+        onDragEnd={() => setDraggedId(null)}
+        className="cursor-grab active:cursor-grabbing"
+        style={{ opacity: draggedId === task.id ? 0.4 : 1 }}
+      >
+        <Panel tone="tint" accent={pc.color} className="p-3 mb-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="font-nunito font-medium text-sm" style={{ color: INK }}>{task.title}</div>
+            <button onClick={() => handleDeleteTask(task.id)} className="text-xs flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
+          </div>
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap font-nunito text-xs">
+            <span style={{ color: pc.color }}>{pc.label}</span>
+            {task.dueDate && (
+              <span style={{ color: overdue ? '#DC2626' : dueT ? ACCENT : MUTED }}>
+                {overdue ? 'Overdue' : dueT ? 'Today' : task.dueDate}
+              </span>
+            )}
+          </div>
+        </Panel>
       </div>
     )
   }
@@ -327,80 +423,115 @@ export default function Todo() {
 
           {/* TASKS TAB */}
           {mainTab === 'tasks' && (
-            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
-              {/* Add task form */}
-              <div>
-                <Panel tone="tint" accent={ACCENT} className="p-4">
-                  <input
-                    type="text"
-                    placeholder="What do you need to do?"
-                    value={newTitle}
-                    onChange={e => setNewTitle(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleAddTask()}
-                    className="w-full rounded-xl px-3 py-2.5 font-nunito text-sm outline-none mb-2"
-                    style={{ background: '#FFFFFF', color: INK }}
-                  />
-                  <div className="flex flex-wrap gap-2">
-                    <select
-                      value={newPriority}
-                      onChange={e => setNewPriority(e.target.value as Priority)}
-                      className="flex-1 min-w-[130px] px-3 py-2 rounded-xl font-nunito text-sm outline-none"
-                      style={{ background: '#FFFFFF', color: INK }}
-                    >
-                      <option value="high">High (+25 XP)</option>
-                      <option value="medium">Medium (+15 XP)</option>
-                      <option value="low">Low (+10 XP)</option>
-                    </select>
-                    <input
-                      type="date"
-                      value={newDue}
-                      onChange={e => setNewDue(e.target.value)}
-                      className="flex-1 min-w-[130px] px-3 py-2 rounded-xl font-nunito text-sm outline-none"
-                      style={{ background: '#FFFFFF', color: INK }}
-                    />
-                    <NButton onClick={handleAddTask} disabled={!newTitle.trim()} accent={ACCENT}>Add</NButton>
-                  </div>
-                </Panel>
+            <div className="max-w-6xl">
+              {/* List / Board toggle */}
+              <div className="flex gap-2 mb-6">
+                {(['list', 'board'] as const).map(v => (
+                  <button
+                    key={v}
+                    onClick={() => setTaskView(v)}
+                    className="px-4 py-2 rounded-full font-nunito text-sm font-semibold transition-all"
+                    style={taskView === v
+                      ? { background: ACCENT, color: '#FFFFFF', boxShadow: `0 3px 10px ${ACCENT}50` }
+                      : { background: `${INK}08`, color: MUTED }}
+                  >
+                    {v === 'list' ? 'List' : 'Board'}
+                  </button>
+                ))}
               </div>
 
-              <div>
-                {/* Due today pinned section */}
-                {dueToday.length > 0 && (
-                  <div className="mb-4">
-                    <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>
-                      Due today ({dueToday.length})
-                    </div>
-                    {dueToday.map((t, i) => renderTask(t, i))}
+              {taskView === 'list' ? (
+                <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
+                  {/* Add task form */}
+                  <div>
+                    {renderAddTaskForm()}
                   </div>
-                )}
 
-                {/* Filter tabs */}
-                <div className="flex gap-5 mb-2">
-                  {(['all', 'active', 'done'] as FilterTab[]).map(f => (
-                    <button
-                      key={f}
-                      onClick={() => setFilter(f)}
-                      className="font-nunito text-sm transition-colors"
-                      style={{ color: filter === f ? INK : MUTED, fontWeight: filter === f ? 600 : 400 }}
-                    >
-                      {f === 'all' ? `All (${totalTasks})` : f === 'active' ? `Active (${activeTasks})` : `Done (${doneTasks})`}
-                    </button>
-                  ))}
+                  <div>
+                    {/* Due today pinned section */}
+                    {dueToday.length > 0 && (
+                      <div className="mb-4">
+                        <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>
+                          Due today ({dueToday.length})
+                        </div>
+                        {dueToday.map((t, i) => renderTask(t, i))}
+                      </div>
+                    )}
+
+                    {/* Due this week pinned section */}
+                    {dueThisWeek.length > 0 && (
+                      <div className="mb-4">
+                        <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>
+                          Due this week ({dueThisWeek.length})
+                        </div>
+                        {dueThisWeek.map((t, i) => renderTask(t, i))}
+                      </div>
+                    )}
+
+                    {/* Filter tabs */}
+                    <div className="flex gap-5 mb-2">
+                      {(['all', 'active', 'done'] as FilterTab[]).map(f => (
+                        <button
+                          key={f}
+                          onClick={() => setFilter(f)}
+                          className="font-nunito text-sm transition-colors"
+                          style={{ color: filter === f ? INK : MUTED, fontWeight: filter === f ? 600 : 400 }}
+                        >
+                          {f === 'all' ? `All (${totalTasks})` : f === 'active' ? `Active (${activeTasks})` : `Done (${doneTasks})`}
+                        </button>
+                      ))}
+                    </div>
+
+                    {filtered.length === 0 ? (
+                      <div className="py-10 text-center">
+                        <div className="font-nunito text-sm" style={{ color: INK }}>
+                          {filter === 'done' ? 'Nothing completed yet' : totalTasks === 0 ? 'No tasks yet' : 'All clear'}
+                        </div>
+                        <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
+                          {filter === 'done' ? 'Complete a task to see it here' : totalTasks === 0 ? 'Add your first task above to get started' : 'All active tasks are done'}
+                        </div>
+                      </div>
+                    ) : (
+                      <div>{filtered.map((t, i) => renderTask(t, i))}</div>
+                    )}
+                  </div>
                 </div>
-
-                {filtered.length === 0 ? (
-                  <div className="py-10 text-center">
-                    <div className="font-nunito text-sm" style={{ color: INK }}>
-                      {filter === 'done' ? 'Nothing completed yet' : totalTasks === 0 ? 'No tasks yet' : 'All clear'}
-                    </div>
-                    <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
-                      {filter === 'done' ? 'Complete a task to see it here' : totalTasks === 0 ? 'Add your first task above to get started' : 'All active tasks are done'}
-                    </div>
+              ) : (
+                <div>
+                  {/* Add task form — same form, same place, regardless of view */}
+                  <div className="max-w-xl mb-6">
+                    {renderAddTaskForm()}
                   </div>
-                ) : (
-                  <div>{filtered.map((t, i) => renderTask(t, i))}</div>
-                )}
-              </div>
+
+                  {/* Board — drag a card to another column to move it */}
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {STATUS_COLUMNS.map(col => {
+                      const colTasks = data.tasks
+                        .filter(t => t.status === col.key)
+                        .sort((a, b) => priorityRank[a.priority] - priorityRank[b.priority] || (a.dueDate ?? '').localeCompare(b.dueDate ?? ''))
+                      return (
+                        <div
+                          key={col.key}
+                          onDragOver={e => e.preventDefault()}
+                          onDrop={() => draggedId && handleDropOnColumn(col.key, draggedId)}
+                          className="rounded-2xl p-3 min-h-[120px]"
+                          style={{ background: `${INK}05` }}
+                        >
+                          <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>
+                            {col.label} ({colTasks.length})
+                          </div>
+                          {colTasks.map(renderCard)}
+                          {colTasks.length === 0 && (
+                            <div className="font-nunito text-xs py-4 text-center" style={{ color: MUTED }}>
+                              {col.key === 'todo' ? 'Nothing here' : 'Drag a task here'}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

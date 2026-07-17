@@ -56,11 +56,14 @@ export interface FinancialData {
 // Todo
 export type Priority = 'low' | 'medium' | 'high'
 
+export type TaskStatus = 'todo' | 'in_progress' | 'done'
+
 export interface Task {
   id: string
   title: string
   completed: boolean
   priority: Priority
+  status: TaskStatus
   dueDate?: string
   createdAt: string
   completedAt?: string
