@@ -78,6 +78,7 @@ create table if not exists public.tasks (
   priority     text default 'medium' check (priority in ('low', 'medium', 'high')),
   status       text default 'todo' not null check (status in ('todo', 'in_progress', 'done')),
   recurrence   text default 'none' not null check (recurrence in ('none', 'daily', 'weekly')),
+  project      text,
   due_date     date,
   created_at   timestamptz default now(),
   completed_at timestamptz

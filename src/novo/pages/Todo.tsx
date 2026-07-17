@@ -27,7 +27,7 @@ const ACCENT = '#16A34A'
 const BAR_MAX_H = 80
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
-type MainTab = 'tasks' | 'analytics' | 'pet' | 'games'
+type MainTab = 'overview' | 'tasks' | 'projects' | 'calendar' | 'analytics' | 'pet' | 'games'
 type FilterTab = 'all' | 'active' | 'done'
 
 const PRIORITY_CONFIG: Record<Priority, { label: string; color: string; bar: string }> = {
@@ -39,11 +39,16 @@ const PRIORITY_XP: Record<Priority, number> = { high: 25, medium: 15, low: 10 }
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 const MAIN_TABS: { key: MainTab; label: string }[] = [
+  { key: 'overview', label: 'Overview' },
   { key: 'tasks', label: 'Tasks' },
+  { key: 'projects', label: 'Projects' },
+  { key: 'calendar', label: 'Calendar' },
   { key: 'analytics', label: 'Analytics' },
   { key: 'pet', label: 'Pet' },
   { key: 'games', label: 'Games' },
 ]
+
+const MONTH_LABELS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 const STATUS_COLUMNS: { key: TaskStatus; label: string }[] = [
   { key: 'todo', label: 'To do' },
@@ -63,7 +68,7 @@ export default function Todo() {
   const userId = session?.user.id ?? ''
 
   const [data, setData] = useState<TodoData | null>(null)
-  const [mainTab, setMainTab] = useState<MainTab>('tasks')
+  const [mainTab, setMainTab] = useState<MainTab>('overview')
   const [gameTab, setGameTab] = useState<GameTab>('clicker')
   const [filter, setFilter] = useState<FilterTab>('all')
   const [taskView, setTaskView] = useState<'list' | 'board'>('list')
@@ -72,6 +77,11 @@ export default function Todo() {
   const [newPriority, setNewPriority] = useState<Priority>('medium')
   const [newDue, setNewDue] = useState('')
   const [newRecurrence, setNewRecurrence] = useState<Recurrence>('none')
+  const [newProject, setNewProject] = useState('')
+  const [selectedProject, setSelectedProject] = useState<string | null>(null)
+  const [calendarCursor, setCalendarCursor] = useState(() => { const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() } })
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [calendarQuickTitle, setCalendarQuickTitle] = useState('')
   const [toast, setToast] = useState('')
   const [streak, setStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
@@ -164,12 +174,31 @@ export default function Todo() {
         completed: false,
         priority: newPriority,
         recurrence: newRecurrence,
+        project: newProject.trim() || undefined,
         dueDate,
       })
       setData(d => d ? { ...d, tasks: [task, ...d.tasks] } : d)
       setNewTitle('')
       setNewDue('')
       setNewRecurrence('none')
+      setNewProject('')
+    } catch {
+      showToast('Failed to add task')
+    }
+  }
+
+  const handleCalendarQuickAdd = async (dateStr: string) => {
+    if (!calendarQuickTitle.trim()) return
+    try {
+      const task = await dbAddTask(userId, {
+        title: calendarQuickTitle.trim(),
+        completed: false,
+        priority: 'medium',
+        recurrence: 'none',
+        dueDate: dateStr,
+      })
+      setData(d => d ? { ...d, tasks: [task, ...d.tasks] } : d)
+      setCalendarQuickTitle('')
     } catch {
       showToast('Failed to add task')
     }
@@ -231,6 +260,7 @@ export default function Todo() {
           completed: false,
           priority: task.priority,
           recurrence: task.recurrence,
+          project: task.project,
           dueDate: nextDue,
         })
         const clones: Subtask[] = []
@@ -350,6 +380,48 @@ export default function Todo() {
 
   const overdueCount = data.tasks.filter(isOverdue).length
 
+  // Overview: what's coming up right after today (not today, not overdue — those already have their own sections).
+  const nextUp = data.tasks
+    .filter(t => !t.completed && !!t.dueDate && t.dueDate! > todayStr())
+    .sort((a, b) => (a.dueDate ?? '').localeCompare(b.dueDate ?? ''))
+    .slice(0, 3)
+
+  // Projects: derived from whatever's already on tasks — no separate managed entity.
+  const knownProjects = Array.from(new Set(data.tasks.map(t => t.project).filter((p): p is string => !!p))).sort()
+  const projectStats = knownProjects.map(name => {
+    const tasks = data.tasks.filter(t => t.project === name)
+    return { name, total: tasks.length, done: tasks.filter(t => t.completed).length }
+  })
+  const unsortedTasks = data.tasks.filter(t => !t.project)
+  const projectTaskSort = (a: Task, b: Task) => {
+    if (a.completed !== b.completed) return a.completed ? 1 : -1
+    return priorityRank[a.priority] - priorityRank[b.priority]
+  }
+  const projectTasks = selectedProject === '__unsorted__'
+    ? [...unsortedTasks].sort(projectTaskSort)
+    : selectedProject
+      ? data.tasks.filter(t => t.project === selectedProject).sort(projectTaskSort)
+      : []
+
+  // Calendar: a plain month grid, no library.
+  const calendarMonthStart = new Date(calendarCursor.year, calendarCursor.month, 1)
+  const daysInMonth = new Date(calendarCursor.year, calendarCursor.month + 1, 0).getDate()
+  const leadingBlanks = calendarMonthStart.getDay()
+  const calendarDateStr = (day: number) => {
+    const mm = String(calendarCursor.month + 1).padStart(2, '0')
+    const dd = String(day).padStart(2, '0')
+    return `${calendarCursor.year}-${mm}-${dd}`
+  }
+  const tasksOnDay = (dateStr: string) => data.tasks.filter(t => t.dueDate === dateStr)
+  const selectedDayTasks = selectedDay ? tasksOnDay(selectedDay) : []
+  const goToMonth = (delta: number) => {
+    setSelectedDay(null)
+    setCalendarCursor(c => {
+      const d = new Date(c.year, c.month + delta, 1)
+      return { year: d.getFullYear(), month: d.getMonth() }
+    })
+  }
+
   const renderAddTaskForm = () => (
     <Panel tone="tint" accent={ACCENT} className="p-4">
       <input
@@ -361,11 +433,24 @@ export default function Todo() {
         className="w-full rounded-xl px-3 py-2.5 font-nunito text-sm outline-none mb-2"
         style={{ background: '#FFFFFF', color: INK }}
       />
-      <div className="flex flex-wrap gap-2">
+      <input
+        type="text"
+        list="todo-known-projects"
+        placeholder="Project (optional, e.g. Work)"
+        value={newProject}
+        onChange={e => setNewProject(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && handleAddTask()}
+        className="w-full rounded-xl px-3 py-2.5 font-nunito text-sm outline-none mb-2"
+        style={{ background: '#FFFFFF', color: INK }}
+      />
+      <datalist id="todo-known-projects">
+        {knownProjects.map(p => <option key={p} value={p} />)}
+      </datalist>
+      <div className="grid grid-cols-2 gap-2">
         <select
           value={newPriority}
           onChange={e => setNewPriority(e.target.value as Priority)}
-          className="flex-1 min-w-[130px] px-3 py-2 rounded-xl font-nunito text-sm outline-none"
+          className="px-3 py-2 rounded-xl font-nunito text-sm outline-none"
           style={{ background: '#FFFFFF', color: INK }}
         >
           <option value="high">High (+25 XP)</option>
@@ -376,13 +461,13 @@ export default function Todo() {
           type="date"
           value={newDue}
           onChange={e => setNewDue(e.target.value)}
-          className="flex-1 min-w-[130px] px-3 py-2 rounded-xl font-nunito text-sm outline-none"
+          className="px-3 py-2 rounded-xl font-nunito text-sm outline-none"
           style={{ background: '#FFFFFF', color: INK }}
         />
         <select
           value={newRecurrence}
           onChange={e => setNewRecurrence(e.target.value as Recurrence)}
-          className="flex-1 min-w-[130px] px-3 py-2 rounded-xl font-nunito text-sm outline-none"
+          className="px-3 py-2 rounded-xl font-nunito text-sm outline-none"
           style={{ background: '#FFFFFF', color: INK }}
         >
           <option value="none">Repeats: Never</option>
@@ -435,6 +520,9 @@ export default function Todo() {
               )}
               {task.subtasks.length > 0 && (
                 <span style={{ color: MUTED }}>{doneSubtasks}/{task.subtasks.length} steps</span>
+              )}
+              {task.project && (
+                <span style={{ color: MUTED }}>{task.project}</span>
               )}
             </div>
           </div>
@@ -506,6 +594,7 @@ export default function Todo() {
             )}
             {task.recurrence !== 'none' && <span style={{ color: MUTED }}>Repeats {task.recurrence}</span>}
             {task.subtasks.length > 0 && <span style={{ color: MUTED }}>{doneSubtasks}/{task.subtasks.length} steps</span>}
+            {task.project && <span style={{ color: MUTED }}>{task.project}</span>}
           </div>
           {task.status !== 'done' && (
             <button onClick={() => setFocusTaskId(task.id)} className="font-nunito text-xs mt-2 transition-opacity hover:opacity-70" style={{ color: ACCENT }}>
@@ -624,7 +713,7 @@ export default function Todo() {
           </div>
 
           {/* Tabs */}
-          <div className="flex mb-6 gap-5" style={{ borderBottom: `1px solid ${INK}12` }}>
+          <div className="flex flex-wrap mb-6 gap-x-5 gap-y-2" style={{ borderBottom: `1px solid ${INK}12` }}>
             {MAIN_TABS.map(t => (
               <button
                 key={t.key}
@@ -640,6 +729,50 @@ export default function Todo() {
               </button>
             ))}
           </div>
+
+          {/* OVERVIEW TAB — the landing view: what's due, quick add, what's next */}
+          {mainTab === 'overview' && (
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
+              <div className="space-y-6">
+                {(overdueCount > 0 || dueToday.length > 0) && (
+                  <div className="space-y-1">
+                    {overdueCount > 0 && (
+                      <div className="font-nunito text-xs" style={{ color: '#DC2626' }}>
+                        {overdueCount} overdue task{overdueCount > 1 ? 's' : ''}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {renderAddTaskForm()}
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>
+                    Due today ({dueToday.length})
+                  </div>
+                  {dueToday.length > 0 ? (
+                    dueToday.map((t, i) => renderTask(t, i))
+                  ) : (
+                    <div className="font-nunito text-xs" style={{ color: MUTED }}>Nothing due today</div>
+                  )}
+                </div>
+
+                {nextUp.length > 0 && (
+                  <div>
+                    <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Next up</div>
+                    {nextUp.map((t, i) => renderTask(t, i))}
+                  </div>
+                )}
+
+                {dueToday.length === 0 && nextUp.length === 0 && overdueCount === 0 && (
+                  <div className="font-nunito text-sm" style={{ color: MUTED }}>
+                    Nothing on the horizon — add a task to get started.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* TASKS TAB */}
           {mainTab === 'tasks' && (
@@ -763,6 +896,146 @@ export default function Todo() {
                         </div>
                       )
                     })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PROJECTS TAB — group tasks by whatever "Project" was typed on the add form */}
+          {mainTab === 'projects' && (
+            <div className="max-w-5xl">
+              {knownProjects.length === 0 && unsortedTasks.length === 0 ? (
+                <div className="py-10 text-center">
+                  <div className="font-nunito text-sm" style={{ color: INK }}>No tasks yet</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Add a task in the Tasks tab to get started</div>
+                </div>
+              ) : knownProjects.length === 0 ? (
+                <div className="py-10 text-center">
+                  <div className="font-nunito text-sm" style={{ color: INK }}>No projects yet</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
+                    Type a project name (e.g. "Work" or "House") when adding a task in the Tasks tab to start grouping them here.
+                  </div>
+                </div>
+              ) : (
+                <div className="grid lg:grid-cols-2 gap-x-10 gap-y-6">
+                  <div>
+                    <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Projects</div>
+                    <div className="space-y-4">
+                      {projectStats.map(p => {
+                        const pct = p.total ? (p.done / p.total) * 100 : 0
+                        const active = selectedProject === p.name
+                        return (
+                          <div key={p.name} onClick={() => setSelectedProject(active ? null : p.name)} className="cursor-pointer">
+                            <div className="flex items-center justify-between gap-3 mb-1.5">
+                              <span className="font-nunito text-sm" style={{ color: active ? ACCENT : INK, fontWeight: active ? 600 : 400 }}>{p.name}</span>
+                              <span className="font-nunito text-xs" style={{ color: MUTED }}>{p.done}/{p.total} done</span>
+                            </div>
+                            <NProgress pct={pct} accent={ACCENT} height={4} />
+                          </div>
+                        )
+                      })}
+                    </div>
+                    {unsortedTasks.length > 0 && (
+                      <button
+                        onClick={() => setSelectedProject(selectedProject === '__unsorted__' ? null : '__unsorted__')}
+                        className="font-nunito text-xs mt-5 pt-4 block w-full text-left transition-opacity hover:opacity-70"
+                        style={{ color: selectedProject === '__unsorted__' ? ACCENT : MUTED, borderTop: `1px solid ${INK}0D` }}
+                      >
+                        Unsorted ({unsortedTasks.length}) — no project set
+                      </button>
+                    )}
+                  </div>
+
+                  <div>
+                    {selectedProject ? (
+                      <>
+                        <div className="font-nunito font-semibold text-sm mb-2" style={{ color: INK }}>
+                          {selectedProject === '__unsorted__' ? 'Unsorted' : selectedProject}
+                        </div>
+                        {projectTasks.length > 0 ? (
+                          <div>{projectTasks.map((t, i) => renderTask(t, i))}</div>
+                        ) : (
+                          <div className="font-nunito text-xs" style={{ color: MUTED }}>Nothing here</div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="font-nunito text-sm" style={{ color: MUTED }}>Click a project to see its tasks</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* CALENDAR TAB — plain month grid, no library */}
+          {mainTab === 'calendar' && (
+            <div className="max-w-4xl">
+              <div className="flex items-center justify-between mb-4">
+                <button onClick={() => goToMonth(-1)} className="font-nunito text-sm transition-opacity hover:opacity-70" style={{ color: MUTED }}>‹ Prev</button>
+                <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>
+                  {MONTH_LABELS[calendarCursor.month]} {calendarCursor.year}
+                </div>
+                <button onClick={() => goToMonth(1)} className="font-nunito text-sm transition-opacity hover:opacity-70" style={{ color: MUTED }}>Next ›</button>
+              </div>
+
+              <div className="grid grid-cols-7 gap-1 mb-1">
+                {DAY_LABELS.map(d => (
+                  <div key={d} className="font-nunito text-xs text-center py-1" style={{ color: MUTED }}>{d}</div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-7 gap-1 mb-6">
+                {Array.from({ length: leadingBlanks }).map((_, i) => <div key={`b${i}`} />)}
+                {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+                  const dateStr = calendarDateStr(day)
+                  const dayTasks = tasksOnDay(dateStr)
+                  const isToday = dateStr === todayStr()
+                  const isSelected = dateStr === selectedDay
+                  return (
+                    <button
+                      key={day}
+                      onClick={() => setSelectedDay(isSelected ? null : dateStr)}
+                      className="rounded-xl p-2 text-left transition-colors"
+                      style={{
+                        background: isSelected ? ACCENT : isToday ? `${ACCENT}14` : 'transparent',
+                        minHeight: 52,
+                      }}
+                    >
+                      <div className="font-nunito text-xs" style={{ color: isSelected ? '#FFFFFF' : INK, fontWeight: isToday ? 700 : 400 }}>
+                        {day}
+                      </div>
+                      {dayTasks.length > 0 && (
+                        <div className="font-nunito text-[10px] mt-0.5" style={{ color: isSelected ? 'rgba(255,255,255,0.85)' : MUTED }}>
+                          {dayTasks.length} task{dayTasks.length > 1 ? 's' : ''}
+                        </div>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {selectedDay && (
+                <div>
+                  <div className="font-nunito font-semibold text-sm mb-2" style={{ color: INK }}>
+                    {selectedDay}
+                  </div>
+                  {selectedDayTasks.length > 0 ? (
+                    <div className="mb-3">{selectedDayTasks.map((t, i) => renderTask(t, i))}</div>
+                  ) : (
+                    <div className="font-nunito text-xs mb-3" style={{ color: MUTED }}>Nothing due this day</div>
+                  )}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Quick-add a task for this day"
+                      value={calendarQuickTitle}
+                      onChange={e => setCalendarQuickTitle(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleCalendarQuickAdd(selectedDay)}
+                      className="flex-1 px-3 py-2 rounded-xl font-nunito text-sm outline-none"
+                      style={{ background: `${INK}05`, color: INK }}
+                    />
+                    <NButton onClick={() => handleCalendarQuickAdd(selectedDay)} disabled={!calendarQuickTitle.trim()} accent={ACCENT}>Add</NButton>
                   </div>
                 </div>
               )}

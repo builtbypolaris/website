@@ -72,6 +72,7 @@ export interface Task {
   priority: Priority
   status: TaskStatus
   recurrence: Recurrence
+  project?: string
   dueDate?: string
   createdAt: string
   completedAt?: string

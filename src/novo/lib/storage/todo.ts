@@ -14,6 +14,7 @@ export async function getTodoData(userId: string): Promise<TodoData> {
     priority: r.priority,
     status: r.status ?? (r.completed ? 'done' : 'todo'),
     recurrence: r.recurrence ?? 'none',
+    project: r.project ?? undefined,
     dueDate: r.due_date ?? undefined,
     createdAt: r.created_at,
     completedAt: r.completed_at ?? undefined,
@@ -27,14 +28,14 @@ export async function getTodoData(userId: string): Promise<TodoData> {
 export async function addTask(userId: string, t: Omit<Task, 'id' | 'createdAt' | 'status' | 'subtasks'>): Promise<Task> {
   const { data, error } = await supabase
     .from('tasks')
-    .insert({ user_id: userId, title: t.title, completed: t.completed, priority: t.priority, status: 'todo', recurrence: t.recurrence, due_date: t.dueDate ?? null })
+    .insert({ user_id: userId, title: t.title, completed: t.completed, priority: t.priority, status: 'todo', recurrence: t.recurrence, project: t.project ?? null, due_date: t.dueDate ?? null })
     .select()
     .single()
   if (error || !data) throw new Error(error?.message ?? 'Insert failed')
-  return { id: data.id, title: data.title, completed: data.completed, priority: data.priority, status: data.status, recurrence: data.recurrence, dueDate: data.due_date ?? undefined, createdAt: data.created_at, subtasks: [] }
+  return { id: data.id, title: data.title, completed: data.completed, priority: data.priority, status: data.status, recurrence: data.recurrence, project: data.project ?? undefined, dueDate: data.due_date ?? undefined, createdAt: data.created_at, subtasks: [] }
 }
 
-export async function updateTask(id: string, patch: Partial<{ title: string; completed: boolean; priority: string; status: string; recurrence: string; dueDate: string | null; completedAt: string | null }>) {
+export async function updateTask(id: string, patch: Partial<{ title: string; completed: boolean; priority: string; status: string; recurrence: string; project: string | null; dueDate: string | null; completedAt: string | null }>) {
   // Only include keys actually present in patch — an absent key must leave the
   // column untouched, not silently null it out (e.g. a status-only drag shouldn't wipe dueDate).
   const update: Record<string, unknown> = {}
@@ -43,6 +44,7 @@ export async function updateTask(id: string, patch: Partial<{ title: string; com
   if (patch.priority !== undefined) update.priority = patch.priority
   if (patch.status !== undefined) update.status = patch.status
   if (patch.recurrence !== undefined) update.recurrence = patch.recurrence
+  if (patch.project !== undefined) update.project = patch.project
   if (patch.dueDate !== undefined) update.due_date = patch.dueDate
   if (patch.completedAt !== undefined) update.completed_at = patch.completedAt
   await supabase.from('tasks').update(update).eq('id', id)
