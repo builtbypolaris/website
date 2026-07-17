@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   addTransaction as dbAddTransaction,
@@ -57,40 +57,54 @@ const MAIN_TABS: { key: MainTab; label: string }[] = [
 
 const introKey = (userId: string) => `novo-intro-financial-seen-${userId}`
 
-const INTRO_ITEMS = [
-  { label: 'Overview', line: 'Add income or expenses and see this month\'s numbers at a glance.' },
-  { label: 'Log', line: 'Your full transaction history — filter and delete entries.' },
-  { label: 'Budgets', line: 'Set a monthly limit per category, and add recurring bills or income.' },
-  { label: 'Analytics', line: 'Net worth trend, spending breakdown, and 6-month history.' },
-  { label: 'Pet', line: 'Your pet grows from real activity here — logging, budgeting, paying bills on time.' },
-  { label: 'Games', line: 'Optional mini-games for bonus XP.' },
+const TOUR_STEPS: { tab: MainTab; text: string }[] = [
+  { tab: 'overview', text: 'Add income or expenses here — this month\'s numbers update as you go.' },
+  { tab: 'log', text: 'Every transaction you\'ve ever logged, filterable and searchable.' },
+  { tab: 'budgets', text: 'Set a monthly limit per category, and add bills or income that repeat every month.' },
+  { tab: 'analytics', text: 'Net worth trend, spending breakdown, income vs expenses over time.' },
+  { tab: 'pet', text: 'Your pet grows from real activity — logging, budgeting, paying bills on time.' },
+  { tab: 'games', text: 'Optional mini-games for bonus XP, whenever you want a break.' },
 ]
 
-function IntroModal({ onClose }: { onClose: () => void }) {
+function TourCoachmark({ step, targetEl, onNext, onSkip }: {
+  step: number
+  targetEl: HTMLButtonElement | null
+  onNext: () => void
+  onSkip: () => void
+}) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+
+  useEffect(() => {
+    const place = () => {
+      if (!targetEl) return
+      const r = targetEl.getBoundingClientRect()
+      setPos({ top: r.bottom + 10, left: r.left + r.width / 2 })
+    }
+    place()
+    window.addEventListener('resize', place)
+    return () => window.removeEventListener('resize', place)
+  }, [targetEl, step])
+
+  if (!pos) return null
+  const last = step === TOUR_STEPS.length - 1
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-5" style={{ zIndex: 9990, background: 'rgba(20,18,27,0.75)' }}>
-      <div className="bounce-in rounded-3xl p-6 md:p-8 max-w-md w-full" style={{ background: '#FAF9F6' }}>
-        <div className="mb-5">
-          <div className="text-4xl mb-3">💰</div>
-          <h2 className="font-nunito font-semibold text-xl mb-1.5" style={{ color: INK }}>Quick tour of Financial</h2>
-          <p className="font-nunito text-sm leading-relaxed" style={{ color: MUTED }}>
-            Six tabs, each does one thing:
-          </p>
+    <div
+      className="fixed bounce-in"
+      style={{ top: pos.top, left: pos.left, transform: 'translateX(-50%)', zIndex: 9990, width: 260 }}
+    >
+      <Panel tone="fill" accent={ACCENT} className="p-4">
+        <div className="font-nunito text-xs text-white/70 mb-1.5">{step + 1} / {TOUR_STEPS.length}</div>
+        <div className="font-nunito text-sm text-white leading-relaxed mb-3">{TOUR_STEPS[step].text}</div>
+        <div className="flex items-center justify-between">
+          <button onClick={onSkip} className="font-nunito text-xs text-white/60 hover:text-white/90 transition-colors">
+            Skip tour
+          </button>
+          <NButton onClick={onNext} style={{ background: '#FFFFFF', color: ACCENT }} size="sm">
+            {last ? 'Done' : 'Next'}
+          </NButton>
         </div>
-
-        <div className="space-y-3 mb-6">
-          {INTRO_ITEMS.map(item => (
-            <div key={item.label}>
-              <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>{item.label}</div>
-              <div className="font-nunito text-xs leading-relaxed" style={{ color: MUTED }}>{item.line}</div>
-            </div>
-          ))}
-        </div>
-
-        <NButton accent={ACCENT} size="lg" onClick={onClose} className="w-full">
-          Got it
-        </NButton>
-      </div>
+      </Panel>
     </div>
   )
 }
@@ -112,7 +126,8 @@ export default function Financial() {
   const [streak, setStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
   const [missions, setMissions] = useState<MissionRow[]>([])
-  const [showIntro, setShowIntro] = useState(false)
+  const [tourStep, setTourStep] = useState<number | null>(null)
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
   const { celebrate, layer } = useCelebrations()
 
   useEffect(() => {
@@ -121,12 +136,28 @@ export default function Financial() {
     getBadges(userId, 'financial').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
     getWeekMissions(userId).then(setMissions)
     getFinancialData(userId).then(setData)
-    if (!localStorage.getItem(introKey(userId))) setShowIntro(true)
+    if (!localStorage.getItem(introKey(userId))) setTourStep(0)
   }, [userId])
 
-  const dismissIntro = () => {
+  useEffect(() => {
+    if (tourStep === null) return
+    setMainTab(TOUR_STEPS[tourStep].tab)
+  }, [tourStep])
+
+  const endTour = () => {
     localStorage.setItem(introKey(userId), '1')
-    setShowIntro(false)
+    setTourStep(null)
+  }
+
+  const advanceTour = () => {
+    if (tourStep === null) return
+    if (tourStep >= TOUR_STEPS.length - 1) endTour()
+    else setTourStep(tourStep + 1)
+  }
+
+  const handleTabClick = (key: MainTab) => {
+    setMainTab(key)
+    if (tourStep !== null) endTour()
   }
 
   // Idle-day happiness decay, guarded to once per tracker per day
@@ -398,7 +429,9 @@ export default function Financial() {
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
       {layer}
-      {showIntro && <IntroModal onClose={dismissIntro} />}
+      {tourStep !== null && (
+        <TourCoachmark step={tourStep} targetEl={tabRefs.current[tourStep] ?? null} onNext={advanceTour} onSkip={endTour} />
+      )}
 
       {toast && (
         <div
@@ -423,7 +456,7 @@ export default function Financial() {
         <div className="hidden lg:flex items-center gap-3 text-xs font-nunito" style={{ color: MUTED }}>
           <span>{petStage.emoji}</span>
           <span>{data.character.xp} XP</span>
-          <button onClick={() => setShowIntro(true)} className="transition-opacity hover:opacity-70" style={{ color: MUTED }}>
+          <button onClick={() => setTourStep(0)} className="transition-opacity hover:opacity-70" style={{ color: MUTED }}>
             How this works
           </button>
         </div>
@@ -456,18 +489,25 @@ export default function Financial() {
 
           {/* Tabs — solid pill buttons, not underlined links */}
           <div className="flex flex-wrap gap-2 mb-6">
-            {MAIN_TABS.map(t => (
-              <button
-                key={t.key}
-                onClick={() => setMainTab(t.key)}
-                className="px-4 py-2 rounded-full font-nunito text-sm font-semibold transition-all"
-                style={mainTab === t.key
-                  ? { background: ACCENT, color: '#FFFFFF', boxShadow: `0 3px 10px ${ACCENT}50` }
-                  : { background: `${INK}08`, color: MUTED }}
-              >
-                {t.label}
-              </button>
-            ))}
+            {MAIN_TABS.map((t, i) => {
+              const isTourTarget = tourStep !== null && TOUR_STEPS[tourStep].tab === t.key
+              return (
+                <button
+                  key={t.key}
+                  ref={el => { tabRefs.current[i] = el }}
+                  onClick={() => handleTabClick(t.key)}
+                  className="px-4 py-2 rounded-full font-nunito text-sm font-semibold transition-all"
+                  style={{
+                    ...(mainTab === t.key
+                      ? { background: ACCENT, color: '#FFFFFF', boxShadow: `0 3px 10px ${ACCENT}50` }
+                      : { background: `${INK}08`, color: MUTED }),
+                    ...(isTourTarget ? { boxShadow: `0 0 0 3px ${ACCENT}80, 0 3px 10px ${ACCENT}50` } : {}),
+                  }}
+                >
+                  {t.label}
+                </button>
+              )
+            })}
           </div>
 
           {/* ── OVERVIEW ─────────────────────────────────────── */}
