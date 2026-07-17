@@ -44,7 +44,7 @@ export const en = {
     getInTouch: 'Get in Touch',
     location: 'Jakarta · Yogyakarta · Bali',
     language: 'Language',
-    copyright: '© 2026 Polaris Studio · Jakarta · Yogyakarta · Bali',
+    copyright: '© 2026 Polaris · Jakarta · Yogyakarta · Bali',
   },
 
   // ── Language switcher ──────────────────────────────────────────────────
@@ -805,7 +805,7 @@ export const en = {
   // ── Per-page meta tags ─────────────────────────────────────────────────
   meta: {
     home: {
-      title: 'Polaris | Your Business Compass | Polaris Studio',
+      title: 'Polaris | Your Business Compass',
       description:
         "Polaris is Indonesia's diagnostic-first business & IT consultancy. We find the real problem before building the solution. Web, AI, data, automation. One trusted partner.",
     },

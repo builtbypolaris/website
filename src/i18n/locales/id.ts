@@ -19,7 +19,7 @@ export const id: EnTranslations = {
     getInTouch: 'Hubungi Kami',
     location: 'Jakarta · Yogyakarta · Bali',
     language: 'Bahasa',
-    copyright: '© 2026 Polaris Studio · Jakarta · Yogyakarta · Bali',
+    copyright: '© 2026 Polaris · Jakarta · Yogyakarta · Bali',
   },
 
   // ── Language switcher ──────────────────────────────────────────────────
@@ -689,7 +689,7 @@ export const id: EnTranslations = {
   // ── Per-page meta tags ─────────────────────────────────────────────────
   meta: {
     home: {
-      title: 'Polaris | Kompas Bisnis Anda | Polaris Studio',
+      title: 'Polaris | Kompas Bisnis Anda',
       description: 'Konsultan IT diagnostic-first Indonesia. Kami temukan masalah sesungguhnya sebelum membangun solusinya.',
     },
     services: {
