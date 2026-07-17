@@ -331,7 +331,9 @@ export default function Savings() {
 
           {/* ── OVERVIEW ─────────────────────────────────────── */}
           {mainTab === 'overview' && (
-            <div className="space-y-6 max-w-xl">
+            <>
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
+            <div className="space-y-6">
 
               {nextDue && (
                 <div className="flex items-center gap-3">
@@ -347,6 +349,14 @@ export default function Savings() {
                 </div>
               )}
 
+              {overdueCount > 0 && (
+                <div className="font-nunito text-sm" style={{ color: BAD_COLOR }}>
+                  {overdueCount} installment{overdueCount === 1 ? ' is' : 's are'} overdue this month. Pay on time to earn +25 XP instead of +10.
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-6">
               {data.goals.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
@@ -372,27 +382,23 @@ export default function Savings() {
                   </div>
                 </div>
               )}
-
-              {overdueCount > 0 && (
-                <div className="font-nunito text-sm" style={{ color: BAD_COLOR }}>
-                  {overdueCount} installment{overdueCount === 1 ? ' is' : 's are'} overdue this month. Pay on time to earn +25 XP instead of +10.
-                </div>
-              )}
-
-              {data.goals.length === 0 && data.installments.length === 0 && (
-                <div className="py-10 text-center">
-                  <div className="font-nunito text-sm" style={{ color: INK }}>Nothing here yet</div>
-                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Create a savings goal or add an installment to get started</div>
-                </div>
-              )}
             </div>
+            </div>
+
+            {data.goals.length === 0 && data.installments.length === 0 && (
+              <div className="py-10 text-center">
+                <div className="font-nunito text-sm" style={{ color: INK }}>Nothing here yet</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Create a savings goal or add an installment to get started</div>
+              </div>
+            )}
+            </>
           )}
 
           {/* ── GOALS ────────────────────────────────────────── */}
           {mainTab === 'goals' && (
-            <div className="max-w-xl">
-
-              <Panel tone="tint" accent={ACCENT} className="p-4 mb-5">
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
+            <div>
+              <Panel tone="tint" accent={ACCENT} className="p-4">
                 <div className="flex gap-1.5 mb-2 flex-wrap">
                   {GOAL_EMOJIS.map(e => (
                     <button
@@ -428,7 +434,9 @@ export default function Savings() {
                   Create goal
                 </NButton>
               </Panel>
+            </div>
 
+            <div>
               {data.goals.map((g, i) => {
                 const saved = goalSaved(g)
                 const pct = Math.min(100, (saved / g.targetAmount) * 100)
@@ -504,13 +512,14 @@ export default function Savings() {
                 </div>
               )}
             </div>
+            </div>
           )}
 
           {/* ── INSTALLMENTS ─────────────────────────────────── */}
           {mainTab === 'installments' && (
-            <div className="max-w-xl">
-
-              <Panel tone="tint" accent={ACCENT} className="p-4 mb-5">
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
+            <div>
+              <Panel tone="tint" accent={ACCENT} className="p-4">
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   <input
                     type="text"
@@ -552,7 +561,9 @@ export default function Savings() {
                   Add installment
                 </NButton>
               </Panel>
+            </div>
 
+            <div>
               {data.installments.map((inst, i) => {
                 const rem = remaining(inst)
                 const paidMonths = inst.payments.length
@@ -596,6 +607,7 @@ export default function Savings() {
                   <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Add an installment plan above. Paying on time earns bonus XP.</div>
                 </div>
               )}
+            </div>
             </div>
           )}
 

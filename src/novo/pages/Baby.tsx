@@ -373,100 +373,105 @@ export default function Baby() {
 
           {/* ── TODAY ────────────────────────────────────────── */}
           {mainTab === 'today' && (
-            <div className="space-y-6 max-w-xl">
+            <div className="max-w-5xl">
+              <div className="space-y-4 mb-6">
+                {babySelector}
 
-              {babySelector}
-
-              {showBabyForm && (
-                <Panel tone="tint" accent={ACCENT} className="p-4">
-                  <div className="flex gap-1.5 mb-2">
-                    {BABY_EMOJIS.map(e => (
-                      <button
-                        key={e}
-                        onClick={() => setBabyForm(f => ({ ...f, emoji: e }))}
-                        className="w-9 h-9 rounded-full text-lg transition-opacity"
-                        style={{ opacity: babyForm.emoji === e ? 1 : 0.4 }}
-                      >
-                        {e}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 mb-2">
-                    <input
-                      type="text" placeholder="Name" value={babyForm.name}
-                      onChange={e => setBabyForm(f => ({ ...f, name: e.target.value }))}
-                      className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
-                      style={inputStyle}
-                    />
-                    <input
-                      type="date" value={babyForm.birthdate}
-                      onChange={e => setBabyForm(f => ({ ...f, birthdate: e.target.value }))}
-                      className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
-                      style={inputStyle}
-                    />
-                  </div>
-                  <NButton onClick={handleAddBaby} disabled={!babyForm.name || !babyForm.birthdate} accent={ACCENT} className="w-full">
-                    Add baby
-                  </NButton>
-                </Panel>
-              )}
-
-              {baby && (
-                <>
-                  {lastFeed && (
-                    <div className="font-nunito text-xs" style={{ color: ACCENT }}>
-                      Last feed {timeAgo(lastFeed.eventAt)}{isAsleep && <> · {baby.name} is sleeping</>}
-                    </div>
-                  )}
-
-                  <Panel tone="tint" accent={ACCENT} className="p-4 md:p-5">
-                    <div className="grid grid-cols-5 gap-1.5 mb-3">
-                      {EVENT_META.map(m => (
+                {showBabyForm && (
+                  <Panel tone="tint" accent={ACCENT} className="p-4">
+                    <div className="flex gap-1.5 mb-2">
+                      {BABY_EMOJIS.map(e => (
                         <button
-                          key={m.key}
-                          onClick={() => handleLogEvent(m.key)}
-                          className="py-3 rounded-xl font-nunito text-xs transition-opacity hover:opacity-70 flex flex-col items-center gap-1"
-                          style={{ background: '#FFFFFF', color: ACCENT }}
+                          key={e}
+                          onClick={() => setBabyForm(f => ({ ...f, emoji: e }))}
+                          className="w-9 h-9 rounded-full text-lg transition-opacity"
+                          style={{ opacity: babyForm.emoji === e ? 1 : 0.4 }}
                         >
-                          <span className="text-xl">{m.emoji}</span>
-                          {m.label}
+                          {e}
                         </button>
                       ))}
                     </div>
-                    <input
-                      type="text" placeholder="Note for the next log (optional)" value={eventNote}
-                      onChange={e => setEventNote(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
-                      style={inputStyle}
-                    />
-                  </Panel>
-
-                  {todayEvents.length > 0 && (
-                    <div>
-                      <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Today's timeline</div>
-                      <div>
-                        {todayEvents.map((e, i) => {
-                          const m = eventMeta(e.eventType)
-                          return (
-                            <div key={e.id} className="flex items-center gap-3 py-2" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
-                              <span className="font-nunito text-xs font-medium w-11 flex-shrink-0" style={{ color: ACCENT }}>{eventTime(e)}</span>
-                              <span className="text-base flex-shrink-0">{m.emoji}</span>
-                              <span className="font-nunito text-sm flex-1 truncate" style={{ color: INK }}>{m.label}{e.note ? ` · ${e.note}` : ''}</span>
-                              <button onClick={() => handleDeleteEvent(e.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
-                            </div>
-                          )
-                        })}
-                      </div>
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <input
+                        type="text" placeholder="Name" value={babyForm.name}
+                        onChange={e => setBabyForm(f => ({ ...f, name: e.target.value }))}
+                        className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                        style={inputStyle}
+                      />
+                      <input
+                        type="date" value={babyForm.birthdate}
+                        onChange={e => setBabyForm(f => ({ ...f, birthdate: e.target.value }))}
+                        className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                        style={inputStyle}
+                      />
                     </div>
-                  )}
-                </>
+                    <NButton onClick={handleAddBaby} disabled={!babyForm.name || !babyForm.birthdate} accent={ACCENT} className="w-full">
+                      Add baby
+                    </NButton>
+                  </Panel>
+                )}
+              </div>
+
+              {baby && (
+                <div className="grid lg:grid-cols-2 gap-x-10 gap-y-6">
+                  <div className="space-y-4">
+                    {lastFeed && (
+                      <div className="font-nunito text-xs" style={{ color: ACCENT }}>
+                        Last feed {timeAgo(lastFeed.eventAt)}{isAsleep && <> · {baby.name} is sleeping</>}
+                      </div>
+                    )}
+
+                    <Panel tone="tint" accent={ACCENT} className="p-4 md:p-5">
+                      <div className="grid grid-cols-5 gap-1.5 mb-3">
+                        {EVENT_META.map(m => (
+                          <button
+                            key={m.key}
+                            onClick={() => handleLogEvent(m.key)}
+                            className="py-3 rounded-xl font-nunito text-xs transition-opacity hover:opacity-70 flex flex-col items-center gap-1"
+                            style={{ background: '#FFFFFF', color: ACCENT }}
+                          >
+                            <span className="text-xl">{m.emoji}</span>
+                            {m.label}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        type="text" placeholder="Note for the next log (optional)" value={eventNote}
+                        onChange={e => setEventNote(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                        style={inputStyle}
+                      />
+                    </Panel>
+                  </div>
+
+                  <div>
+                    {todayEvents.length > 0 && (
+                      <div>
+                        <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Today's timeline</div>
+                        <div>
+                          {todayEvents.map((e, i) => {
+                            const m = eventMeta(e.eventType)
+                            return (
+                              <div key={e.id} className="flex items-center gap-3 py-2" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                                <span className="font-nunito text-xs font-medium w-11 flex-shrink-0" style={{ color: ACCENT }}>{eventTime(e)}</span>
+                                <span className="text-base flex-shrink-0">{m.emoji}</span>
+                                <span className="font-nunito text-sm flex-1 truncate" style={{ color: INK }}>{m.label}{e.note ? ` · ${e.note}` : ''}</span>
+                                <button onClick={() => handleDeleteEvent(e.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           )}
 
           {/* ── HISTORY ──────────────────────────────────────── */}
           {mainTab === 'history' && (
-            <div className="max-w-xl">
+            <div className="max-w-2xl">
               {!baby || eventDays.length === 0 ? (
                 <div className="py-10 text-center">
                   <div className="font-nunito text-sm" style={{ color: INK }}>No events yet</div>
@@ -505,13 +510,13 @@ export default function Baby() {
 
           {/* ── GROWTH ───────────────────────────────────────── */}
           {mainTab === 'growth' && (
-            <div className="max-w-xl">
-              {!baby ? (
-                <div className="py-10 text-center">
-                  <div className="font-nunito text-sm" style={{ color: INK }}>Add a baby first</div>
-                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Head to the Today tab to add your little one</div>
-                </div>
-              ) : (
+            !baby ? (
+              <div className="max-w-xl py-10 text-center">
+                <div className="font-nunito text-sm" style={{ color: INK }}>Add a baby first</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Head to the Today tab to add your little one</div>
+              </div>
+            ) : (
+              <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-8">
                 <div className="space-y-8">
                   <Panel tone="tint" accent={ACCENT} className="p-4">
                     <div className="flex gap-2">
@@ -547,37 +552,37 @@ export default function Baby() {
                       </div>
                     </div>
                   )}
+                </div>
 
+                <div>
+                  <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Milestones</div>
+                  <div className="flex gap-2 mb-4">
+                    <input
+                      type="text" placeholder="First smile, first steps…" value={milestoneForm}
+                      onChange={e => setMilestoneForm(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleAddMilestone()}
+                      className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                      style={{ background: '#F0EEE8', color: INK }}
+                    />
+                    <NButton onClick={handleAddMilestone} disabled={!milestoneForm} accent={ACCENT}>+25 XP</NButton>
+                  </div>
                   <div>
-                    <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Milestones</div>
-                    <div className="flex gap-2 mb-4">
-                      <input
-                        type="text" placeholder="First smile, first steps…" value={milestoneForm}
-                        onChange={e => setMilestoneForm(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleAddMilestone()}
-                        className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
-                        style={{ background: '#F0EEE8', color: INK }}
-                      />
-                      <NButton onClick={handleAddMilestone} disabled={!milestoneForm} accent={ACCENT}>+25 XP</NButton>
-                    </div>
-                    <div>
-                      {babyMilestones.map((m, i) => (
-                        <div key={m.id} className="flex items-center gap-3 py-2" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-nunito text-sm truncate" style={{ color: INK }}>{m.title}</div>
-                            <div className="font-nunito text-xs" style={{ color: MUTED }}>{m.date}</div>
-                          </div>
-                          <button onClick={() => handleDeleteMilestone(m.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
+                    {babyMilestones.map((m, i) => (
+                      <div key={m.id} className="flex items-center gap-3 py-2" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-nunito text-sm truncate" style={{ color: INK }}>{m.title}</div>
+                          <div className="font-nunito text-xs" style={{ color: MUTED }}>{m.date}</div>
                         </div>
-                      ))}
-                      {babyMilestones.length === 0 && (
-                        <div className="font-nunito text-xs" style={{ color: MUTED }}>No milestones yet, every first counts</div>
-                      )}
-                    </div>
+                        <button onClick={() => handleDeleteMilestone(m.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
+                      </div>
+                    ))}
+                    {babyMilestones.length === 0 && (
+                      <div className="font-nunito text-xs" style={{ color: MUTED }}>No milestones yet, every first counts</div>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )
           )}
 
           {/* ── PET ──────────────────────────────────────────── */}

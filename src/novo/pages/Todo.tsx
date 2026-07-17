@@ -327,82 +327,86 @@ export default function Todo() {
 
           {/* TASKS TAB */}
           {mainTab === 'tasks' && (
-            <div className="max-w-xl">
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
               {/* Add task form */}
-              <Panel tone="tint" accent={ACCENT} className="p-4 mb-4">
-                <input
-                  type="text"
-                  placeholder="What do you need to do?"
-                  value={newTitle}
-                  onChange={e => setNewTitle(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleAddTask()}
-                  className="w-full rounded-xl px-3 py-2.5 font-nunito text-sm outline-none mb-2"
-                  style={{ background: '#FFFFFF', color: INK }}
-                />
-                <div className="flex flex-wrap gap-2">
-                  <select
-                    value={newPriority}
-                    onChange={e => setNewPriority(e.target.value as Priority)}
-                    className="flex-1 min-w-[130px] px-3 py-2 rounded-xl font-nunito text-sm outline-none"
-                    style={{ background: '#FFFFFF', color: INK }}
-                  >
-                    <option value="high">High (+25 XP)</option>
-                    <option value="medium">Medium (+15 XP)</option>
-                    <option value="low">Low (+10 XP)</option>
-                  </select>
+              <div>
+                <Panel tone="tint" accent={ACCENT} className="p-4">
                   <input
-                    type="date"
-                    value={newDue}
-                    onChange={e => setNewDue(e.target.value)}
-                    className="flex-1 min-w-[130px] px-3 py-2 rounded-xl font-nunito text-sm outline-none"
+                    type="text"
+                    placeholder="What do you need to do?"
+                    value={newTitle}
+                    onChange={e => setNewTitle(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAddTask()}
+                    className="w-full rounded-xl px-3 py-2.5 font-nunito text-sm outline-none mb-2"
                     style={{ background: '#FFFFFF', color: INK }}
                   />
-                  <NButton onClick={handleAddTask} disabled={!newTitle.trim()} accent={ACCENT}>Add</NButton>
-                </div>
-              </Panel>
-
-              {/* Due today pinned section */}
-              {dueToday.length > 0 && (
-                <div className="mb-4">
-                  <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>
-                    Due today ({dueToday.length})
+                  <div className="flex flex-wrap gap-2">
+                    <select
+                      value={newPriority}
+                      onChange={e => setNewPriority(e.target.value as Priority)}
+                      className="flex-1 min-w-[130px] px-3 py-2 rounded-xl font-nunito text-sm outline-none"
+                      style={{ background: '#FFFFFF', color: INK }}
+                    >
+                      <option value="high">High (+25 XP)</option>
+                      <option value="medium">Medium (+15 XP)</option>
+                      <option value="low">Low (+10 XP)</option>
+                    </select>
+                    <input
+                      type="date"
+                      value={newDue}
+                      onChange={e => setNewDue(e.target.value)}
+                      className="flex-1 min-w-[130px] px-3 py-2 rounded-xl font-nunito text-sm outline-none"
+                      style={{ background: '#FFFFFF', color: INK }}
+                    />
+                    <NButton onClick={handleAddTask} disabled={!newTitle.trim()} accent={ACCENT}>Add</NButton>
                   </div>
-                  {dueToday.map((t, i) => renderTask(t, i))}
-                </div>
-              )}
-
-              {/* Filter tabs */}
-              <div className="flex gap-5 mb-2">
-                {(['all', 'active', 'done'] as FilterTab[]).map(f => (
-                  <button
-                    key={f}
-                    onClick={() => setFilter(f)}
-                    className="font-nunito text-sm transition-colors"
-                    style={{ color: filter === f ? INK : MUTED, fontWeight: filter === f ? 600 : 400 }}
-                  >
-                    {f === 'all' ? `All (${totalTasks})` : f === 'active' ? `Active (${activeTasks})` : `Done (${doneTasks})`}
-                  </button>
-                ))}
+                </Panel>
               </div>
 
-              {filtered.length === 0 ? (
-                <div className="py-10 text-center">
-                  <div className="font-nunito text-sm" style={{ color: INK }}>
-                    {filter === 'done' ? 'Nothing completed yet' : totalTasks === 0 ? 'No tasks yet' : 'All clear'}
+              <div>
+                {/* Due today pinned section */}
+                {dueToday.length > 0 && (
+                  <div className="mb-4">
+                    <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>
+                      Due today ({dueToday.length})
+                    </div>
+                    {dueToday.map((t, i) => renderTask(t, i))}
                   </div>
-                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
-                    {filter === 'done' ? 'Complete a task to see it here' : totalTasks === 0 ? 'Add your first task above to get started' : 'All active tasks are done'}
-                  </div>
+                )}
+
+                {/* Filter tabs */}
+                <div className="flex gap-5 mb-2">
+                  {(['all', 'active', 'done'] as FilterTab[]).map(f => (
+                    <button
+                      key={f}
+                      onClick={() => setFilter(f)}
+                      className="font-nunito text-sm transition-colors"
+                      style={{ color: filter === f ? INK : MUTED, fontWeight: filter === f ? 600 : 400 }}
+                    >
+                      {f === 'all' ? `All (${totalTasks})` : f === 'active' ? `Active (${activeTasks})` : `Done (${doneTasks})`}
+                    </button>
+                  ))}
                 </div>
-              ) : (
-                <div>{filtered.map((t, i) => renderTask(t, i))}</div>
-              )}
+
+                {filtered.length === 0 ? (
+                  <div className="py-10 text-center">
+                    <div className="font-nunito text-sm" style={{ color: INK }}>
+                      {filter === 'done' ? 'Nothing completed yet' : totalTasks === 0 ? 'No tasks yet' : 'All clear'}
+                    </div>
+                    <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
+                      {filter === 'done' ? 'Complete a task to see it here' : totalTasks === 0 ? 'Add your first task above to get started' : 'All active tasks are done'}
+                    </div>
+                  </div>
+                ) : (
+                  <div>{filtered.map((t, i) => renderTask(t, i))}</div>
+                )}
+              </div>
             </div>
           )}
 
           {/* ANALYTICS TAB */}
           {mainTab === 'analytics' && (
-            <div className="space-y-8 max-w-xl">
+            <div className="space-y-8 max-w-5xl">
               <div className="flex flex-wrap gap-x-8 gap-y-3">
                 <div>
                   <div className="font-nunito font-bold text-2xl leading-none" style={{ color: INK }}>{rate}%</div>
@@ -414,46 +418,48 @@ export default function Todo() {
                 </div>
               </div>
 
-              <div>
-                <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>7-day completion</div>
-                {dailyCompleted.every(d => d.count === 0) ? (
-                  <div className="font-nunito text-sm" style={{ color: MUTED }}>Complete tasks to see your daily velocity</div>
-                ) : (
-                  <div className="flex items-end justify-between gap-1" style={{ height: BAR_MAX_H + 32 }}>
-                    {dailyCompleted.map(({ label, count }) => (
-                      <div key={label} className="flex flex-col items-center gap-1 flex-1">
-                        <span className="font-nunito text-xs" style={{ color: MUTED }}>{count > 0 ? count : ''}</span>
-                        <div
-                          className="w-full rounded-t-md transition-all duration-500"
-                          style={{ height: count > 0 ? Math.max(8, (count / maxDaily) * BAR_MAX_H) : 4, background: count > 0 ? ACCENT : `${INK}12` }}
-                        />
-                        <span className="font-nunito text-xs" style={{ color: MUTED }}>{label}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>By priority</div>
-                {priorityDist.length === 0 ? (
-                  <div className="font-nunito text-sm" style={{ color: MUTED }}>Add tasks to see priority breakdown</div>
-                ) : (
-                  <div className="space-y-3">
-                    {priorityDist.map(({ priority, total, done }) => {
-                      const pc = PRIORITY_CONFIG[priority]
-                      return (
-                        <div key={priority}>
-                          <div className="flex justify-between font-nunito text-xs mb-1.5">
-                            <span style={{ color: pc.color }}>{pc.label}</span>
-                            <span style={{ color: MUTED }}>{done}/{total} done</span>
-                          </div>
-                          <NProgress pct={total ? (done / total) * 100 : 0} accent={pc.color} track={pc.bar} height={4} />
+              <div className="grid lg:grid-cols-2 gap-x-10 gap-y-8">
+                <div>
+                  <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>7-day completion</div>
+                  {dailyCompleted.every(d => d.count === 0) ? (
+                    <div className="font-nunito text-sm" style={{ color: MUTED }}>Complete tasks to see your daily velocity</div>
+                  ) : (
+                    <div className="flex items-end justify-between gap-1" style={{ height: BAR_MAX_H + 32 }}>
+                      {dailyCompleted.map(({ label, count }) => (
+                        <div key={label} className="flex flex-col items-center gap-1 flex-1">
+                          <span className="font-nunito text-xs" style={{ color: MUTED }}>{count > 0 ? count : ''}</span>
+                          <div
+                            className="w-full rounded-t-md transition-all duration-500"
+                            style={{ height: count > 0 ? Math.max(8, (count / maxDaily) * BAR_MAX_H) : 4, background: count > 0 ? ACCENT : `${INK}12` }}
+                          />
+                          <span className="font-nunito text-xs" style={{ color: MUTED }}>{label}</span>
                         </div>
-                      )
-                    })}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>By priority</div>
+                  {priorityDist.length === 0 ? (
+                    <div className="font-nunito text-sm" style={{ color: MUTED }}>Add tasks to see priority breakdown</div>
+                  ) : (
+                    <div className="space-y-3">
+                      {priorityDist.map(({ priority, total, done }) => {
+                        const pc = PRIORITY_CONFIG[priority]
+                        return (
+                          <div key={priority}>
+                            <div className="flex justify-between font-nunito text-xs mb-1.5">
+                              <span style={{ color: pc.color }}>{pc.label}</span>
+                              <span style={{ color: MUTED }}>{done}/{total} done</span>
+                            </div>
+                            <NProgress pct={total ? (done / total) * 100 : 0} accent={pc.color} track={pc.bar} height={4} />
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {overdueCount > 0 && (

@@ -352,9 +352,11 @@ export default function Travel() {
 
           {/* ── TRIPS ────────────────────────────────────────── */}
           {mainTab === 'trips' && (
-            <div className="max-w-xl">
+            <div className="max-w-5xl">
+            <div className="grid lg:grid-cols-2 gap-x-10 gap-y-6">
+            <div>
 
-              <Panel tone="tint" accent={ACCENT} className="p-4 mb-5">
+              <Panel tone="tint" accent={ACCENT} className="p-4">
                 <div className="flex gap-1.5 mb-2 flex-wrap">
                   {TRIP_EMOJIS.map(e => (
                     <button
@@ -403,7 +405,9 @@ export default function Travel() {
                   Create trip (+20 XP)
                 </NButton>
               </Panel>
+            </div>
 
+            <div>
               {data.trips.map((t, i) => {
                 const spent = tripSpent(t)
                 const pct = t.budget > 0 ? Math.min(100, (spent / t.budget) * 100) : 0
@@ -440,19 +444,21 @@ export default function Travel() {
                   </div>
                 )
               })}
+            </div>
+            </div>
 
-              {data.trips.length === 0 && (
-                <div className="py-10 text-center">
-                  <div className="font-nunito text-sm" style={{ color: INK }}>No trips yet</div>
-                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Plan your first adventure above, finishing a trip under budget earns +50 XP</div>
-                </div>
-              )}
+            {data.trips.length === 0 && (
+              <div className="py-10 text-center">
+                <div className="font-nunito text-sm" style={{ color: INK }}>No trips yet</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Plan your first adventure above, finishing a trip under budget earns +50 XP</div>
+              </div>
+            )}
             </div>
           )}
 
           {/* ── ITINERARY ────────────────────────────────────── */}
           {mainTab === 'itinerary' && (
-            <div className="max-w-xl">
+            <div className="max-w-5xl">
               {!selectedTrip ? (
                 <div className="py-10 text-center">
                   <div className="font-nunito text-sm" style={{ color: INK }}>No trip selected</div>
@@ -460,66 +466,72 @@ export default function Travel() {
                 </div>
               ) : (
                 <>
-                  <Panel tone="tint" accent={ACCENT} className="p-4 mb-5">
-                    <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>
-                      Add to {selectedTrip.emoji} {selectedTrip.destination}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 mb-2">
-                      <input
-                        type="date" min={selectedTrip.startDate} max={selectedTrip.endDate} value={itemForm.day}
-                        onChange={e => setItemForm(f => ({ ...f, day: e.target.value }))}
-                        className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
-                        style={inputStyle}
-                      />
-                      <input
-                        type="time" value={itemForm.time}
-                        onChange={e => setItemForm(f => ({ ...f, time: e.target.value }))}
-                        className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
-                        style={inputStyle}
-                      />
-                      <input
-                        type="text" placeholder="Activity" value={itemForm.title}
-                        onChange={e => setItemForm(f => ({ ...f, title: e.target.value }))}
-                        onKeyDown={e => e.key === 'Enter' && handleAddItem()}
-                        className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
-                        style={inputStyle}
-                      />
-                      <input
-                        type="text" placeholder="Location (optional)" value={itemForm.location}
-                        onChange={e => setItemForm(f => ({ ...f, location: e.target.value }))}
-                        onKeyDown={e => e.key === 'Enter' && handleAddItem()}
-                        className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
-                        style={inputStyle}
-                      />
-                    </div>
-                    <NButton onClick={handleAddItem} disabled={!itemForm.day || !itemForm.title} accent={ACCENT} className="w-full">
-                      Add to itinerary
-                    </NButton>
-                  </Panel>
-
-                  {itemDays.map(day => (
-                    <div key={day} className="mb-6">
-                      <div className="font-nunito font-semibold text-sm mb-2" style={{ color: INK }}>
-                        {day} {day === today && '· Today'}
+                  <div className="grid lg:grid-cols-2 gap-x-10 gap-y-6">
+                  <div>
+                    <Panel tone="tint" accent={ACCENT} className="p-4">
+                      <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>
+                        Add to {selectedTrip.emoji} {selectedTrip.destination}
                       </div>
-                      <div>
-                        {selectedItems.filter(i => i.day === day).map((i, idx) => (
-                          <div key={i.id} className="flex items-center gap-3 py-2" style={{ borderTop: idx === 0 ? 'none' : `1px solid ${INK}0D` }}>
-                            <span className="font-nunito text-xs font-medium flex-shrink-0 w-12" style={{ color: ACCENT }}>{i.time ?? '—'}</span>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-nunito text-sm truncate" style={{ color: INK }}>{i.title}</div>
-                              {i.location && <div className="font-nunito text-xs" style={{ color: MUTED }}>{i.location}</div>}
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <input
+                          type="date" min={selectedTrip.startDate} max={selectedTrip.endDate} value={itemForm.day}
+                          onChange={e => setItemForm(f => ({ ...f, day: e.target.value }))}
+                          className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                          style={inputStyle}
+                        />
+                        <input
+                          type="time" value={itemForm.time}
+                          onChange={e => setItemForm(f => ({ ...f, time: e.target.value }))}
+                          className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                          style={inputStyle}
+                        />
+                        <input
+                          type="text" placeholder="Activity" value={itemForm.title}
+                          onChange={e => setItemForm(f => ({ ...f, title: e.target.value }))}
+                          onKeyDown={e => e.key === 'Enter' && handleAddItem()}
+                          className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                          style={inputStyle}
+                        />
+                        <input
+                          type="text" placeholder="Location (optional)" value={itemForm.location}
+                          onChange={e => setItemForm(f => ({ ...f, location: e.target.value }))}
+                          onKeyDown={e => e.key === 'Enter' && handleAddItem()}
+                          className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                          style={inputStyle}
+                        />
+                      </div>
+                      <NButton onClick={handleAddItem} disabled={!itemForm.day || !itemForm.title} accent={ACCENT} className="w-full">
+                        Add to itinerary
+                      </NButton>
+                    </Panel>
+                  </div>
+
+                  <div>
+                    {itemDays.map(day => (
+                      <div key={day} className="mb-6">
+                        <div className="font-nunito font-semibold text-sm mb-2" style={{ color: INK }}>
+                          {day} {day === today && '· Today'}
+                        </div>
+                        <div>
+                          {selectedItems.filter(i => i.day === day).map((i, idx) => (
+                            <div key={i.id} className="flex items-center gap-3 py-2" style={{ borderTop: idx === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                              <span className="font-nunito text-xs font-medium flex-shrink-0 w-12" style={{ color: ACCENT }}>{i.time ?? '—'}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-nunito text-sm truncate" style={{ color: INK }}>{i.title}</div>
+                                {i.location && <div className="font-nunito text-xs" style={{ color: MUTED }}>{i.location}</div>}
+                              </div>
+                              <button onClick={() => handleDeleteItem(i.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
                             </div>
-                            <button onClick={() => handleDeleteItem(i.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
 
-                  {selectedItems.length === 0 && (
-                    <div className="font-nunito text-xs" style={{ color: MUTED }}>No itinerary items yet, plan your days above</div>
-                  )}
+                    {selectedItems.length === 0 && (
+                      <div className="font-nunito text-xs" style={{ color: MUTED }}>No itinerary items yet, plan your days above</div>
+                    )}
+                  </div>
+                  </div>
                 </>
               )}
             </div>
@@ -527,14 +539,15 @@ export default function Travel() {
 
           {/* ── BUDGET ───────────────────────────────────────── */}
           {mainTab === 'budget' && (
-            <div className="max-w-xl">
+            <div className="max-w-5xl">
               {!selectedTrip ? (
                 <div className="py-10 text-center">
                   <div className="font-nunito text-sm" style={{ color: INK }}>No trip selected</div>
                   <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Create or select a trip in the Trips tab first</div>
                 </div>
               ) : (
-                <>
+                <div className="grid lg:grid-cols-2 gap-x-10 gap-y-8">
+                <div>
                   <div className="mb-6">
                     <div className="font-nunito font-semibold text-sm mb-2" style={{ color: INK }}>
                       {selectedTrip.emoji} {selectedTrip.destination} budget
@@ -550,7 +563,7 @@ export default function Travel() {
                     )}
                   </div>
 
-                  <Panel tone="tint" accent={ACCENT} className="p-4 mb-6">
+                  <Panel tone="tint" accent={ACCENT} className="p-4">
                     <div className="flex gap-1.5 mb-2 flex-wrap">
                       {EXPENSE_CATS.map(c => (
                         <button
@@ -581,7 +594,9 @@ export default function Travel() {
                       <NButton onClick={handleAddExpense} disabled={!expenseForm.amount} accent={ACCENT}>Log</NButton>
                     </div>
                   </Panel>
+                </div>
 
+                <div>
                   {catTotals.length > 0 && (
                     <div className="mb-6">
                       <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>By category</div>
@@ -614,7 +629,8 @@ export default function Travel() {
                       </div>
                     )
                   })}
-                </>
+                </div>
+                </div>
               )}
             </div>
           )}

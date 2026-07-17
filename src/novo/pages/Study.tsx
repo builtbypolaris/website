@@ -332,8 +332,8 @@ export default function Study() {
 
           {/* ── OVERVIEW ─────────────────────────────────────── */}
           {mainTab === 'overview' && (
-            <div className="space-y-8 max-w-xl">
-
+            <>
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-8">
               {upcomingExams.length > 0 && (
                 <div>
                   <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Upcoming exams</div>
@@ -383,19 +383,21 @@ export default function Study() {
                   </div>
                 </div>
               )}
-
-              {data.subjects.length === 0 && (
-                <div className="py-10 text-center">
-                  <div className="font-nunito text-sm" style={{ color: INK }}>No subjects yet</div>
-                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Add your subjects in the Subjects tab, then start logging study time</div>
-                </div>
-              )}
             </div>
+
+            {data.subjects.length === 0 && (
+              <div className="py-10 text-center">
+                <div className="font-nunito text-sm" style={{ color: INK }}>No subjects yet</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Add your subjects in the Subjects tab, then start logging study time</div>
+              </div>
+            )}
+            </>
           )}
 
           {/* ── STUDY (timer + log) ──────────────────────────── */}
           {mainTab === 'study' && (
-            <div className="space-y-5 max-w-xl">
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
+            <div className="space-y-5">
 
               {/* Timer — the one loud panel on this tab */}
               <Panel accent={ACCENT} tone="fill" className="p-6 text-center">
@@ -470,8 +472,10 @@ export default function Study() {
                   </>
                 )}
               </Panel>
+            </div>
 
-              {/* Session history */}
+            {/* Session history */}
+            <div>
               {recentSessions.length > 0 && (
                 <div>
                   {recentSessions.map((sess, i) => {
@@ -491,13 +495,14 @@ export default function Study() {
                 </div>
               )}
             </div>
+            </div>
           )}
 
           {/* ── SUBJECTS ─────────────────────────────────────── */}
           {mainTab === 'subjects' && (
-            <div className="max-w-xl">
-
-              <Panel tone="tint" accent={ACCENT} className="p-4 mb-5">
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
+            <div>
+              <Panel tone="tint" accent={ACCENT} className="p-4">
                 <div className="flex gap-1.5 mb-2">
                   {SUBJECT_COLORS.map(c => (
                     <button
@@ -529,7 +534,9 @@ export default function Study() {
                 <NButton onClick={handleAddSubject} disabled={!subjectForm.name} accent={ACCENT} className="w-full">Add subject</NButton>
                 <div className="font-nunito text-xs mt-2" style={{ color: MUTED }}>Exam date is optional. Set it to get a countdown.</div>
               </Panel>
+            </div>
 
+            <div>
               {data.subjects.map((s, i) => {
                 const mins = minutesFor(s.id)
                 return (
@@ -563,6 +570,7 @@ export default function Study() {
                   <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Add your first subject above to start tracking study time</div>
                 </div>
               )}
+            </div>
             </div>
           )}
 

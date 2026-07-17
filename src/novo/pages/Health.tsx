@@ -336,7 +336,8 @@ export default function Health() {
 
           {/* ── TODAY ────────────────────────────────────────── */}
           {mainTab === 'today' && (
-            <div className="space-y-5 max-w-xl">
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
+            <div className="space-y-5">
 
               <Panel tone="tint" accent={ACCENT} className="p-4 md:p-5">
                 <div className="flex gap-1.5 mb-3">
@@ -405,7 +406,9 @@ export default function Health() {
                   {waterToday}/{data.goals.waterTarget} glasses · +2 XP per glass
                 </div>
               </div>
+            </div>
 
+            <div className="space-y-5">
               {todayMeals.length > 0 && (
                 <div>
                   <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Today's meals</div>
@@ -428,11 +431,12 @@ export default function Health() {
                 </div>
               )}
             </div>
+            </div>
           )}
 
           {/* ── MEALS (history) ──────────────────────────────── */}
           {mainTab === 'meals' && (
-            <div className="max-w-xl">
+            <div className="max-w-2xl">
               {mealDays.length === 0 && (
                 <div className="py-10 text-center">
                   <div className="font-nunito text-sm" style={{ color: INK }}>No meals yet</div>
@@ -469,7 +473,8 @@ export default function Health() {
 
           {/* ── BODY ─────────────────────────────────────────── */}
           {mainTab === 'body' && (
-            <div className="space-y-8 max-w-xl">
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-8">
+            <div className="space-y-8">
 
               <Panel tone="tint" accent={ACCENT} className="p-4">
                 <div className="flex gap-2">
@@ -501,7 +506,9 @@ export default function Health() {
                   </div>
                 </div>
               )}
+            </div>
 
+            <div className="space-y-8">
               {data.weights.length > 0 && (
                 <div>
                   <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Entries</div>
@@ -541,6 +548,7 @@ export default function Health() {
                 </div>
                 <NButton onClick={handleSaveGoals} accent={ACCENT} className="w-full">Save targets</NButton>
               </div>
+            </div>
             </div>
           )}
 

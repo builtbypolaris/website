@@ -324,80 +324,83 @@ export default function Mood() {
 
           {/* ── CHECK-IN (overview) ──────────────────────────── */}
           {mainTab === 'overview' && (
-            <div className="max-w-xl">
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
+              <div>
+                <Panel tone="tint" accent={ACCENT} className="p-4 md:p-5">
+                  <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>How are you feeling?</div>
 
-              <Panel tone="tint" accent={ACCENT} className="p-4 md:p-5 mb-5">
-                <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>How are you feeling?</div>
+                  <div className="flex justify-between gap-1 mb-4 max-w-sm mx-auto">
+                    {MOOD_META.map(m => (
+                      <button
+                        key={m.level}
+                        onClick={() => setCheckin(c => ({ ...c, mood: m.level }))}
+                        className="flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl transition-colors"
+                        style={{ background: checkin.mood === m.level ? `${m.color}20` : 'transparent' }}
+                      >
+                        <span className="text-2xl md:text-3xl" style={{ filter: checkin.mood && checkin.mood !== m.level ? 'grayscale(0.7)' : 'none' }}>
+                          {m.emoji}
+                        </span>
+                        <span className="font-nunito text-[10px] font-medium" style={{ color: checkin.mood === m.level ? m.color : MUTED }}>
+                          {m.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
 
-                <div className="flex justify-between gap-1 mb-4 max-w-sm mx-auto">
-                  {MOOD_META.map(m => (
-                    <button
-                      key={m.level}
-                      onClick={() => setCheckin(c => ({ ...c, mood: m.level }))}
-                      className="flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl transition-colors"
-                      style={{ background: checkin.mood === m.level ? `${m.color}20` : 'transparent' }}
-                    >
-                      <span className="text-2xl md:text-3xl" style={{ filter: checkin.mood && checkin.mood !== m.level ? 'grayscale(0.7)' : 'none' }}>
-                        {m.emoji}
-                      </span>
-                      <span className="font-nunito text-[10px] font-medium" style={{ color: checkin.mood === m.level ? m.color : MUTED }}>
-                        {m.label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                  <div className="flex gap-1.5 flex-wrap mb-3">
+                    {TAGS.map(tag => (
+                      <button
+                        key={tag}
+                        onClick={() => toggleTag(tag)}
+                        className="px-3 py-1.5 rounded-full font-nunito text-xs transition-colors"
+                        style={checkin.tags.includes(tag) ? { background: ACCENT, color: '#FFFFFF' } : { background: '#FFFFFF', color: MUTED }}
+                      >
+                        #{tag}
+                      </button>
+                    ))}
+                  </div>
 
-                <div className="flex gap-1.5 flex-wrap mb-3">
-                  {TAGS.map(tag => (
-                    <button
-                      key={tag}
-                      onClick={() => toggleTag(tag)}
-                      className="px-3 py-1.5 rounded-full font-nunito text-xs transition-colors"
-                      style={checkin.tags.includes(tag) ? { background: ACCENT, color: '#FFFFFF' } : { background: '#FFFFFF', color: MUTED }}
-                    >
-                      #{tag}
-                    </button>
-                  ))}
-                </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Add a note (optional)"
+                      value={checkin.note}
+                      onChange={e => setCheckin(c => ({ ...c, note: e.target.value }))}
+                      onKeyDown={e => e.key === 'Enter' && handleCheckin()}
+                      className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                      style={{ background: '#FFFFFF', color: INK }}
+                    />
+                    <NButton onClick={handleCheckin} disabled={!checkin.mood} accent={ACCENT}>Check in</NButton>
+                  </div>
+                  {todayEntries.length >= XP_CHECKINS_PER_DAY && (
+                    <div className="font-nunito text-xs mt-2" style={{ color: MUTED }}>
+                      Daily XP cap reached ({XP_CHECKINS_PER_DAY} check-ins). More check-ins still count, just no XP.
+                    </div>
+                  )}
+                </Panel>
+              </div>
 
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Add a note (optional)"
-                    value={checkin.note}
-                    onChange={e => setCheckin(c => ({ ...c, note: e.target.value }))}
-                    onKeyDown={e => e.key === 'Enter' && handleCheckin()}
-                    className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
-                    style={{ background: '#FFFFFF', color: INK }}
-                  />
-                  <NButton onClick={handleCheckin} disabled={!checkin.mood} accent={ACCENT}>Check in</NButton>
-                </div>
-                {todayEntries.length >= XP_CHECKINS_PER_DAY && (
-                  <div className="font-nunito text-xs mt-2" style={{ color: MUTED }}>
-                    Daily XP cap reached ({XP_CHECKINS_PER_DAY} check-ins). More check-ins still count, just no XP.
+              <div>
+                {todayEntries.length > 0 && (
+                  <div>
+                    <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Today</div>
+                    <div>{todayEntries.map((e, i) => entryRow(e, i))}</div>
                   </div>
                 )}
-              </Panel>
 
-              {todayEntries.length > 0 && (
-                <div>
-                  <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Today</div>
-                  <div>{todayEntries.map((e, i) => entryRow(e, i))}</div>
-                </div>
-              )}
-
-              {data.entries.length === 0 && (
-                <div className="py-10 text-center">
-                  <div className="font-nunito text-sm" style={{ color: INK }}>No check-ins yet</div>
-                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Tap an emoji above and log your first mood, your sky pet is waiting</div>
-                </div>
-              )}
+                {data.entries.length === 0 && (
+                  <div className="py-10 text-center">
+                    <div className="font-nunito text-sm" style={{ color: INK }}>No check-ins yet</div>
+                    <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Tap an emoji above and log your first mood, your sky pet is waiting</div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
           {/* ── HISTORY (heatmap) ────────────────────────────── */}
           {mainTab === 'history' && (
-            <div className="max-w-xl">
+            <div className="max-w-2xl">
               <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Last 12 weeks</div>
               <div className="flex gap-1 overflow-x-auto pb-1">
                 <div className="flex flex-col gap-1 mr-1 flex-shrink-0">
@@ -454,7 +457,7 @@ export default function Mood() {
 
           {/* ── TRENDS ───────────────────────────────────────── */}
           {mainTab === 'trends' && (
-            <div className="space-y-8 max-w-xl">
+            <div className="space-y-8 max-w-5xl">
               {data.entries.length === 0 ? (
                 <div className="py-10 text-center">
                   <div className="font-nunito text-sm" style={{ color: INK }}>No data yet</div>
@@ -476,41 +479,43 @@ export default function Mood() {
                     ))}
                   </div>
 
-                  <div>
-                    <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Mood by weekday</div>
-                    <div className="space-y-3">
-                      {weekdayAvgs.map(w => (
-                        <div key={w.label}>
-                          <div className="flex justify-between font-nunito text-xs mb-1.5">
-                            <span style={{ color: INK }}>{w.label}</span>
-                            <span style={{ color: MUTED }}>
-                              {w.avg !== null ? `${moodMeta(Math.round(w.avg)).emoji} ${w.avg.toFixed(1)} · ${w.count} entr${w.count === 1 ? 'y' : 'ies'}` : 'no data'}
-                            </span>
-                          </div>
-                          <NProgress pct={w.avg !== null ? (w.avg / 5) * 100 : 0} accent={w.avg !== null ? moodMeta(Math.round(w.avg)).color : MUTED} height={4} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {tagAvgs.length > 0 && (
+                  <div className="grid lg:grid-cols-2 gap-x-10 gap-y-8">
                     <div>
-                      <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Mood by tag</div>
+                      <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Mood by weekday</div>
                       <div className="space-y-3">
-                        {tagAvgs.map(t => (
-                          <div key={t.tag}>
+                        {weekdayAvgs.map(w => (
+                          <div key={w.label}>
                             <div className="flex justify-between font-nunito text-xs mb-1.5">
-                              <span style={{ color: INK }}>#{t.tag}</span>
+                              <span style={{ color: INK }}>{w.label}</span>
                               <span style={{ color: MUTED }}>
-                                {moodMeta(Math.round(t.avg!)).emoji} {t.avg!.toFixed(1)} · {t.count} entr{t.count === 1 ? 'y' : 'ies'}
+                                {w.avg !== null ? `${moodMeta(Math.round(w.avg)).emoji} ${w.avg.toFixed(1)} · ${w.count} entr${w.count === 1 ? 'y' : 'ies'}` : 'no data'}
                               </span>
                             </div>
-                            <NProgress pct={(t.avg! / 5) * 100} accent={moodMeta(Math.round(t.avg!)).color} height={4} />
+                            <NProgress pct={w.avg !== null ? (w.avg / 5) * 100 : 0} accent={w.avg !== null ? moodMeta(Math.round(w.avg)).color : MUTED} height={4} />
                           </div>
                         ))}
                       </div>
                     </div>
-                  )}
+
+                    {tagAvgs.length > 0 && (
+                      <div>
+                        <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Mood by tag</div>
+                        <div className="space-y-3">
+                          {tagAvgs.map(t => (
+                            <div key={t.tag}>
+                              <div className="flex justify-between font-nunito text-xs mb-1.5">
+                                <span style={{ color: INK }}>#{t.tag}</span>
+                                <span style={{ color: MUTED }}>
+                                  {moodMeta(Math.round(t.avg!)).emoji} {t.avg!.toFixed(1)} · {t.count} entr{t.count === 1 ? 'y' : 'ies'}
+                                </span>
+                              </div>
+                              <NProgress pct={(t.avg! / 5) * 100} accent={moodMeta(Math.round(t.avg!)).color} height={4} />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
             </div>

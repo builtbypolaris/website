@@ -342,8 +342,8 @@ export default function Freelance() {
 
           {/* ── OVERVIEW ─────────────────────────────────────── */}
           {mainTab === 'overview' && (
-            <div className="space-y-8 max-w-xl">
-
+            <>
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-8">
               {activeProjects.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
@@ -399,20 +399,21 @@ export default function Freelance() {
                   </div>
                 </div>
               )}
-
-              {data.clients.length === 0 && (
-                <div className="py-10 text-center">
-                  <div className="font-nunito text-sm" style={{ color: INK }}>Welcome to your hub</div>
-                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Add your first client in the Projects tab to get rolling</div>
-                </div>
-              )}
             </div>
+
+            {data.clients.length === 0 && (
+              <div className="py-10 text-center">
+                <div className="font-nunito text-sm" style={{ color: INK }}>Welcome to your hub</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Add your first client in the Projects tab to get rolling</div>
+              </div>
+            )}
+            </>
           )}
 
           {/* ── PROJECTS ─────────────────────────────────────── */}
           {mainTab === 'projects' && (
-            <div className="max-w-xl">
-
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
+            <div>
               <Panel tone="tint" accent={ACCENT} className="p-4 mb-4">
                 <div className="flex gap-2">
                   <input
@@ -434,7 +435,7 @@ export default function Freelance() {
               </Panel>
 
               {data.clients.length > 0 && (
-                <Panel tone="tint" accent={ACCENT} className="p-4 mb-4">
+                <Panel tone="tint" accent={ACCENT} className="p-4">
                   <div className="grid grid-cols-2 gap-2 mb-2">
                     <select
                       value={projectForm.clientId}
@@ -482,7 +483,9 @@ export default function Freelance() {
                   </NButton>
                 </Panel>
               )}
+            </div>
 
+            <div>
               {data.projects.map((p, i) => {
                 const done = p.status === 'done'
                 return (
@@ -526,13 +529,14 @@ export default function Freelance() {
                 </div>
               )}
             </div>
+            </div>
           )}
 
           {/* ── EARNINGS ─────────────────────────────────────── */}
           {mainTab === 'earnings' && (
-            <div className="max-w-xl">
-
-              <Panel tone="tint" accent={ACCENT} className="p-4 mb-5">
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
+            <div>
+              <Panel tone="tint" accent={ACCENT} className="p-4">
                 {activeProjects.length === 0 ? (
                   <div className="font-nunito text-xs" style={{ color: MUTED }}>Add an active project first in the Projects tab.</div>
                 ) : (
@@ -579,7 +583,7 @@ export default function Freelance() {
               </Panel>
 
               {earningsByClient.length > 0 && (
-                <div className="mb-6">
+                <div className="mt-6">
                   <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Earnings by client</div>
                   <div className="space-y-3">
                     {earningsByClient.map(({ client, total }) => (
@@ -594,7 +598,9 @@ export default function Freelance() {
                   </div>
                 </div>
               )}
+            </div>
 
+            <div>
               {data.workLogs.map((w, i) => (
                 <div key={w.id} className="flex items-center gap-3 py-3" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
                   <div className="flex-1 min-w-0">
@@ -614,6 +620,7 @@ export default function Freelance() {
                   <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Log your first session above, every log feeds your pet</div>
                 </div>
               )}
+            </div>
             </div>
           )}
 

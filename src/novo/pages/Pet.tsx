@@ -392,101 +392,106 @@ export default function Pet() {
 
           {/* ── TODAY ────────────────────────────────────────── */}
           {mainTab === 'today' && (
-            <div className="space-y-6 max-w-xl">
+            <div className="max-w-5xl">
+              <div className="space-y-4 mb-6">
+                {petSelector}
 
-              {petSelector}
-
-              {showPetForm && (
-                <Panel tone="tint" accent={ACCENT} className="p-4">
-                  <div className="flex gap-1.5 mb-2 flex-wrap">
-                    {SPECIES.map(s => (
-                      <button
-                        key={s.key}
-                        onClick={() => setPetForm(f => ({ ...f, species: s.key }))}
-                        className="px-3 py-1.5 rounded-full font-nunito text-xs transition-colors flex items-center gap-1"
-                        style={petForm.species === s.key ? { background: ACCENT, color: '#FFFFFF' } : { background: '#FFFFFF', color: MUTED }}
-                      >
-                        {s.emoji} {s.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 mb-2">
-                    <input
-                      type="text" placeholder="Name" value={petForm.name}
-                      onChange={e => setPetForm(f => ({ ...f, name: e.target.value }))}
-                      onKeyDown={e => e.key === 'Enter' && handleAddPet()}
-                      className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
-                      style={inputStyle}
-                    />
-                    <input
-                      type="date" value={petForm.birthdate}
-                      onChange={e => setPetForm(f => ({ ...f, birthdate: e.target.value }))}
-                      className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
-                      style={inputStyle}
-                    />
-                  </div>
-                  <NButton onClick={handleAddPet} disabled={!petForm.name} accent={ACCENT} className="w-full">Add pet</NButton>
-                </Panel>
-              )}
-
-              {pet && (
-                <>
-                  <Panel tone="tint" accent={ACCENT} className="p-4 md:p-5">
-                    <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5 mb-3">
-                      {EVENT_META.map(m => (
+                {showPetForm && (
+                  <Panel tone="tint" accent={ACCENT} className="p-4">
+                    <div className="flex gap-1.5 mb-2 flex-wrap">
+                      {SPECIES.map(s => (
                         <button
-                          key={m.key}
-                          onClick={() => handleLogEvent(m.key)}
-                          className="py-3 rounded-xl font-nunito text-xs transition-opacity hover:opacity-70 flex flex-col items-center gap-1"
-                          style={{ background: '#FFFFFF', color: ACCENT }}
+                          key={s.key}
+                          onClick={() => setPetForm(f => ({ ...f, species: s.key }))}
+                          className="px-3 py-1.5 rounded-full font-nunito text-xs transition-colors flex items-center gap-1"
+                          style={petForm.species === s.key ? { background: ACCENT, color: '#FFFFFF' } : { background: '#FFFFFF', color: MUTED }}
                         >
-                          <span className="text-xl">{m.emoji}</span>
-                          {m.label}
+                          {s.emoji} {s.label}
                         </button>
                       ))}
                     </div>
-                    <input
-                      type="text" placeholder="Note for the next log (optional)" value={eventNote}
-                      onChange={e => setEventNote(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
-                      style={inputStyle}
-                    />
-                  </Panel>
-
-                  {todayEvents.length > 0 && (
-                    <div>
-                      <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Today's care</div>
-                      <div>
-                        {todayEvents.map((e, i) => {
-                          const m = eventMeta(e.eventType)
-                          return (
-                            <div key={e.id} className="flex items-center gap-3 py-2" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
-                              <span className="font-nunito text-xs font-medium w-11 flex-shrink-0" style={{ color: ACCENT }}>{eventTime(e)}</span>
-                              <span className="text-base flex-shrink-0">{m.emoji}</span>
-                              <span className="font-nunito text-sm flex-1 truncate" style={{ color: INK }}>{m.label}{e.note ? ` · ${e.note}` : ''}</span>
-                              <button onClick={() => handleDeleteEvent(e.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
-                            </div>
-                          )
-                        })}
-                      </div>
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <input
+                        type="text" placeholder="Name" value={petForm.name}
+                        onChange={e => setPetForm(f => ({ ...f, name: e.target.value }))}
+                        onKeyDown={e => e.key === 'Enter' && handleAddPet()}
+                        className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                        style={inputStyle}
+                      />
+                      <input
+                        type="date" value={petForm.birthdate}
+                        onChange={e => setPetForm(f => ({ ...f, birthdate: e.target.value }))}
+                        className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                        style={inputStyle}
+                      />
                     </div>
-                  )}
-                </>
+                    <NButton onClick={handleAddPet} disabled={!petForm.name} accent={ACCENT} className="w-full">Add pet</NButton>
+                  </Panel>
+                )}
+              </div>
+
+              {pet && (
+                <div className="grid lg:grid-cols-2 gap-x-10 gap-y-6">
+                  <div>
+                    <Panel tone="tint" accent={ACCENT} className="p-4 md:p-5">
+                      <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5 mb-3">
+                        {EVENT_META.map(m => (
+                          <button
+                            key={m.key}
+                            onClick={() => handleLogEvent(m.key)}
+                            className="py-3 rounded-xl font-nunito text-xs transition-opacity hover:opacity-70 flex flex-col items-center gap-1"
+                            style={{ background: '#FFFFFF', color: ACCENT }}
+                          >
+                            <span className="text-xl">{m.emoji}</span>
+                            {m.label}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        type="text" placeholder="Note for the next log (optional)" value={eventNote}
+                        onChange={e => setEventNote(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                        style={inputStyle}
+                      />
+                    </Panel>
+                  </div>
+
+                  <div>
+                    {todayEvents.length > 0 && (
+                      <div>
+                        <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Today's care</div>
+                        <div>
+                          {todayEvents.map((e, i) => {
+                            const m = eventMeta(e.eventType)
+                            return (
+                              <div key={e.id} className="flex items-center gap-3 py-2" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                                <span className="font-nunito text-xs font-medium w-11 flex-shrink-0" style={{ color: ACCENT }}>{eventTime(e)}</span>
+                                <span className="text-base flex-shrink-0">{m.emoji}</span>
+                                <span className="font-nunito text-sm flex-1 truncate" style={{ color: INK }}>{m.label}{e.note ? ` · ${e.note}` : ''}</span>
+                                <button onClick={() => handleDeleteEvent(e.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           )}
 
           {/* ── CARE (reminders) ─────────────────────────────── */}
           {mainTab === 'care' && (
-            <div className="max-w-xl">
-              {!pet ? (
-                <div className="py-10 text-center">
-                  <div className="font-nunito text-sm" style={{ color: INK }}>Add a pet first</div>
-                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Head to the Today tab to add your pet</div>
-                </div>
-              ) : (
-                <>
-                  <Panel tone="tint" accent={ACCENT} className="p-4 mb-5">
+            !pet ? (
+              <div className="max-w-xl py-10 text-center">
+                <div className="font-nunito text-sm" style={{ color: INK }}>Add a pet first</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Head to the Today tab to add your pet</div>
+              </div>
+            ) : (
+              <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
+                <div>
+                  <Panel tone="tint" accent={ACCENT} className="p-4">
                     <div className="flex gap-2">
                       <input
                         type="text" placeholder="Vaccine, grooming, checkup…" value={careForm.title}
@@ -504,7 +509,9 @@ export default function Pet() {
                       <NButton onClick={handleAddCareItem} disabled={!careForm.title || !careForm.dueDate} accent={ACCENT}>Add</NButton>
                     </div>
                   </Panel>
+                </div>
 
+                <div>
                   {data.careItems.map((item, i) => {
                     const itemPet = petById(item.petId)
                     const overdue = !item.done && item.dueDate < today
@@ -533,75 +540,77 @@ export default function Pet() {
                   {data.careItems.length === 0 && (
                     <div className="font-nunito text-xs" style={{ color: MUTED }}>No reminders yet, never miss a vaccine again</div>
                   )}
-                </>
-              )}
-            </div>
+                </div>
+              </div>
+            )
           )}
 
           {/* ── HEALTH (weight) ──────────────────────────────── */}
           {mainTab === 'health' && (
-            <div className="max-w-xl">
-              {!pet ? (
-                <div className="py-10 text-center">
-                  <div className="font-nunito text-sm" style={{ color: INK }}>Add a pet first</div>
-                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Head to the Today tab to add your pet</div>
-                </div>
-              ) : (
-                <div className="space-y-8">
-                  <Panel tone="tint" accent={ACCENT} className="p-4">
-                    <div className="flex gap-2">
-                      <input
-                        type="number" step="0.01" placeholder="Weight (kg)" value={weightForm}
-                        onChange={e => setWeightForm(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleAddWeight()}
-                        className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
-                        style={inputStyle}
-                      />
-                      <NButton onClick={handleAddWeight} disabled={!weightForm} accent={ACCENT}>Log</NButton>
-                    </div>
-                  </Panel>
+            !pet ? (
+              <div className="max-w-xl py-10 text-center">
+                <div className="font-nunito text-sm" style={{ color: INK }}>Add a pet first</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Head to the Today tab to add your pet</div>
+              </div>
+            ) : (
+              <div className="max-w-5xl space-y-8">
+                <Panel tone="tint" accent={ACCENT} className="p-4 max-w-2xl">
+                  <div className="flex gap-2">
+                    <input
+                      type="number" step="0.01" placeholder="Weight (kg)" value={weightForm}
+                      onChange={e => setWeightForm(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleAddWeight()}
+                      className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                      style={inputStyle}
+                    />
+                    <NButton onClick={handleAddWeight} disabled={!weightForm} accent={ACCENT}>Log</NButton>
+                  </div>
+                </Panel>
 
-                  {trendWeights.length >= 2 && (
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>Weight trend</div>
-                        <span className="font-nunito text-xs" style={{ color: MUTED }}>
-                          {trendWeights[0].weightKg} → {trendWeights[trendWeights.length - 1].weightKg} kg
-                        </span>
-                      </div>
-                      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full" style={{ height: 100 }}>
-                        <polyline points={trendPoints} fill="none" stroke={ACCENT} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
-                      </svg>
-                      <div className="flex justify-between font-nunito text-[10px]" style={{ color: MUTED }}>
-                        <span>{trendWeights[0].date}</span>
-                        <span>{trendWeights[trendWeights.length - 1].date}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {petWeights.length > 0 && (
-                    <div>
-                      <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Entries</div>
+                {(trendWeights.length >= 2 || petWeights.length > 0) && (
+                  <div className="grid lg:grid-cols-2 gap-x-10 gap-y-8">
+                    {trendWeights.length >= 2 && (
                       <div>
-                        {[...petWeights].reverse().slice(0, 10).map((w, i) => (
-                          <div key={w.id} className="flex items-center gap-3 py-2" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
-                            <span className="font-nunito text-sm flex-1" style={{ color: INK }}>{w.date}</span>
-                            <span className="font-nunito font-medium text-sm" style={{ color: ACCENT }}>{w.weightKg} kg</span>
-                            <button onClick={() => handleDeleteWeight(w.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
-                          </div>
-                        ))}
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="font-nunito font-semibold text-sm" style={{ color: INK }}>Weight trend</div>
+                          <span className="font-nunito text-xs" style={{ color: MUTED }}>
+                            {trendWeights[0].weightKg} → {trendWeights[trendWeights.length - 1].weightKg} kg
+                          </span>
+                        </div>
+                        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full" style={{ height: 100 }}>
+                          <polyline points={trendPoints} fill="none" stroke={ACCENT} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
+                        </svg>
+                        <div className="flex justify-between font-nunito text-[10px]" style={{ color: MUTED }}>
+                          <span>{trendWeights[0].date}</span>
+                          <span>{trendWeights[trendWeights.length - 1].date}</span>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {data.pets.length > 0 && (
-                    <button onClick={() => handleDeletePet(pet.id)} className="font-nunito text-xs transition-opacity hover:opacity-70" style={{ color: MUTED }}>
-                      Remove {pet.name}'s profile
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
+                    {petWeights.length > 0 && (
+                      <div>
+                        <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>Entries</div>
+                        <div>
+                          {[...petWeights].reverse().slice(0, 10).map((w, i) => (
+                            <div key={w.id} className="flex items-center gap-3 py-2" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                              <span className="font-nunito text-sm flex-1" style={{ color: INK }}>{w.date}</span>
+                              <span className="font-nunito font-medium text-sm" style={{ color: ACCENT }}>{w.weightKg} kg</span>
+                              <button onClick={() => handleDeleteWeight(w.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {data.pets.length > 0 && (
+                  <button onClick={() => handleDeletePet(pet.id)} className="font-nunito text-xs transition-opacity hover:opacity-70" style={{ color: MUTED }}>
+                    Remove {pet.name}'s profile
+                  </button>
+                )}
+              </div>
+            )
           )}
 
           {/* ── PET ──────────────────────────────────────────── */}

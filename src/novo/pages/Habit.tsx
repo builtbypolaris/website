@@ -292,7 +292,7 @@ export default function Habit() {
 
           {/* TODAY TAB */}
           {mainTab === 'today' && (
-            <div className="max-w-xl">
+            <div className="max-w-2xl">
               {data.habits.length === 0 ? (
                 <div className="py-10 text-center">
                   <div className="font-nunito text-sm mb-3" style={{ color: INK }}>No habits yet</div>
@@ -336,7 +336,7 @@ export default function Habit() {
 
           {/* ANALYTICS TAB */}
           {mainTab === 'analytics' && (
-            <div className="space-y-8 max-w-xl">
+            <div className="space-y-8 max-w-5xl">
               <div className="flex flex-wrap gap-x-8 gap-y-3">
                 {[
                   { label: 'Perfect days, last 30', value: String(perfectDays) },
@@ -351,133 +351,139 @@ export default function Habit() {
                 ))}
               </div>
 
-              <div>
-                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>30-day heatmap</div>
-                <div className="font-nunito text-xs mb-4" style={{ color: MUTED }}>Darker means more habits completed that day</div>
-                {totalHabits === 0 ? (
-                  <div className="font-nunito text-sm" style={{ color: MUTED }}>Add habits to see your heatmap</div>
-                ) : (
-                  <div className="grid gap-1" style={{ gridTemplateColumns: 'repeat(10, 1fr)' }}>
-                    {heatmapData.map(({ date, ratio }) => {
-                      const opacity = ratio === 0 ? 0 : Math.max(0.15, ratio)
-                      return (
-                        <div
-                          key={date}
-                          className="rounded-sm aspect-square"
-                          title={date}
-                          style={{ background: ratio === 0 ? `${INK}0D` : `rgba(37,99,235,${opacity})` }}
-                        />
-                      )
-                    })}
+              <div className="grid lg:grid-cols-2 gap-x-10 gap-y-8">
+                <div>
+                  <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>30-day heatmap</div>
+                  <div className="font-nunito text-xs mb-4" style={{ color: MUTED }}>Darker means more habits completed that day</div>
+                  {totalHabits === 0 ? (
+                    <div className="font-nunito text-sm" style={{ color: MUTED }}>Add habits to see your heatmap</div>
+                  ) : (
+                    <div className="grid gap-1" style={{ gridTemplateColumns: 'repeat(10, 1fr)' }}>
+                      {heatmapData.map(({ date, ratio }) => {
+                        const opacity = ratio === 0 ? 0 : Math.max(0.15, ratio)
+                        return (
+                          <div
+                            key={date}
+                            className="rounded-sm aspect-square"
+                            title={date}
+                            style={{ background: ratio === 0 ? `${INK}0D` : `rgba(37,99,235,${opacity})` }}
+                          />
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {data.habits.length > 0 && (
+                  <div>
+                    <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Habit breakdown</div>
+                    <div className="space-y-4">
+                      {data.habits.map(habit => {
+                        const streak = getStreak(habit.completions)
+                        const best = getBestStreak(habit.completions)
+                        const completionsLast30 = habit.completions.filter(d => last30.includes(d)).length
+                        const rate30 = Math.round((completionsLast30 / 30) * 100)
+                        return (
+                          <div key={habit.id}>
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="text-base">{habit.icon}</span>
+                              <span className="font-nunito text-sm flex-1" style={{ color: INK }}>{habit.name}</span>
+                              <span className="font-nunito text-xs" style={{ color: '#EA580C' }}>{streak}-day</span>
+                            </div>
+                            <NProgress pct={rate30} accent={ACCENT} height={4} />
+                            <div className="flex justify-between font-nunito text-xs mt-1" style={{ color: MUTED }}>
+                              <span>{rate30}% last 30 days</span>
+                              <span>Best {best} days</span>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
-
-              {data.habits.length > 0 && (
-                <div>
-                  <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Habit breakdown</div>
-                  <div className="space-y-4">
-                    {data.habits.map(habit => {
-                      const streak = getStreak(habit.completions)
-                      const best = getBestStreak(habit.completions)
-                      const completionsLast30 = habit.completions.filter(d => last30.includes(d)).length
-                      const rate30 = Math.round((completionsLast30 / 30) * 100)
-                      return (
-                        <div key={habit.id}>
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className="text-base">{habit.icon}</span>
-                            <span className="font-nunito text-sm flex-1" style={{ color: INK }}>{habit.name}</span>
-                            <span className="font-nunito text-xs" style={{ color: '#EA580C' }}>{streak}-day</span>
-                          </div>
-                          <NProgress pct={rate30} accent={ACCENT} height={4} />
-                          <div className="flex justify-between font-nunito text-xs mt-1" style={{ color: MUTED }}>
-                            <span>{rate30}% last 30 days</span>
-                            <span>Best {best} days</span>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
           {/* MANAGE TAB */}
           {mainTab === 'manage' && (
-            <div className="max-w-xl">
-              <Panel tone="tint" accent={ACCENT} className="p-4 mb-4">
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {HABIT_ICONS.map(icon => (
-                    <button
-                      key={icon}
-                      onClick={() => setNewIcon(icon)}
-                      className="text-xl p-1.5 rounded-lg transition-colors"
-                      style={{ background: newIcon === icon ? `${ACCENT}25` : 'transparent' }}
+            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
+              <div>
+                <Panel tone="tint" accent={ACCENT} className="p-4">
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {HABIT_ICONS.map(icon => (
+                      <button
+                        key={icon}
+                        onClick={() => setNewIcon(icon)}
+                        className="text-xl p-1.5 rounded-lg transition-colors"
+                        style={{ background: newIcon === icon ? `${ACCENT}25` : 'transparent' }}
+                      >
+                        {icon}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      type="text"
+                      placeholder="Habit name…"
+                      value={newName}
+                      onChange={e => setNewName(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleAddHabit()}
+                      className="flex-1 min-w-[160px] rounded-xl px-3 py-2 font-nunito text-sm outline-none"
+                      style={{ background: '#FFFFFF', color: INK }}
+                    />
+                    <select
+                      value={newFreq}
+                      onChange={e => setNewFreq(e.target.value as 'daily' | 'weekly')}
+                      className="px-3 py-2 rounded-xl font-nunito text-sm outline-none"
+                      style={{ background: '#FFFFFF', color: INK }}
                     >
-                      {icon}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <input
-                    type="text"
-                    placeholder="Habit name…"
-                    value={newName}
-                    onChange={e => setNewName(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleAddHabit()}
-                    className="flex-1 min-w-[160px] rounded-xl px-3 py-2 font-nunito text-sm outline-none"
-                    style={{ background: '#FFFFFF', color: INK }}
-                  />
-                  <select
-                    value={newFreq}
-                    onChange={e => setNewFreq(e.target.value as 'daily' | 'weekly')}
-                    className="px-3 py-2 rounded-xl font-nunito text-sm outline-none"
-                    style={{ background: '#FFFFFF', color: INK }}
-                  >
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                  </select>
-                  <NButton onClick={handleAddHabit} disabled={!newName.trim()} accent={ACCENT}>Add</NButton>
-                </div>
-              </Panel>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                    </select>
+                    <NButton onClick={handleAddHabit} disabled={!newName.trim()} accent={ACCENT}>Add</NButton>
+                  </div>
+                </Panel>
+              </div>
 
-              {data.habits.length === 0 ? (
-                <div className="py-10 text-center">
-                  <div className="font-nunito text-sm" style={{ color: INK }}>No habits yet</div>
-                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Use the form above to add your first habit</div>
-                </div>
-              ) : (
-                data.habits.map((habit, i) => {
-                  const streak = getStreak(habit.completions)
-                  const done = habit.completions.includes(today)
-                  return (
-                    <div key={habit.id} className="py-4" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-xl">{habit.icon}</span>
-                        <div className="flex-1">
-                          <div className="font-nunito font-medium text-sm" style={{ color: INK }}>{habit.name}</div>
-                          <div className="font-nunito text-xs capitalize" style={{ color: MUTED }}>{habit.frequency}</div>
-                        </div>
-                        <span className="font-nunito text-xs" style={{ color: done ? ACCENT : MUTED }}>{done ? 'Done' : 'Pending'}</span>
-                        <button onClick={() => handleDeleteHabit(habit.id)} className="text-sm transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
-                      </div>
-                      <div className="flex gap-4 font-nunito text-xs mb-2" style={{ color: MUTED }}>
-                        <span>Streak <strong style={{ color: '#EA580C' }}>{streak}</strong></span>
-                        <span>Total <strong style={{ color: ACCENT }}>{habit.completions.length}</strong></span>
-                      </div>
-                      <div className="flex gap-1">
-                        {last7.map(d => (
-                          <div key={d} className="flex-1 flex flex-col items-center gap-0.5">
-                            <div className="w-full h-4 rounded-sm" style={{ background: habit.completions.includes(d) ? ACCENT : `${INK}0D` }} />
-                            <div style={{ fontSize: 9, color: MUTED }}>{['Su','Mo','Tu','We','Th','Fr','Sa'][new Date(d).getDay()]}</div>
+              <div>
+                {data.habits.length === 0 ? (
+                  <div className="py-10 text-center">
+                    <div className="font-nunito text-sm" style={{ color: INK }}>No habits yet</div>
+                    <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Use the form above to add your first habit</div>
+                  </div>
+                ) : (
+                  data.habits.map((habit, i) => {
+                    const streak = getStreak(habit.completions)
+                    const done = habit.completions.includes(today)
+                    return (
+                      <div key={habit.id} className="py-4" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-xl">{habit.icon}</span>
+                          <div className="flex-1">
+                            <div className="font-nunito font-medium text-sm" style={{ color: INK }}>{habit.name}</div>
+                            <div className="font-nunito text-xs capitalize" style={{ color: MUTED }}>{habit.frequency}</div>
                           </div>
-                        ))}
+                          <span className="font-nunito text-xs" style={{ color: done ? ACCENT : MUTED }}>{done ? 'Done' : 'Pending'}</span>
+                          <button onClick={() => handleDeleteHabit(habit.id)} className="text-sm transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
+                        </div>
+                        <div className="flex gap-4 font-nunito text-xs mb-2" style={{ color: MUTED }}>
+                          <span>Streak <strong style={{ color: '#EA580C' }}>{streak}</strong></span>
+                          <span>Total <strong style={{ color: ACCENT }}>{habit.completions.length}</strong></span>
+                        </div>
+                        <div className="flex gap-1">
+                          {last7.map(d => (
+                            <div key={d} className="flex-1 flex flex-col items-center gap-0.5">
+                              <div className="w-full h-4 rounded-sm" style={{ background: habit.completions.includes(d) ? ACCENT : `${INK}0D` }} />
+                              <div style={{ fontSize: 9, color: MUTED }}>{['Su','Mo','Tu','We','Th','Fr','Sa'][new Date(d).getDay()]}</div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )
-                })
-              )}
+                    )
+                  })
+                )}
+              </div>
             </div>
           )}
 

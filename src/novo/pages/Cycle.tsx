@@ -325,7 +325,9 @@ export default function Cycle() {
 
           {/* ── TODAY ────────────────────────────────────────── */}
           {mainTab === 'today' && (
-            <div className="space-y-6 max-w-xl">
+            <div className="max-w-5xl">
+            <div className="grid lg:grid-cols-2 gap-x-10 gap-y-6">
+            <div className="space-y-6">
 
               <div className="flex items-center gap-4">
                 <div className="flex-1">
@@ -350,7 +352,9 @@ export default function Cycle() {
                   {fertileStart && fertileEnd && <> · fertile window ≈ {fertileStart.slice(5)} to {fertileEnd.slice(5)}</>}
                 </div>
               )}
+            </div>
 
+            <div className="space-y-6">
               <Panel tone="tint" accent={ACCENT} className="p-4 md:p-5">
                 <div className="font-nunito text-xs mb-2" style={{ color: MUTED }}>Flow</div>
                 <div className="flex gap-1.5 mb-4">
@@ -391,16 +395,18 @@ export default function Cycle() {
                   <NButton onClick={() => saveLog(today, logForm)} accent={ACCENT}>Save</NButton>
                 </div>
               </Panel>
+            </div>
+            </div>
 
-              <p className="text-center font-nunito text-xs" style={{ color: `${INK}44` }}>
-                Predictions are estimates based on your logged cycles. Not medical advice.
-              </p>
+            <p className="text-center font-nunito text-xs mt-6" style={{ color: `${INK}44` }}>
+              Predictions are estimates based on your logged cycles. Not medical advice.
+            </p>
             </div>
           )}
 
           {/* ── CALENDAR ─────────────────────────────────────── */}
           {mainTab === 'calendar' && (
-            <div className="max-w-xl">
+            <div className="max-w-2xl">
               <div className="flex items-center justify-between mb-4">
                 <button onClick={() => setViewMonth(m => { const d = new Date(m); d.setMonth(d.getMonth() - 1); return d })} className="font-nunito text-sm transition-opacity hover:opacity-70" style={{ color: MUTED }}>
                   ←
@@ -475,7 +481,7 @@ export default function Cycle() {
 
           {/* ── INSIGHTS ─────────────────────────────────────── */}
           {mainTab === 'insights' && (
-            <div className="space-y-8 max-w-xl">
+            <div className="max-w-5xl">
               {starts.length < 2 ? (
                 <div className="py-10 text-center">
                   <div className="font-nunito text-sm" style={{ color: INK }}>Not enough data yet</div>
@@ -483,7 +489,7 @@ export default function Cycle() {
                 </div>
               ) : (
                 <>
-                  <div className="flex flex-wrap gap-x-8 gap-y-3">
+                  <div className="flex flex-wrap gap-x-8 gap-y-3 mb-8">
                     {[
                       { label: 'Average cycle', value: `${avgCycle} days`, color: ACCENT },
                       { label: 'Average period', value: `${avgPeriodLen} days`, color: ACCENT },
@@ -497,43 +503,45 @@ export default function Cycle() {
                     ))}
                   </div>
 
-                  <div>
-                    <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Recent cycles</div>
-                    <div className="space-y-3">
-                      {recentStarts.slice(0, -1).map((s, i) => {
-                        const len = diffDays(s, recentStarts[i + 1])
-                        return (
-                          <div key={s} className="flex items-center gap-3">
-                            <span className="font-nunito text-sm flex-1" style={{ color: INK }}>{s}</span>
-                            <div className="flex-1">
-                              <NProgress pct={Math.min(100, (len / 40) * 100)} accent={ACCENT} height={4} />
-                            </div>
-                            <span className="font-nunito font-medium text-sm flex-shrink-0" style={{ color: ACCENT }}>{len}d</span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  {symptomCounts.length > 0 && (
+                  <div className="grid lg:grid-cols-2 gap-x-10 gap-y-8">
                     <div>
-                      <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Most common symptoms</div>
+                      <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Recent cycles</div>
                       <div className="space-y-3">
-                        {symptomCounts.slice(0, 5).map(s => (
-                          <div key={s.symptom}>
-                            <div className="flex justify-between font-nunito text-xs mb-1.5">
-                              <span style={{ color: INK }}>#{s.symptom}</span>
-                              <span style={{ color: MUTED }}>{s.count} day{s.count === 1 ? '' : 's'}</span>
+                        {recentStarts.slice(0, -1).map((s, i) => {
+                          const len = diffDays(s, recentStarts[i + 1])
+                          return (
+                            <div key={s} className="flex items-center gap-3">
+                              <span className="font-nunito text-sm flex-1" style={{ color: INK }}>{s}</span>
+                              <div className="flex-1">
+                                <NProgress pct={Math.min(100, (len / 40) * 100)} accent={ACCENT} height={4} />
+                              </div>
+                              <span className="font-nunito font-medium text-sm flex-shrink-0" style={{ color: ACCENT }}>{len}d</span>
                             </div>
-                            <NProgress pct={(s.count / symptomCounts[0].count) * 100} accent={ACCENT} height={4} />
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     </div>
-                  )}
+
+                    {symptomCounts.length > 0 && (
+                      <div>
+                        <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Most common symptoms</div>
+                        <div className="space-y-3">
+                          {symptomCounts.slice(0, 5).map(s => (
+                            <div key={s.symptom}>
+                              <div className="flex justify-between font-nunito text-xs mb-1.5">
+                                <span style={{ color: INK }}>#{s.symptom}</span>
+                                <span style={{ color: MUTED }}>{s.count} day{s.count === 1 ? '' : 's'}</span>
+                              </div>
+                              <NProgress pct={(s.count / symptomCounts[0].count) * 100} accent={ACCENT} height={4} />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
-              <p className="text-center font-nunito text-xs" style={{ color: `${INK}44` }}>
+              <p className="text-center font-nunito text-xs mt-8" style={{ color: `${INK}44` }}>
                 Estimates only, cycles vary. This is not medical advice.
               </p>
             </div>
