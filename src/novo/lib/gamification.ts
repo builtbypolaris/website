@@ -136,7 +136,7 @@ export async function getImpactTotals(): Promise<{ social: number; environment: 
 }
 
 async function getCause(userId: string): Promise<Cause | null> {
-  const { data } = await supabase.from('profiles').select('cause').eq('id', userId).single()
+  const { data } = await supabase.from('profiles').select('cause').eq('id', userId).maybeSingle()
   return (data?.cause as Cause | null) ?? null
 }
 

@@ -106,7 +106,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
     .from('profiles')
     .select('*')
     .eq('id', userId)
-    .single()
+    .maybeSingle()
   return data
 }
 
@@ -161,7 +161,7 @@ export async function getCharacter(userId: string, trackerType: TemplateId): Pro
     .select('xp, happiness, prestige')
     .eq('user_id', userId)
     .eq('tracker_type', trackerType)
-    .single()
+    .maybeSingle()
   return data ?? DEFAULT_CHARACTER
 }
 
