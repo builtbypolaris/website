@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { logout } from '../lib/storage'
 import { ensureWeeklyMissions } from '../lib/gamification'
 import { useAuth } from '../contexts/AuthContext'
-import { TEMPLATES } from '../data/templates'
+import { TEMPLATES, isLocked } from '../data/templates'
 import { NovoLogo } from './NovoLogo'
 import type { TemplateId } from '../types'
 
@@ -67,21 +67,26 @@ export function NovoLayout() {
 
           {TEMPLATES.map(t => {
             const isOwned = owned.includes(t.id)
+            const comingSoon = isLocked(t, owned)
+            // Coming-soon trackers aren't clickable at all; a locked-but-purchasable
+            // tracker (financial/todo, not yet owned) is clickable — it routes to
+            // the buy/paywall screen instead of the tracker itself.
+            const clickable = isOwned || !comingSoon
             const active = isActive(t.route)
             return (
               <button
                 key={t.id}
-                onClick={() => { if (isOwned) { navigate(t.route); close() } }}
-                disabled={!isOwned}
+                onClick={() => { if (clickable) { navigate(t.route); close() } }}
+                disabled={!clickable}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition
-                  ${active ? 'bg-black/8' : isOwned ? 'hover:bg-black/5' : 'opacity-40 cursor-not-allowed'}`}
+                  ${active ? 'bg-black/8' : clickable ? 'hover:bg-black/5' : 'opacity-40 cursor-not-allowed'}`}
               >
                 <span className="text-base">{t.emoji}</span>
                 <div>
                   <div className="font-nunito text-sm font-semibold text-[#09090F]">{t.name}</div>
                   {isOwned
                     ? <div className="text-xs font-nunito" style={{ color: t.accent }}>Unlocked</div>
-                    : <div className="text-xs text-[#09090F]/40 font-nunito">Locked</div>
+                    : <div className="text-xs text-[#09090F]/40 font-nunito">{comingSoon ? 'Coming Soon' : 'Locked'}</div>
                   }
                 </div>
               </button>

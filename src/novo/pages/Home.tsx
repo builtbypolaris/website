@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { TEMPLATES, TRACKER_PRICE_IDR } from '../data/templates'
+import { TEMPLATES, TRACKER_PRICE_IDR, LYNK_STORE_URL, isLocked, displayPrice } from '../data/templates'
 import { getImpactTotals } from '../lib/gamification'
 import type { TemplateInfo } from '../types'
 import { Constellation } from '../../components/ui/Constellation'
@@ -176,8 +176,10 @@ function TrackerPreview({ t }: { t: TemplateInfo }) {
   )
 }
 
-function TemplateModal({ t, onClose, onBuy, previewLabel, getItLabel }: { t: TemplateInfo; onClose: () => void; onBuy: () => void; previewLabel: string; getItLabel: string }) {
+function TemplateModal({ t, onClose, locked, previewLabel, getItLabel, comingSoonLabel }: { t: TemplateInfo; onClose: () => void; locked: boolean; previewLabel: string; getItLabel: string; comingSoonLabel: string }) {
   const border = t.accent + '26'
+  const { sale, original } = displayPrice(t)
+  const handleBuy = () => window.open(t.lynkUrl ?? LYNK_STORE_URL, '_blank', 'noopener,noreferrer')
   return (
     <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
       <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
@@ -213,13 +215,21 @@ function TemplateModal({ t, onClose, onBuy, previewLabel, getItLabel }: { t: Tem
               ))}
             </div>
             <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${border}` }}>
-              <div className="text-white font-nunito font-bold text-xl">{formatRp(t.price)}</div>
+              {locked ? (
+                <div className="text-gray-400 font-nunito font-bold text-sm">{comingSoonLabel}</div>
+              ) : (
+                <div className="flex items-baseline gap-2">
+                  {original && <div className="text-gray-500 font-nunito text-sm line-through">{formatRp(original)}</div>}
+                  <div className="text-white font-nunito font-bold text-xl">{formatRp(sale)}</div>
+                </div>
+              )}
               <button
-                onClick={onBuy}
-                className="font-nunito font-bold text-sm transition hover:opacity-90"
-                style={{ background: t.accent, color: '#000', padding: '10px 24px', borderRadius: 9999 }}
+                onClick={handleBuy}
+                disabled={locked}
+                className="font-nunito font-bold text-sm transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: locked ? '#3A3A46' : t.accent, color: locked ? '#9A9AA6' : '#000', padding: '10px 24px', borderRadius: 9999 }}
               >
-                {getItLabel}
+                {locked ? comingSoonLabel : getItLabel}
               </button>
             </div>
           </div>
@@ -231,7 +241,7 @@ function TemplateModal({ t, onClose, onBuy, previewLabel, getItLabel }: { t: Tem
 
 interface TrackerCopy { headline1: string; headline2: string; desc: string }
 
-function TemplateCard({ tpl, copy, seeMore, onClick, index }: { tpl: TemplateInfo; copy: TrackerCopy; seeMore: string; onClick: () => void; index: number }) {
+function TemplateCard({ tpl, copy, seeMore, comingSoonLabel, locked, onClick, index }: { tpl: TemplateInfo; copy: TrackerCopy; seeMore: string; comingSoonLabel: string; locked: boolean; onClick: () => void; index: number }) {
   const featured = !!tpl.featured
   const border = tpl.accent + '40'
   const borderHover = tpl.accent + '80'
@@ -295,9 +305,28 @@ function TemplateCard({ tpl, copy, seeMore, onClick, index }: { tpl: TemplateInf
             {copy.desc}
           </p>
         )}
-        <div className="font-nunito" style={{ color: tpl.accent + 'A6', fontSize: featured ? 13 : 12, marginTop: featured ? 16 : 10 }}>
-          {seeMore}
-        </div>
+        {locked ? (
+          <div
+            className="font-nunito inline-block"
+            style={{
+              color: 'rgba(255,255,255,0.55)',
+              background: 'rgba(255,255,255,0.08)',
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              padding: '4px 10px',
+              borderRadius: 9999,
+              marginTop: featured ? 16 : 10,
+            }}
+          >
+            {comingSoonLabel}
+          </div>
+        ) : (
+          <div className="font-nunito" style={{ color: tpl.accent + 'A6', fontSize: featured ? 13 : 12, marginTop: featured ? 16 : 10 }}>
+            {seeMore}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -305,7 +334,8 @@ function TemplateCard({ tpl, copy, seeMore, onClick, index }: { tpl: TemplateInf
 
 export default function Home() {
   const navigate = useNavigate()
-  const { session } = useAuth()
+  const { session, profile } = useAuth()
+  const owned = profile?.owned_templates ?? []
   const [modal, setModal] = useState<TemplateInfo | null>(null)
   const [impact, setImpact] = useState<{ social: number; environment: number } | null>(null)
   // Novo is an English-only product — always use the English copy,
@@ -499,7 +529,7 @@ export default function Home() {
               <em style={{ fontStyle: 'italic', color: '#7C3AED' }}>{s.templates.titleLine2Em}</em> {s.templates.titleLine3}
             </h2>
             <p className="font-nunito text-gray-400 text-sm hidden md:block" style={{ maxWidth: 180, textAlign: 'right' }}>
-              {formatRp(TRACKER_PRICE_IDR)} {s.templates.priceEach}<br />{s.templates.oneTimePurchase}
+              {formatRp(TEMPLATES.find(t => !t.comingSoon)?.salePriceIdr ?? TRACKER_PRICE_IDR)} {s.templates.priceEach}<br />{s.templates.oneTimePurchase}
             </p>
           </div>
 
@@ -511,6 +541,8 @@ export default function Home() {
                 index={i}
                 copy={s.templates.trackers[tpl.id]}
                 seeMore={s.templates.seeMore}
+                comingSoonLabel={s.templates.comingSoon}
+                locked={isLocked(tpl, owned)}
                 onClick={() => setModal(tpl)}
               />
             ))}
@@ -546,7 +578,16 @@ export default function Home() {
         </button>
       </section>
 
-      {modal && <TemplateModal t={modal} onClose={() => setModal(null)} onBuy={go} previewLabel={s.modal.preview} getItLabel={s.modal.getIt} />}
+      {modal && (
+        <TemplateModal
+          t={modal}
+          onClose={() => setModal(null)}
+          locked={isLocked(modal, owned)}
+          previewLabel={s.modal.preview}
+          getItLabel={s.modal.getIt}
+          comingSoonLabel={s.templates.comingSoon}
+        />
+      )}
     </div>
   )
 }

@@ -413,4 +413,7 @@ export interface TemplateInfo {
   previewStats: string[]
   featured?: boolean
   lynkUrl?: string  // per-tracker Lynk.id product page; falls back to LYNK_STORE_URL
+  comingSoon?: boolean  // not purchasable/usable yet, unless already owned
+  originalPriceIdr?: number  // pre-discount price, for strikethrough display
+  salePriceIdr?: number  // current discounted price
 }

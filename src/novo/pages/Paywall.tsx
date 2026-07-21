@@ -1,13 +1,32 @@
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { getTemplate, LYNK_STORE_URL, TRACKER_PRICE_IDR } from '../data/templates'
+import { getTemplate, LYNK_STORE_URL, displayPrice } from '../data/templates'
 import type { TemplateId } from '../types'
 
 export function PaywallGuard({ trackerId, children }: { trackerId: TemplateId; children: React.ReactNode }) {
   const { profile } = useAuth()
   const owned = profile?.owned_templates ?? []
   if (owned.includes(trackerId)) return <>{children}</>
+  const template = getTemplate(trackerId)
+  if (template.comingSoon) return <ComingSoonUI trackerId={trackerId} />
   return <PaywallUI trackerId={trackerId} />
+}
+
+function ComingSoonUI({ trackerId }: { trackerId: TemplateId }) {
+  const template = getTemplate(trackerId)
+  return (
+    <div className="flex-1 flex items-center justify-center p-8 h-full">
+      <div className="max-w-sm w-full text-center">
+        <div className="text-5xl mb-4">{template.emoji}</div>
+        <h2 className="font-display text-3xl text-[#09090F] mb-2">
+          {template.shortName} Tracker
+        </h2>
+        <p className="text-[#09090F]/50 font-nunito text-sm">
+          Coming soon — this tracker isn't available yet.
+        </p>
+      </div>
+    </div>
+  )
 }
 
 function PaywallUI({ trackerId }: { trackerId: TemplateId }) {
@@ -18,6 +37,7 @@ function PaywallUI({ trackerId }: { trackerId: TemplateId }) {
   const template = getTemplate(trackerId)
   const buyUrl = template.lynkUrl ?? LYNK_STORE_URL
   const email = session?.user.email ?? ''
+  const { sale, original } = displayPrice(template)
 
   const handleBuy = () => {
     window.open(buyUrl, '_blank', 'noopener,noreferrer')
@@ -29,6 +49,11 @@ function PaywallUI({ trackerId }: { trackerId: TemplateId }) {
     setChecking(false)
     setChecked(true)
     setTimeout(() => setChecked(false), 3000)
+  }
+
+  const handleContactUs = () => {
+    const message = `Hi, I bought the ${template.name}${email ? ` (${email})` : ''} but it hasn't unlocked yet.`
+    window.open(`https://wa.me/6285190846591?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer')
   }
 
   return (
@@ -52,8 +77,15 @@ function PaywallUI({ trackerId }: { trackerId: TemplateId }) {
               <div className="font-nunito font-bold text-white">Buy on Lynk.id ↗</div>
               <div className="font-nunito text-xs text-purple-200 mt-0.5">One-time payment · yours forever</div>
             </div>
-            <div className="font-nunito font-bold text-xl text-white">
-              Rp {TRACKER_PRICE_IDR.toLocaleString('id-ID')}
+            <div className="flex items-baseline gap-2">
+              {original && (
+                <div className="font-nunito text-sm text-purple-200/60 line-through">
+                  Rp {original.toLocaleString('id-ID')}
+                </div>
+              )}
+              <div className="font-nunito font-bold text-xl text-white">
+                Rp {sale.toLocaleString('id-ID')}
+              </div>
             </div>
           </div>
         </button>
@@ -66,7 +98,7 @@ function PaywallUI({ trackerId }: { trackerId: TemplateId }) {
           <span className="text-[#09090F]/60">
             Complete your purchase on Lynk.id and include your Novo account email
             {email && <> (<span className="font-semibold text-[#09090F]">{email}</span>)</>}{' '}
-            in the checkout note. Your tracker is unlocked shortly after, usually within a few hours.
+            in the checkout note. Your tracker unlocks automatically within a few minutes.
           </span>
         </div>
 
@@ -78,6 +110,13 @@ function PaywallUI({ trackerId }: { trackerId: TemplateId }) {
         >
           {checking ? 'Checking…' : checked ? 'Not unlocked yet, check back soon!' : "I've paid, check again"}
         </button>
+
+        <p className="mt-4 text-center text-xs font-nunito text-[#09090F]/40">
+          Already paid and it's been a few minutes? {' '}
+          <button onClick={handleContactUs} className="underline hover:text-[#09090F] transition">
+            Contact us
+          </button>
+        </p>
 
         <p className="mt-6 text-center text-xs font-nunito text-[#09090F]/30">
           Secured by Lynk.id · QRIS, e-wallets, bank transfer & more

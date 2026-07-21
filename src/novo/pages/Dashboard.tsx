@@ -7,7 +7,7 @@ import {
   type MissionRow, type StreakRow,
 } from '../lib/gamification'
 import { getStageFromXP } from '../data/creatures'
-import { TEMPLATES } from '../data/templates'
+import { TEMPLATES, isLocked } from '../data/templates'
 import { QUICK_STATS, type QuickStat } from '../data/quickStats'
 import { INK, MUTED, Panel, NProgress } from '../components/ui'
 import { CauseModal, CAUSES } from '../components/CausePicker'
@@ -102,11 +102,13 @@ export default function Dashboard() {
               const litToday = streak?.lastActive === todayStr()
               const badges = badgeCounts[template.id] ?? 0
 
+              const comingSoon = isLocked(template, owned)
+
               return (
                 <div
                   key={template.id}
-                  onClick={() => navigate(template.route)}
-                  className="cursor-pointer py-4 transition-colors hover:bg-black/[0.02] -mx-2 px-2 rounded-xl"
+                  onClick={() => { if (!comingSoon) navigate(template.route) }}
+                  className={`py-4 transition-colors -mx-2 px-2 rounded-xl ${comingSoon ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-black/[0.02]'}`}
                   style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}12` }}
                 >
                   <div className="flex items-center gap-4">
@@ -161,7 +163,7 @@ export default function Dashboard() {
                         </>
                       ) : (
                         <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
-                          Locked, tap to unlock
+                          {comingSoon ? 'Coming soon' : 'Locked, tap to unlock'}
                         </div>
                       )}
                     </div>

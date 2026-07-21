@@ -597,6 +597,7 @@ export const id: EnTranslations = {
       priceEach: 'masing-masing',
       oneTimePurchase: 'pembelian sekali',
       seeMore: 'Lihat lebih ↗',
+      comingSoon: 'Segera Hadir',
       trackers: {
         financial: {
           headline1: 'Catat keuangan.',

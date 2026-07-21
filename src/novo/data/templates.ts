@@ -39,6 +39,9 @@ export const TEMPLATES: TemplateInfo[] = [
     category: 'money',
     previewStats: ['+2.4M income', '18 transactions', 'Net +840K'],
     featured: true,
+    originalPriceIdr: 25000,
+    salePriceIdr: 20000,
+    lynkUrl: 'http://lynk.id/builtbypolaris/v78nw0qnp6pv',
   },
   {
     id: 'todo',
@@ -64,6 +67,9 @@ export const TEMPLATES: TemplateInfo[] = [
     petMessages: ['Tasks done = power gained!', 'Check! Check! Check!', "Let's conquer today!", 'One task at a time!'],
     category: 'productivity',
     previewStats: ['12 tasks', '9 done', '75% rate'],
+    originalPriceIdr: 25000,
+    salePriceIdr: 20000,
+    // TODO(owner): set lynkUrl once To-Do's own Lynk.id product page exists — falls back to LYNK_STORE_URL until then.
   },
   {
     id: 'habit',
@@ -89,6 +95,7 @@ export const TEMPLATES: TemplateInfo[] = [
     petMessages: ['Consistency is key!', 'Another day, another habit!', 'You are unstoppable!', 'Streaks make champions!'],
     category: 'wellness',
     previewStats: ['6 habits', '14-day streak', '92% consistency'],
+    comingSoon: true,
   },
   {
     id: 'savings',
@@ -114,6 +121,7 @@ export const TEMPLATES: TemplateInfo[] = [
     petMessages: ['Every rupiah counts!', 'Little by little, a hill!', 'Your future self says thanks!', 'Installment paid = stress gone!'],
     category: 'money',
     previewStats: ['Rp 4.2M saved', '2 goals on track', 'Installments 3/12 paid'],
+    comingSoon: true,
   },
   {
     id: 'study',
@@ -139,6 +147,7 @@ export const TEMPLATES: TemplateInfo[] = [
     petMessages: ['Knowledge is XP!', 'One more page!', 'Future you is proud!', 'Exams fear you now!'],
     category: 'productivity',
     previewStats: ['12h this week', 'Exam in 9 days', '5-day streak'],
+    comingSoon: true,
   },
   {
     id: 'mood',
@@ -164,6 +173,7 @@ export const TEMPLATES: TemplateInfo[] = [
     petMessages: ['How are you feeling?', 'Every feeling is valid!', 'Breathe in, breathe out!', 'You showed up today!'],
     category: 'wellness',
     previewStats: ['Avg mood 4.2', '21-day streak', '3 check-ins today'],
+    comingSoon: true,
   },
   {
     id: 'freelance',
@@ -189,6 +199,7 @@ export const TEMPLATES: TemplateInfo[] = [
     petMessages: ['Ship it, invoice it!', 'Your rate, your rules!', 'Deadlines fear you!', 'Another gig, another win!'],
     category: 'productivity',
     previewStats: ['Rp 8.5M this month', '4 active projects', '3 clients'],
+    comingSoon: true,
   },
   {
     id: 'health',
@@ -214,6 +225,7 @@ export const TEMPLATES: TemplateInfo[] = [
     petMessages: ['Fuel up right!', 'Sip that water!', 'Your body says thanks!', 'Small bites, big wins!'],
     category: 'wellness',
     previewStats: ['1,850 kcal today', '6/8 glasses', '61.2 kg'],
+    comingSoon: true,
   },
   {
     id: 'cycle',
@@ -239,6 +251,7 @@ export const TEMPLATES: TemplateInfo[] = [
     petMessages: ['Your rhythm, your rules!', 'Listen to your body!', 'Every phase has its power!', 'You know yourself best!'],
     category: 'wellness',
     previewStats: ['Day 14', 'Next in 15 days', 'Avg 28-day cycle'],
+    comingSoon: true,
   },
   {
     id: 'travel',
@@ -264,6 +277,7 @@ export const TEMPLATES: TemplateInfo[] = [
     petMessages: ['Adventure awaits!', 'Pack light, dream big!', 'Budget kept = trip earned!', 'Where to next?'],
     category: 'life',
     previewStats: ['Bali in 12 days', 'Rp 3.2M / 5M budget', '8 itinerary items'],
+    comingSoon: true,
   },
   {
     id: 'baby',
@@ -289,6 +303,7 @@ export const TEMPLATES: TemplateInfo[] = [
     petMessages: ['Nap time is sacred!', 'Every feed counts!', 'Growing so fast!', "You're doing great, parent!"],
     category: 'life',
     previewStats: ['6 feeds today', '11.5h sleep', '2 milestones'],
+    comingSoon: true,
   },
   {
     id: 'pet',
@@ -314,6 +329,7 @@ export const TEMPLATES: TemplateInfo[] = [
     petMessages: ['Walkies o\'clock!', 'A fed pet is a happy pet!', 'Belly rubs earn loyalty!', 'Best friends check in daily!'],
     category: 'life',
     previewStats: ['2 pets', '5 care logs today', 'Vaccine in 6 days'],
+    comingSoon: true,
   },
 ]
 
@@ -323,4 +339,14 @@ export const TEMPLATE_MAP = Object.fromEntries(
 
 export function getTemplate(id: TemplateId): TemplateInfo {
   return TEMPLATE_MAP[id]
+}
+
+// A tracker is locked (not purchasable/usable) only while it's marked comingSoon
+// AND the caller doesn't already own it — existing owners keep full access.
+export function isLocked(template: TemplateInfo, ownedIds: string[]): boolean {
+  return !!template.comingSoon && !ownedIds.includes(template.id)
+}
+
+export function displayPrice(template: TemplateInfo): { sale: number; original?: number } {
+  return { sale: template.salePriceIdr ?? template.price, original: template.originalPriceIdr }
 }

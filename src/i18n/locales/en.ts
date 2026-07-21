@@ -713,6 +713,7 @@ export const en = {
       priceEach: 'each',
       oneTimePurchase: 'one-time purchase',
       seeMore: 'See more ↗',
+      comingSoon: 'Coming Soon',
       trackers: {
         financial: {
           headline1: 'Log money.',
