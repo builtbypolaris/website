@@ -7,11 +7,9 @@
  * sheet only ever contains rows for one product, so there's no need to
  * look up which tracker a row is for; TRACKER_ID below is fixed.
  *
- * Column names below are copied from the confirmed Financial Tracker
- * sheet layout (same Lynk.id export format is expected for every
- * product) — Lynk.id's own "Status" column (order status:
- * SUCCESS/PENDING/etc) and "Buyer Email" column. TODO(owner): once
- * this sheet exists, double check these headers match exactly.
+ * Column names confirmed live against a real row (2026-07-21): Lynk.id's
+ * own "Status" column (order status: SUCCESS/PENDING/etc) and "Buyer
+ * Email" column match the Financial Tracker sheet's layout exactly.
  *
  * Setup (one-time, in your Google account — not deployable from this repo):
  *   1. Open the To-Do List sales sheet.
