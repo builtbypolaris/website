@@ -69,7 +69,7 @@ export const TEMPLATES: TemplateInfo[] = [
     previewStats: ['12 tasks', '9 done', '75% rate'],
     originalPriceIdr: 25000,
     salePriceIdr: 20000,
-    // TODO(owner): set lynkUrl once To-Do's own Lynk.id product page exists — falls back to LYNK_STORE_URL until then.
+    lynkUrl: 'https://lynk.id/builtbypolaris/3234z2jvm400/',
   },
   {
     id: 'habit',
