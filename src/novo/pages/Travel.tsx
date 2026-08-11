@@ -465,11 +465,11 @@ export default function Travel() {
 
             <button
               onClick={() => setShowCreateForm(s => !s)}
-              className="flex-shrink-0 w-[140px] rounded-2xl flex flex-col items-center justify-center gap-1 transition-colors"
+              className="flex-shrink-0 w-[140px] rounded-2xl flex flex-col items-center justify-center gap-2 py-6 transition-colors"
               style={{ border: `2px dashed ${ACCENT}60`, color: ACCENT, background: showCreateForm ? `${ACCENT}10` : 'transparent' }}
             >
-              <span className="text-xl">+</span>
-              <span className="font-nunito text-xs font-semibold">New trip</span>
+              <span className="text-3xl leading-none">+</span>
+              <span className="font-nunito text-sm font-semibold">New trip</span>
             </button>
           </div>
 
