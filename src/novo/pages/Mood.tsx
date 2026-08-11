@@ -55,13 +55,25 @@ function TourCoachmark({ step, steps, targetEl, tr, onNext, onSkip }: {
   onSkip: () => void
 }) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  const boxRef = useRef<HTMLDivElement | null>(null)
+  const BOX_WIDTH = 260
 
   useEffect(() => {
     if (!targetEl) return
     targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const margin = 12
     const place = () => {
       const r = targetEl.getBoundingClientRect()
-      setPos({ top: r.bottom + 10, left: r.left + r.width / 2 })
+      const boxH = boxRef.current?.offsetHeight ?? 140
+      // Prefer below the target, but flip above it if that would run off
+      // the bottom of the viewport — fixed positioning means there's no
+      // scroll that could otherwise bring an off-screen coachmark into view.
+      let top = r.bottom + 10
+      if (top + boxH > window.innerHeight - margin) top = r.top - boxH - 10
+      top = Math.max(margin, Math.min(top, window.innerHeight - boxH - margin))
+      let left = r.left + r.width / 2
+      left = Math.max(BOX_WIDTH / 2 + margin, Math.min(left, window.innerWidth - BOX_WIDTH / 2 - margin))
+      setPos({ top, left })
     }
     const t = setTimeout(place, 260)
     window.addEventListener('resize', place)
@@ -73,7 +85,7 @@ function TourCoachmark({ step, steps, targetEl, tr, onNext, onSkip }: {
   const last = step === steps.length - 1
 
   return (
-    <div className="fixed bounce-in" style={{ top: pos.top, left: pos.left, transform: 'translateX(-50%)', zIndex: 9990, width: 260 }}>
+    <div ref={boxRef} className="fixed bounce-in" style={{ top: pos.top, left: pos.left, transform: 'translateX(-50%)', zIndex: 9990, width: BOX_WIDTH }}>
       <Panel tone="fill" accent={ACCENT} className="p-4">
         <div className="font-nunito text-xs text-white/70 mb-1.5">{step + 1} / {steps.length}</div>
         <div className="font-nunito text-sm text-white leading-relaxed mb-3">{steps[step].text}</div>
