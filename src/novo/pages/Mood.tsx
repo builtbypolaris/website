@@ -38,11 +38,13 @@ type GameTab = 'clicker' | 'arcade' | 'puzzle'
 const ACCENT = '#DB2777'
 
 const introKey = (userId: string) => `novo-intro-mood-seen-${userId}`
+const customTagsKey = (userId: string) => `novo-mood-custom-tags-${userId}`
 
 function entryDate(e: MoodEntry) { return e.entryAt.slice(0, 10) }
 function entryTime(e: MoodEntry) { return new Date(e.entryAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) }
 function moodMeta(level: number) { return MOOD_META[Math.min(4, Math.max(0, level - 1))] }
 function moodLevelClamped(level: number): 1 | 2 | 3 | 4 | 5 { return Math.min(5, Math.max(1, Math.round(level))) as 1 | 2 | 3 | 4 | 5 }
+function daysAgoStr(n: number) { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().split('T')[0] }
 
 function TourCoachmark({ step, steps, targetEl, tr, onNext, onSkip }: {
   step: number
@@ -109,6 +111,8 @@ export default function Mood() {
   const [missions, setMissions] = useState<MissionRow[]>([])
   const [lang, setLang] = useState<Lang>(() => (localStorage.getItem(LANG_KEY) as Lang | null) ?? 'en')
   const [tourStep, setTourStep] = useState<number | null>(null)
+  const [customTags, setCustomTags] = useState<string[]>([])
+  const [newTagInput, setNewTagInput] = useState('')
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const expandedRef = useRef<HTMLDivElement | null>(null)
   const { celebrate, layer } = useCelebrations()
@@ -136,6 +140,7 @@ export default function Mood() {
     getWeekMissions(userId).then(setMissions)
     getMoodData(userId).then(setData)
     if (!localStorage.getItem(introKey(userId))) setTourStep(0)
+    try { setCustomTags(JSON.parse(localStorage.getItem(customTagsKey(userId)) ?? '[]')) } catch { setCustomTags([]) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
 
@@ -147,6 +152,21 @@ export default function Mood() {
     if (tourStep === null) return
     if (tourStep >= TOUR_STEPS.length - 1) endTour()
     else setTourStep(tourStep + 1)
+  }
+
+  const addCustomTag = () => {
+    const t = newTagInput.trim().toLowerCase().replace(/\s+/g, '-').slice(0, 20)
+    setNewTagInput('')
+    if (!t || TAGS.includes(t) || customTags.includes(t)) return
+    const next = [...customTags, t]
+    setCustomTags(next)
+    localStorage.setItem(customTagsKey(userId), JSON.stringify(next))
+  }
+  const removeCustomTag = (tag: string) => {
+    const next = customTags.filter(t => t !== tag)
+    setCustomTags(next)
+    localStorage.setItem(customTagsKey(userId), JSON.stringify(next))
+    setCheckin(c => ({ ...c, tags: c.tags.filter(t => t !== tag) }))
   }
 
   const toggleExpanded = (key: 'pet' | 'trends' | 'games') => setExpanded(e => e === key ? null : key)
@@ -250,13 +270,49 @@ export default function Mood() {
   const bestDay = rankedWeekdays[0]
   const worstDay = rankedWeekdays[rankedWeekdays.length - 1]
 
-  const tagAvgs = TAGS
+  // Derived from actual logged entries (not the fixed TAGS catalog) so a
+  // removed custom tag still shows correctly in historical breakdowns.
+  const distinctTags = Array.from(new Set(data.entries.flatMap(e => e.tags)))
+  const tagAvgs = distinctTags
     .map(tag => {
       const entries = data.entries.filter(e => e.tags.includes(tag))
       return { tag, avg: avgMood(entries), count: entries.length }
     })
     .filter(t => t.count > 0)
     .sort((a, b) => b.avg! - a.avg!)
+
+  // ── Insights — short, personalized takeaways from data already above ──
+  const insights: string[] = []
+  if (data.entries.length >= 5) {
+    if (bestDay && bestDay.count >= 2) insights.push(tr.insightHappiestDay(bestDay.label))
+    if (worstDay && worstDay.count >= 2 && worstDay.label !== bestDay?.label) insights.push(tr.insightToughestDay(worstDay.label))
+    if (tagAvgs.length >= 2) {
+      const topTag = tagAvgs[0]
+      const bottomTag = tagAvgs[tagAvgs.length - 1]
+      if (topTag.count >= 2) insights.push(tr.insightBestTag(tagLabel(topTag.tag)))
+      if (bottomTag.count >= 2 && bottomTag.tag !== topTag.tag) insights.push(tr.insightWorstTag(tagLabel(bottomTag.tag)))
+    }
+    const notedEntries = data.entries.filter(e => e.note.trim().length > 0)
+    const unnotedEntries = data.entries.filter(e => e.note.trim().length === 0)
+    const notedAvg = avgMood(notedEntries)
+    const unnotedAvg = avgMood(unnotedEntries)
+    if (notedAvg !== null && unnotedAvg !== null && notedEntries.length >= 3 && unnotedEntries.length >= 3) {
+      const diff = notedAvg - unnotedAvg
+      if (diff >= 0.3) insights.push(tr.insightNotes(diff.toFixed(1)))
+    }
+    if (dayStreak && dayStreak.best >= 3) insights.push(tr.insightBestStreak(dayStreak.best))
+  }
+  const topInsights = insights.slice(0, 3)
+
+  // ── On this day — a memory from a week or month ago ───────
+  const weekAgoEntries = data.entries.filter(e => entryDate(e) === daysAgoStr(7))
+  const monthAgoEntries = data.entries.filter(e => entryDate(e) === daysAgoStr(30))
+
+  // ── Mood distribution — all-time share of each level ──────
+  const moodDistribution = ([1, 2, 3, 4, 5] as const).map(level => ({
+    level,
+    count: data.entries.filter(e => e.mood === level).length,
+  })).filter(d => d.count > 0)
 
   // ── Actions ───────────────────────────────────────────────
   const handleCheckin = async () => {
@@ -437,7 +493,7 @@ export default function Mood() {
                 ))}
               </div>
 
-              <div className="flex gap-1.5 flex-wrap mb-3">
+              <div className="flex gap-1.5 flex-wrap items-center mb-3">
                 {TAGS.map(tag => (
                   <button
                     key={tag}
@@ -448,6 +504,34 @@ export default function Mood() {
                     #<StableLabel a={TAG_WORD.en[tag]} b={TAG_WORD.id[tag]} active={lang === 'en' ? 'a' : 'b'} />
                   </button>
                 ))}
+                {customTags.map(tag => (
+                  <button
+                    key={tag}
+                    onClick={() => toggleTag(tag)}
+                    className="pl-3 pr-2 py-1.5 rounded-full font-nunito text-xs transition-colors flex items-center gap-1"
+                    style={checkin.tags.includes(tag) ? { background: ACCENT, color: '#FFFFFF' } : { background: '#FFFFFF', color: MUTED }}
+                  >
+                    #{tag}
+                    <span
+                      onClick={e => { e.stopPropagation(); removeCustomTag(tag) }}
+                      className="opacity-60 hover:opacity-100 transition-opacity"
+                    >
+                      ✕
+                    </span>
+                  </button>
+                ))}
+                <div className="flex items-center rounded-full overflow-hidden" style={{ background: '#FFFFFF' }}>
+                  <input
+                    type="text"
+                    value={newTagInput}
+                    onChange={e => setNewTagInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addCustomTag()}
+                    placeholder={tr.addTagPlaceholder}
+                    className="pl-3 pr-1 py-1.5 font-nunito text-xs outline-none w-20"
+                    style={{ color: INK }}
+                  />
+                  <button onClick={addCustomTag} className="pr-3 pl-1 font-nunito text-xs font-bold" style={{ color: ACCENT }}>+</button>
+                </div>
               </div>
 
               <div className="flex gap-2">
@@ -596,19 +680,74 @@ export default function Mood() {
                   ))}
                 </div>
               )}
+              {moodDistribution.length > 0 && (
+                <div className="mt-4">
+                  <div className="font-nunito text-[10px] mb-1.5" style={{ color: MUTED }}>{tr.moodDistribution}</div>
+                  <div className="flex h-2.5 rounded-full overflow-hidden" style={{ background: `${INK}0D` }}>
+                    {moodDistribution.map(d => (
+                      <div
+                        key={d.level}
+                        title={`${moodLabel(d.level)}: ${d.count}`}
+                        style={{ width: `${(d.count / data.entries.length) * 100}%`, background: moodMeta(d.level).color }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="font-nunito text-xs font-semibold mt-4 pt-3 flex items-center gap-1" style={{ color: '#0EA5E9', borderTop: `1px solid ${INK}0D` }}>
                 {expanded === 'trends' ? tr.tapToCollapse : tr.tapForBreakdown} <span>{expanded === 'trends' ? '▲' : '▼'}</span>
               </div>
             </Panel>
           </div>
 
+          {/* Insights — short, personalized takeaways */}
+          <div>
+            <Panel tone="tint" accent="#9333EA" className="p-5 rounded-3xl h-full">
+              <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>{tr.insightsCardTitle}</div>
+              {topInsights.length > 0 ? (
+                <div className="space-y-2.5">
+                  {topInsights.map((line, i) => (
+                    <div key={i} className="font-nunito text-xs leading-relaxed" style={{ color: INK }}>{line}</div>
+                  ))}
+                </div>
+              ) : (
+                <div className="font-nunito text-xs" style={{ color: MUTED }}>{tr.insightsEmptyState}</div>
+              )}
+            </Panel>
+          </div>
+
+          {/* On this day — a memory from a week or month ago */}
+          <div>
+            <Panel tone="tint" accent="#0D9488" className="p-5 rounded-3xl h-full">
+              <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>{tr.onThisDayCardTitle}</div>
+              {weekAgoEntries.length === 0 && monthAgoEntries.length === 0 ? (
+                <div className="font-nunito text-xs" style={{ color: MUTED }}>{tr.onThisDayEmpty}</div>
+              ) : (
+                <div>
+                  {weekAgoEntries.length > 0 && (
+                    <div>
+                      <div className="font-nunito text-[10px]" style={{ color: MUTED }}>{tr.onThisDayWeekAgo}</div>
+                      {weekAgoEntries.map(e => entryRow(e, 0))}
+                    </div>
+                  )}
+                  {monthAgoEntries.length > 0 && (
+                    <div className={weekAgoEntries.length > 0 ? 'mt-3 pt-3' : ''} style={weekAgoEntries.length > 0 ? { borderTop: `1px solid ${INK}0D` } : undefined}>
+                      <div className="font-nunito text-[10px]" style={{ color: MUTED }}>{tr.onThisDayMonthAgo}</div>
+                      {monthAgoEntries.map(e => entryRow(e, 0))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </Panel>
+          </div>
+
           {/* Games teaser — tap to play */}
-          <div ref={el => { sectionRefs.current[4] = el }} className="md:col-span-3">
+          <div ref={el => { sectionRefs.current[4] = el }}>
             <Panel
               tone="tint"
               accent="#F59E0B"
               onClick={() => toggleExpanded('games')}
-              className="p-5 rounded-3xl flex items-center justify-between gap-4"
+              className="p-5 rounded-3xl h-full flex flex-col justify-between gap-3"
               style={tourStep === 4 ? { boxShadow: `0 0 0 3px ${ACCENT}80` } : undefined}
             >
               <div className="flex items-center gap-3">
