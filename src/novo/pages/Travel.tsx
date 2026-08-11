@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   getTravelData,
@@ -21,36 +21,33 @@ import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { TRAVEL_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
-import { INK, MUTED, Panel, NButton, NProgress } from '../components/ui'
+import { INK, MUTED, Panel, NButton, NProgress, StableLabel } from '../components/ui'
 import StampRush from '../games/StampRush'
 import BaggageDrop from '../games/BaggageDrop'
 import PackSmart from '../games/PackSmart'
 import type { TravelData, Trip, PackingItem } from '../types'
+import { TRAVEL_T, EXPENSE_CAT_WORD, PACKING_CAT_WORD, type Lang, type TravelDict } from './Travel.i18n'
 
 const PAGE_BG = '#F5F4F2'
 const TRIP_EMOJIS = ['✈️', '🏝️', '🗻', '🏙️', '🚂', '🛳️', '🏕️', '🕌']
-const EXPENSE_CATS = [
-  { key: 'transport',  label: 'Transport' },
-  { key: 'stay',       label: 'Stay' },
-  { key: 'food',       label: 'Food' },
-  { key: 'activities', label: 'Activities' },
-  { key: 'shopping',   label: 'Shopping' },
-  { key: 'other',      label: 'Other' },
-]
+const EXPENSE_CATS = ['transport', 'stay', 'food', 'activities', 'shopping', 'other']
 const PACKING_CATS = [
-  { key: 'clothes',     label: 'Clothes',     emoji: '👕' },
-  { key: 'documents',   label: 'Documents',   emoji: '📄' },
-  { key: 'electronics', label: 'Electronics', emoji: '🔌' },
-  { key: 'toiletries',  label: 'Toiletries',  emoji: '🧴' },
-  { key: 'other',       label: 'Other',       emoji: '🎒' },
+  { key: 'clothes',     emoji: '👕' },
+  { key: 'documents',   emoji: '📄' },
+  { key: 'electronics', emoji: '🔌' },
+  { key: 'toiletries',  emoji: '🧴' },
+  { key: 'other',       emoji: '🎒' },
 ]
 
 const ITEM_XP_CAP = 5
 const PACKING_ADD_XP_CAP = 5
 const XP_AWARDED_KEY = 'novo-travel-trip-xp'
+const LANG_KEY = 'novo-lang'
 const packedAwardedKey = (userId: string) => `novo-travel-packed-awarded-${userId}`
+const introKey = (userId: string) => `novo-intro-travel-seen-${userId}`
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
+// Tour targets, in order: 0 trips, 1 packing, 2 itinerary, 3 budget, 4 companion, 5 games
 
 const ACCENT = '#EA580C'
 const GOOD_COLOR = '#16A34A'
@@ -73,6 +70,63 @@ function prepProgress(trip: Trip): number {
   return Math.max(0, Math.min(100, ((now - created) / (start - created)) * 100))
 }
 
+// Tour walks the journal's sections top to bottom, same viewport-clamped
+// coachmark used by the Mood tracker — flips above the target and stays
+// on-screen instead of running off the bottom with nothing to scroll it
+// into view.
+function TourCoachmark({ step, steps, targetEl, tr, onNext, onSkip }: {
+  step: number
+  steps: { text: string }[]
+  targetEl: HTMLElement | null
+  tr: TravelDict
+  onNext: () => void
+  onSkip: () => void
+}) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  const boxRef = useRef<HTMLDivElement | null>(null)
+  const BOX_WIDTH = 260
+
+  useEffect(() => {
+    if (!targetEl) return
+    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const margin = 12
+    const place = () => {
+      const r = targetEl.getBoundingClientRect()
+      const boxH = boxRef.current?.offsetHeight ?? 140
+      let top = r.bottom + 10
+      if (top + boxH > window.innerHeight - margin) top = r.top - boxH - 10
+      top = Math.max(margin, Math.min(top, window.innerHeight - boxH - margin))
+      let left = r.left + r.width / 2
+      left = Math.max(BOX_WIDTH / 2 + margin, Math.min(left, window.innerWidth - BOX_WIDTH / 2 - margin))
+      setPos({ top, left })
+    }
+    const t = setTimeout(place, 260)
+    window.addEventListener('resize', place)
+    window.addEventListener('scroll', place, true)
+    return () => { clearTimeout(t); window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true) }
+  }, [targetEl, step])
+
+  if (!pos) return null
+  const last = step === steps.length - 1
+
+  return (
+    <div ref={boxRef} className="fixed bounce-in" style={{ top: pos.top, left: pos.left, transform: 'translateX(-50%)', zIndex: 9990, width: BOX_WIDTH }}>
+      <Panel tone="fill" accent={ACCENT} className="p-4">
+        <div className="font-nunito text-xs text-white/70 mb-1.5">{step + 1} / {steps.length}</div>
+        <div className="font-nunito text-sm text-white leading-relaxed mb-3">{steps[step].text}</div>
+        <div className="flex items-center justify-between">
+          <button onClick={onSkip} className="font-nunito text-xs text-white/60 hover:text-white/90 transition-colors">
+            {tr.tourSkip}
+          </button>
+          <NButton onClick={onNext} style={{ background: '#FFFFFF', color: ACCENT }} size="sm">
+            {last ? tr.tourDone : tr.tourNext}
+          </NButton>
+        </div>
+      </Panel>
+    </div>
+  )
+}
+
 export default function Travel() {
   const navigate = useNavigate()
   const { session } = useAuth()
@@ -84,15 +138,41 @@ export default function Travel() {
   const [gameTab, setGameTab] = useState<GameTab>('clicker')
   const [tripForm, setTripForm] = useState({ destination: '', emoji: TRIP_EMOJIS[0], startDate: '', endDate: '', budget: '' })
   const [itemForm, setItemForm] = useState({ day: '', time: '', title: '', location: '' })
-  const [expenseForm, setExpenseForm] = useState({ amount: '', category: EXPENSE_CATS[0].key, note: '' })
+  const [expenseForm, setExpenseForm] = useState({ amount: '', category: EXPENSE_CATS[0], note: '' })
   const [packingForm, setPackingForm] = useState({ text: '', category: PACKING_CATS[0].key })
   const [toast, setToast] = useState<{ msg: string; good: boolean } | null>(null)
   const [streak, setStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
   const [missions, setMissions] = useState<MissionRow[]>([])
+  const [lang, setLang] = useState<Lang>(() => (localStorage.getItem(LANG_KEY) as Lang | null) ?? 'en')
+  const [tourStep, setTourStep] = useState<number | null>(null)
+  const sectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const { celebrate, layer } = useCelebrations()
 
   const today = todayStr()
+  const tr = TRAVEL_T[lang]
+  const changeLang = (l: Lang) => { localStorage.setItem(LANG_KEY, l); setLang(l) }
+  const expenseCatLabel = (key: string) => EXPENSE_CAT_WORD[lang][key] ?? key
+  const packingCatLabel = (key: string) => PACKING_CAT_WORD[lang][key] ?? key
+
+  const TOUR_STEPS: { text: string }[] = [
+    { text: tr.tourTrips },
+    { text: tr.tourPacking },
+    { text: tr.tourItinerary },
+    { text: tr.tourBudget },
+    { text: tr.tourCompanion },
+    { text: tr.tourGames },
+  ]
+
+  const endTour = () => {
+    localStorage.setItem(introKey(userId), '1')
+    setTourStep(null)
+  }
+  const advanceTour = () => {
+    if (tourStep === null) return
+    if (tourStep >= TOUR_STEPS.length - 1) endTour()
+    else setTourStep(tourStep + 1)
+  }
 
   useEffect(() => {
     if (!userId) return
@@ -104,6 +184,9 @@ export default function Travel() {
       const upcoming = d.trips.filter(t => t.endDate >= todayStr()).sort((a, b) => a.startDate.localeCompare(b.startDate))[0]
       setSelectedTripId(upcoming?.id ?? d.trips[0]?.id ?? null)
       setShowCreateForm(d.trips.length === 0)
+      // Only worth touring once there's a trip to walk through — a brand
+      // new account sees it the moment they create their first one instead.
+      if (d.trips.length > 0 && !localStorage.getItem(introKey(userId))) setTourStep(0)
     })
   }, [userId])
 
@@ -129,7 +212,7 @@ export default function Travel() {
     }
     localStorage.setItem(XP_AWARDED_KEY, JSON.stringify([...awarded, ...finished.map(t => t.id)]))
     applyXP(totalXP, {})
-    showToast(`+${totalXP} XP, trip${finished.length > 1 ? 's' : ''} completed!`)
+    showToast(tr.tripsCompletedXp(finished.length, totalXP))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data === null])
 
@@ -141,7 +224,7 @@ export default function Travel() {
   if (!data) {
     return (
       <div className="h-full flex items-center justify-center" style={{ background: PAGE_BG }}>
-        <div className="font-nunito text-sm" style={{ color: MUTED }}>Loading…</div>
+        <div className="font-nunito text-sm" style={{ color: MUTED }}>{tr.loading}</div>
       </div>
     )
   }
@@ -166,7 +249,7 @@ export default function Travel() {
   const packedPct = selectedPacking.length > 0 ? Math.round((packedCount / selectedPacking.length) * 100) : 0
 
   const catTotals = EXPENSE_CATS
-    .map(c => ({ ...c, total: selectedExpenses.filter(e => e.category === c.key).reduce((s, e) => s + e.amount, 0) }))
+    .map(key => ({ key, total: selectedExpenses.filter(e => e.category === key).reduce((s, e) => s + e.amount, 0) }))
     .filter(c => c.total > 0)
     .sort((a, b) => b.total - a.total)
 
@@ -200,9 +283,11 @@ export default function Travel() {
       setSelectedTripId(trip.id)
       setTripForm({ destination: '', emoji: TRIP_EMOJIS[0], startDate: '', endDate: '', budget: '' })
       setShowCreateForm(false)
-      showToast('+20 XP, trip planned!')
+      showToast(tr.tripPlannedXp)
+      // First-ever trip — this is when the tour actually has something to show
+      if (data.trips.length === 0 && !localStorage.getItem(introKey(userId))) setTourStep(0)
     } catch {
-      showToast('Failed to create trip', false)
+      showToast(tr.failedToCreateTrip, false)
     }
   }
 
@@ -234,14 +319,14 @@ export default function Travel() {
       sessionStorage.setItem(sessionKey, String(addedToday + 1))
       if (xpGain > 0) {
         applyXP(xpGain, { items: [...data.items, item] })
-        showToast(`+${xpGain} XP!`)
+        showToast(tr.normalXp(xpGain))
       } else {
         setData(d => d ? { ...d, items: [...d.items, item] } : d)
-        showToast('Added. Daily XP cap reached')
+        showToast(tr.addedCapReached)
       }
       setItemForm(f => ({ ...f, time: '', title: '', location: '' }))
     } catch {
-      showToast('Failed to add item', false)
+      showToast(tr.failedToAddItem, false)
     }
   }
 
@@ -265,9 +350,9 @@ export default function Travel() {
       const overBudget = selectedTrip.budget > 0 && spentAfter > selectedTrip.budget
       applyXP(overBudget ? -5 : 8, { expenses: [expense, ...data.expenses] })
       setExpenseForm(f => ({ ...f, amount: '', note: '' }))
-      showToast(overBudget ? '−5 XP, this trip is over budget now' : '+8 XP!', !overBudget)
+      showToast(overBudget ? tr.overBudgetXp : tr.normalXp(8), !overBudget)
     } catch {
-      showToast('Failed to log expense', false)
+      showToast(tr.failedToLogExpense, false)
     }
   }
 
@@ -291,7 +376,7 @@ export default function Travel() {
       }
       setPackingForm(f => ({ ...f, text: '' }))
     } catch {
-      showToast('Failed to add item', false)
+      showToast(tr.failedToAddItem, false)
     }
   }
 
@@ -318,12 +403,12 @@ export default function Travel() {
 
   const handleXPEarned = (xp: number) => {
     applyXP(xp, {}, 'game')
-    showToast(`+${xp} XP from game!`)
+    showToast(tr.xpFromGame(xp))
   }
 
   const handleClaimChallenge = (xp: number, title: string) => {
     applyXP(xp, {})
-    showToast(`${title}: +${xp} XP!`)
+    showToast(tr.challengeClaimed(title, xp))
   }
 
   const petCard = (
@@ -332,31 +417,36 @@ export default function Travel() {
       xp={data.character.xp}
       happiness={data.character.happiness}
       prestige={data.character.prestige}
-      onEvolution={s => showToast(`Evolved to ${s.name}!`, true)}
-      onPrestige={p => showToast(`Prestige ${p}! Pet reborn!`, true)}
+      onEvolution={s => showToast(tr.evolved(s.name), true)}
+      onPrestige={p => showToast(tr.prestige(p), true)}
     />
   )
 
   const inputStyle = { background: '#FFFFFF', color: INK }
 
-  const tripStatus = (t: Trip) => {
-    if (t.endDate < today) return { short: '✓', label: 'Completed', color: MUTED }
-    if (t.startDate <= today) return { short: 'NOW', label: 'Ongoing', color: GOOD_COLOR }
+  type TripStatus = { short: string; label: string; completed: boolean; ongoing: boolean; color: string }
+  const tripStatus = (t: Trip): TripStatus => {
+    if (t.endDate < today) return { short: '✓', label: tr.statusCompleted, completed: true, ongoing: false, color: MUTED }
+    if (t.startDate <= today) return { short: tr.now, label: tr.statusOngoing, completed: false, ongoing: true, color: GOOD_COLOR }
     const d = daysUntil(t.startDate)
-    return { short: String(d), label: d === 1 ? 'day to go' : 'days to go', color: ACCENT }
+    return { short: String(d), label: tr.statusDaysToGo(d), completed: false, ongoing: false, color: ACCENT }
   }
 
   const packedTodayCount = Number(sessionStorage.getItem(`novo-travel-packed-today-${today}`) ?? '0')
   const expensesToday = data.expenses.filter(e => e.date === todayStr())
   const dailyChallenges = [
-    { id: 'exp1', title: 'Log an expense', emoji: '🧾', xp: 15, met: expensesToday.length >= 1 },
-    { id: 'plan', title: 'Plan an itinerary item for today', emoji: '🗺️', xp: 10, met: data.items.some(i => i.day === todayStr()) },
-    { id: 'pack1', title: 'Pack an item', emoji: '🧳', xp: 15, met: packedTodayCount >= 1 },
+    { id: 'exp1', title: tr.challengeLogExpense, emoji: '🧾', xp: 15, met: expensesToday.length >= 1 },
+    { id: 'plan', title: tr.challengePlanItinerary, emoji: '🗺️', xp: 10, met: data.items.some(i => i.day === todayStr()) },
+    { id: 'pack1', title: tr.challengePackItem, emoji: '🧳', xp: 15, met: packedTodayCount >= 1 },
   ]
 
   return (
     <div className="h-full flex flex-col" style={{ background: PAGE_BG }}>
       {layer}
+
+      {tourStep !== null && (
+        <TourCoachmark step={tourStep} steps={TOUR_STEPS} targetEl={sectionRefs.current[tourStep] ?? null} tr={tr} onNext={advanceTour} onSkip={endTour} />
+      )}
 
       {toast && (
         <div className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-2xl font-nunito font-semibold text-white text-sm bounce-in" style={{ background: toast.good ? '#16A34A' : '#DC2626' }}>
@@ -369,17 +459,35 @@ export default function Travel() {
         className="flex items-center justify-between px-4 md:px-6 py-3 sticky top-0 z-30 flex-shrink-0"
         style={{ background: 'rgba(245,244,242,0.97)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E5E4E2' }}
       >
-        <button onClick={() => navigate('/studios/dashboard')} className="font-nunito text-sm transition-opacity hover:opacity-70" style={{ color: MUTED }}>
-          Back
+        <button onClick={() => navigate('/studios/dashboard')} className="font-nunito text-sm transition-opacity hover:opacity-70 flex-shrink-0" style={{ color: MUTED }}>
+          <StableLabel a={TRAVEL_T.en.back} b={TRAVEL_T.id.back} active={lang === 'en' ? 'a' : 'b'} />
         </button>
-        <div className="font-nunito font-semibold text-sm flex items-center gap-2" style={{ color: INK }}>
-          Travel Planner <StreakBadge streak={streak} />
+        <div className="font-nunito font-semibold text-sm flex items-center gap-2 flex-shrink-0" style={{ color: INK }}>
+          <StableLabel a={TRAVEL_T.en.headerTitle} b={TRAVEL_T.id.headerTitle} active={lang === 'en' ? 'a' : 'b'} /> <StreakBadge streak={streak} />
         </div>
-        <div className="hidden lg:flex items-center gap-1.5 font-nunito text-xs" style={{ color: MUTED }}>
-          <span>{petStage.emoji}</span>
-          <span>{data.character.xp} XP</span>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="hidden lg:flex items-center gap-3 text-xs font-nunito" style={{ color: MUTED }}>
+            <span>{petStage.emoji}</span>
+            <span>{data.character.xp} XP</span>
+            {data.trips.length > 0 && (
+              <button onClick={() => setTourStep(0)} className="transition-opacity hover:opacity-70" style={{ color: MUTED }}>
+                <StableLabel a={TRAVEL_T.en.howThisWorks} b={TRAVEL_T.id.howThisWorks} active={lang === 'en' ? 'a' : 'b'} />
+              </button>
+            )}
+          </div>
+          <div className="flex rounded-full overflow-hidden" style={{ background: `${INK}08` }}>
+            {(['en', 'id'] as Lang[]).map(l => (
+              <button
+                key={l}
+                onClick={() => changeLang(l)}
+                className="px-2.5 py-1 font-nunito text-xs font-semibold transition-colors"
+                style={lang === l ? { background: ACCENT, color: '#FFFFFF' } : { color: MUTED }}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="lg:hidden w-10" />
       </header>
 
       <div className="flex flex-1 overflow-hidden">
@@ -391,20 +499,22 @@ export default function Travel() {
           {/* Metrics */}
           <div className="flex flex-wrap gap-x-8 gap-y-3 mb-6">
             {[
-              { label: 'Next trip', value: upcomingTrip ? (upcomingTrip.startDate <= today ? 'Now' : `${daysUntil(upcomingTrip.startDate)}d`) : '—', color: ACCENT },
-              { label: 'Trips planned', value: String(data.trips.length), color: INK },
-              { label: 'Total budget', value: formatRp(totalBudget), color: INK },
-              { label: 'Total spent', value: formatRp(totalSpent), color: totalSpent > totalBudget && totalBudget > 0 ? BAD_COLOR : GOOD_COLOR },
+              { key: 'next', en: TRAVEL_T.en.metricNextTrip, id: TRAVEL_T.id.metricNextTrip, value: upcomingTrip ? (upcomingTrip.startDate <= today ? tr.now : `${daysUntil(upcomingTrip.startDate)}d`) : '—', color: ACCENT },
+              { key: 'planned', en: TRAVEL_T.en.metricTripsPlanned, id: TRAVEL_T.id.metricTripsPlanned, value: String(data.trips.length), color: INK },
+              { key: 'budget', en: TRAVEL_T.en.metricTotalBudget, id: TRAVEL_T.id.metricTotalBudget, value: formatRp(totalBudget), color: INK },
+              { key: 'spent', en: TRAVEL_T.en.metricTotalSpent, id: TRAVEL_T.id.metricTotalSpent, value: formatRp(totalSpent), color: totalSpent > totalBudget && totalBudget > 0 ? BAD_COLOR : GOOD_COLOR },
             ].map(m => (
-              <div key={m.label}>
+              <div key={m.key}>
                 <div className="font-nunito font-bold text-lg md:text-xl leading-none" style={{ color: m.color }}>{m.value}</div>
-                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{m.label}</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
+                  <StableLabel a={m.en} b={m.id} active={lang === 'en' ? 'a' : 'b'} />
+                </div>
               </div>
             ))}
           </div>
 
           {/* ── BOARDING PASS CAROUSEL — trip picker, no tabs ─────── */}
-          <div className="flex gap-3 overflow-x-auto pb-3 mb-2 scrollbar-hidden">
+          <div ref={el => { sectionRefs.current[0] = el }} className="flex gap-3 overflow-x-auto pb-3 mb-2 scrollbar-hidden">
             {data.trips.map(t => {
               const status = tripStatus(t)
               const selected = t.id === selectedTripId
@@ -469,7 +579,9 @@ export default function Travel() {
               style={{ border: `2px dashed ${ACCENT}60`, color: ACCENT, background: showCreateForm ? `${ACCENT}10` : 'transparent' }}
             >
               <span className="text-3xl leading-none">+</span>
-              <span className="font-nunito text-sm font-semibold">New trip</span>
+              <span className="font-nunito text-sm font-semibold">
+                <StableLabel a={TRAVEL_T.en.newTrip} b={TRAVEL_T.id.newTrip} active={lang === 'en' ? 'a' : 'b'} />
+              </span>
             </button>
           </div>
 
@@ -490,19 +602,19 @@ export default function Travel() {
               </div>
               <div className="grid grid-cols-2 gap-2 mb-2">
                 <input
-                  type="text" placeholder="Destination" value={tripForm.destination}
+                  type="text" placeholder={tr.destinationPlaceholder} value={tripForm.destination}
                   onChange={e => setTripForm(f => ({ ...f, destination: e.target.value }))}
                   className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                   style={inputStyle}
                 />
                 <input
-                  type="number" placeholder="Budget (Rp)" value={tripForm.budget}
+                  type="number" placeholder={tr.budgetPlaceholder} value={tripForm.budget}
                   onChange={e => setTripForm(f => ({ ...f, budget: e.target.value }))}
                   className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                   style={inputStyle}
                 />
                 <div>
-                  <div className="font-nunito text-[10px] mb-0.5 px-1" style={{ color: MUTED }}>Start</div>
+                  <div className="font-nunito text-[10px] mb-0.5 px-1" style={{ color: MUTED }}>{tr.startLabel}</div>
                   <input
                     type="date" value={tripForm.startDate}
                     onChange={e => setTripForm(f => ({ ...f, startDate: e.target.value }))}
@@ -511,7 +623,7 @@ export default function Travel() {
                   />
                 </div>
                 <div>
-                  <div className="font-nunito text-[10px] mb-0.5 px-1" style={{ color: MUTED }}>End</div>
+                  <div className="font-nunito text-[10px] mb-0.5 px-1" style={{ color: MUTED }}>{tr.endLabel}</div>
                   <input
                     type="date" value={tripForm.endDate}
                     onChange={e => setTripForm(f => ({ ...f, endDate: e.target.value }))}
@@ -521,7 +633,7 @@ export default function Travel() {
                 </div>
               </div>
               <NButton onClick={handleAddTrip} disabled={!tripForm.destination || !tripForm.startDate || !tripForm.endDate} accent={ACCENT} className="w-full">
-                Create trip (+20 XP)
+                {tr.createTripButton}
               </NButton>
             </Panel>
           )}
@@ -530,7 +642,7 @@ export default function Travel() {
           {completedTrips.length > 0 && (
             <div className="mb-6">
               <div className="font-nunito font-semibold text-xs mb-2" style={{ color: MUTED }}>
-                🛂 Passport — {completedTrips.length} trip{completedTrips.length === 1 ? '' : 's'} completed
+                {tr.passportHeading(completedTrips.length)}
               </div>
               <div className="flex flex-wrap gap-2">
                 {completedTrips.map(t => (
@@ -553,8 +665,8 @@ export default function Travel() {
 
           {data.trips.length === 0 && !showCreateForm && (
             <div className="py-10 text-center">
-              <div className="font-nunito text-sm" style={{ color: INK }}>No trips yet</div>
-              <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Tap "New trip" above to plan your first adventure</div>
+              <div className="font-nunito text-sm" style={{ color: INK }}>{tr.noTripsYet}</div>
+              <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{tr.noTripsYetSub}</div>
             </div>
           )}
 
@@ -569,7 +681,7 @@ export default function Travel() {
                     {selectedTrip.emoji} {selectedTrip.destination}
                   </div>
                   <div className="font-nunito text-xs" style={{ color: MUTED }}>
-                    {tripStatus(selectedTrip).label === 'Completed' ? '✓ Trip complete' : tripStatus(selectedTrip).label === 'Ongoing' ? 'Happening now!' : `${daysUntil(selectedTrip.startDate)} days to departure`}
+                    {tripStatus(selectedTrip).completed ? tr.tripComplete : tripStatus(selectedTrip).ongoing ? tr.happeningNow : tr.daysToDeparture(daysUntil(selectedTrip.startDate))}
                   </div>
                 </div>
 
@@ -584,15 +696,15 @@ export default function Travel() {
                   </div>
                 </div>
                 <div className="flex justify-between font-nunito text-[10px] mb-4" style={{ color: MUTED }}>
-                  <span>Planned</span>
-                  <span>Departure {selectedTrip.startDate}</span>
+                  <span>{tr.runwayPlanned}</span>
+                  <span>{tr.runwayDeparture(selectedTrip.startDate)}</span>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <span className="text-xl flex-shrink-0">🧳</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between font-nunito text-xs mb-1">
-                      <span style={{ color: INK }}>Ready to fly</span>
+                      <span style={{ color: INK }}>{tr.readyToFly}</span>
                       <span style={{ color: MUTED }}>{readiness}%</span>
                     </div>
                     <NProgress pct={readiness} accent={readiness >= 100 ? GOOD_COLOR : ACCENT} height={5} />
@@ -601,11 +713,11 @@ export default function Travel() {
               </Panel>
 
               {/* Packing list */}
-              <div>
+              <div ref={el => { sectionRefs.current[1] = el }}>
                 <div className="font-nunito font-semibold text-sm mb-3 flex items-center gap-1.5" style={{ color: INK }}>
-                  🧳 Packing list
+                  🧳 {tr.packingHeading}
                   {selectedPacking.length > 0 && (
-                    <span className="font-nunito text-xs font-normal" style={{ color: MUTED }}>({packedCount}/{selectedPacking.length} packed)</span>
+                    <span className="font-nunito text-xs font-normal" style={{ color: MUTED }}>{tr.packedOfTotal(packedCount, selectedPacking.length)}</span>
                   )}
                 </div>
                 <div className="grid lg:grid-cols-2 gap-x-10 gap-y-6">
@@ -620,19 +732,19 @@ export default function Travel() {
                             className="px-3 py-1.5 rounded-full font-nunito text-xs transition-colors"
                             style={packingForm.category === c.key ? { background: ACCENT, color: '#FFFFFF' } : { background: '#FFFFFF', color: MUTED }}
                           >
-                            {c.emoji} {c.label}
+                            {c.emoji} {packingCatLabel(c.key)}
                           </button>
                         ))}
                       </div>
                       <div className="flex gap-2">
                         <input
-                          type="text" placeholder="Add an item (e.g. Passport)" value={packingForm.text}
+                          type="text" placeholder={tr.addPackingPlaceholder} value={packingForm.text}
                           onChange={e => setPackingForm(f => ({ ...f, text: e.target.value }))}
                           onKeyDown={e => e.key === 'Enter' && handleAddPacking()}
                           className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                           style={inputStyle}
                         />
-                        <NButton onClick={handleAddPacking} disabled={!packingForm.text.trim()} accent={ACCENT}>Add</NButton>
+                        <NButton onClick={handleAddPacking} disabled={!packingForm.text.trim()} accent={ACCENT}>{tr.add}</NButton>
                       </div>
                     </Panel>
                   </div>
@@ -640,7 +752,7 @@ export default function Travel() {
                   <div>
                     {PACKING_CATS.filter(c => selectedPacking.some(p => p.category === c.key)).map(c => (
                       <div key={c.key} className="mb-4">
-                        <div className="font-nunito text-xs font-semibold mb-1.5" style={{ color: MUTED }}>{c.emoji} {c.label}</div>
+                        <div className="font-nunito text-xs font-semibold mb-1.5" style={{ color: MUTED }}>{c.emoji} {packingCatLabel(c.key)}</div>
                         {selectedPacking.filter(p => p.category === c.key).map((p, i) => (
                           <div key={p.id} className="flex items-center gap-2.5 py-1.5" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
                             <button
@@ -662,15 +774,15 @@ export default function Travel() {
                       </div>
                     ))}
                     {selectedPacking.length === 0 && (
-                      <div className="font-nunito text-xs" style={{ color: MUTED }}>Nothing on your list yet, add what you need above</div>
+                      <div className="font-nunito text-xs" style={{ color: MUTED }}>{tr.noPackingYet}</div>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* Itinerary timeline */}
-              <div>
-                <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>🗓️ Itinerary</div>
+              <div ref={el => { sectionRefs.current[2] = el }}>
+                <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>🗓️ {tr.itineraryHeading}</div>
                 <div className="grid lg:grid-cols-2 gap-x-10 gap-y-6">
                   <div>
                     <Panel tone="tint" accent={ACCENT} className="p-4">
@@ -688,14 +800,14 @@ export default function Travel() {
                           style={inputStyle}
                         />
                         <input
-                          type="text" placeholder="Activity" value={itemForm.title}
+                          type="text" placeholder={tr.activityPlaceholder} value={itemForm.title}
                           onChange={e => setItemForm(f => ({ ...f, title: e.target.value }))}
                           onKeyDown={e => e.key === 'Enter' && handleAddItem()}
                           className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                           style={inputStyle}
                         />
                         <input
-                          type="text" placeholder="Location (optional)" value={itemForm.location}
+                          type="text" placeholder={tr.locationPlaceholder} value={itemForm.location}
                           onChange={e => setItemForm(f => ({ ...f, location: e.target.value }))}
                           onKeyDown={e => e.key === 'Enter' && handleAddItem()}
                           className="px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
@@ -703,7 +815,7 @@ export default function Travel() {
                         />
                       </div>
                       <NButton onClick={handleAddItem} disabled={!itemForm.day || !itemForm.title} accent={ACCENT} className="w-full">
-                        Add to itinerary
+                        {tr.addToItinerary}
                       </NButton>
                     </Panel>
                   </div>
@@ -713,7 +825,7 @@ export default function Travel() {
                       <div key={day} className="relative pl-5" style={{ borderLeft: di === itemDays.length - 1 ? 'none' : `2px dashed ${ACCENT}40`, paddingBottom: di === itemDays.length - 1 ? 0 : 20 }}>
                         <div className="absolute -left-[7px] top-0.5 w-3.5 h-3.5 rounded-full" style={{ background: ACCENT }} />
                         <div className="font-nunito font-semibold text-sm mb-2" style={{ color: INK }}>
-                          Day {di + 1} · {day} {day === today && '· Today'}
+                          {tr.dayLabel(di + 1)} · {day} {day === today && `· ${tr.today}`}
                         </div>
                         {selectedItems.filter(i => i.day === day).map(i => (
                           <div key={i.id} className="flex items-start gap-3 mb-2">
@@ -728,15 +840,15 @@ export default function Travel() {
                       </div>
                     ))}
                     {selectedItems.length === 0 && (
-                      <div className="font-nunito text-xs" style={{ color: MUTED }}>No itinerary items yet, plan your days above</div>
+                      <div className="font-nunito text-xs" style={{ color: MUTED }}>{tr.noItineraryYet}</div>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* Budget */}
-              <div>
-                <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>🧾 Budget</div>
+              <div ref={el => { sectionRefs.current[3] = el }}>
+                <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>🧾 {tr.budgetHeading}</div>
                 <div className="grid lg:grid-cols-2 gap-x-10 gap-y-6">
                   <div>
                     <div className="mb-4">
@@ -744,7 +856,7 @@ export default function Travel() {
                         <span className="font-nunito font-bold text-2xl" style={{ color: selectedTrip.budget > 0 && selectedSpent > selectedTrip.budget ? BAD_COLOR : INK }}>
                           {formatRp(selectedSpent)}
                         </span>
-                        {selectedTrip.budget > 0 && <span className="font-nunito text-sm" style={{ color: MUTED }}>of {formatRp(selectedTrip.budget)}</span>}
+                        {selectedTrip.budget > 0 && <span className="font-nunito text-sm" style={{ color: MUTED }}>{tr.ofAmount(formatRp(selectedTrip.budget))}</span>}
                       </div>
                       {selectedTrip.budget > 0 && (
                         <NProgress pct={(selectedSpent / selectedTrip.budget) * 100} accent={selectedSpent > selectedTrip.budget ? BAD_COLOR : ACCENT} height={5} />
@@ -755,31 +867,31 @@ export default function Travel() {
                       <div className="flex gap-1.5 mb-2 flex-wrap">
                         {EXPENSE_CATS.map(c => (
                           <button
-                            key={c.key}
-                            onClick={() => setExpenseForm(f => ({ ...f, category: c.key }))}
+                            key={c}
+                            onClick={() => setExpenseForm(f => ({ ...f, category: c }))}
                             className="px-3 py-1.5 rounded-full font-nunito text-xs transition-colors"
-                            style={expenseForm.category === c.key ? { background: ACCENT, color: '#FFFFFF' } : { background: '#FFFFFF', color: MUTED }}
+                            style={expenseForm.category === c ? { background: ACCENT, color: '#FFFFFF' } : { background: '#FFFFFF', color: MUTED }}
                           >
-                            {c.label}
+                            {expenseCatLabel(c)}
                           </button>
                         ))}
                       </div>
                       <div className="flex gap-2">
                         <input
-                          type="number" placeholder="Amount (Rp)" value={expenseForm.amount}
+                          type="number" placeholder={tr.amountPlaceholder} value={expenseForm.amount}
                           onChange={e => setExpenseForm(f => ({ ...f, amount: e.target.value }))}
                           onKeyDown={e => e.key === 'Enter' && handleAddExpense()}
                           className="w-32 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                           style={inputStyle}
                         />
                         <input
-                          type="text" placeholder="Note (optional)" value={expenseForm.note}
+                          type="text" placeholder={tr.notePlaceholder} value={expenseForm.note}
                           onChange={e => setExpenseForm(f => ({ ...f, note: e.target.value }))}
                           onKeyDown={e => e.key === 'Enter' && handleAddExpense()}
                           className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                           style={inputStyle}
                         />
-                        <NButton onClick={handleAddExpense} disabled={!expenseForm.amount} accent={ACCENT}>Log</NButton>
+                        <NButton onClick={handleAddExpense} disabled={!expenseForm.amount} accent={ACCENT}>{tr.logButton}</NButton>
                       </div>
                     </Panel>
                   </div>
@@ -787,12 +899,12 @@ export default function Travel() {
                   <div>
                     {catTotals.length > 0 && (
                       <div className="mb-6">
-                        <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>By category</div>
+                        <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>{tr.byCategory}</div>
                         <div className="space-y-3">
                           {catTotals.map(c => (
                             <div key={c.key}>
                               <div className="flex justify-between font-nunito text-xs mb-1.5">
-                                <span style={{ color: INK }}>{c.label}</span>
+                                <span style={{ color: INK }}>{expenseCatLabel(c.key)}</span>
                                 <span style={{ color: MUTED }}>
                                   {selectedSpent > 0 ? Math.round((c.total / selectedSpent) * 100) : 0}% · {formatRp(c.total)}
                                 </span>
@@ -804,26 +916,23 @@ export default function Travel() {
                       </div>
                     )}
 
-                    {selectedExpenses.map((e, i) => {
-                      const cat = EXPENSE_CATS.find(c => c.key === e.category)
-                      return (
-                        <div key={e.id} className="flex items-center gap-3 py-2.5" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-nunito text-sm truncate" style={{ color: INK }}>{e.note || cat?.label || e.category}</div>
-                            <div className="font-nunito text-xs" style={{ color: MUTED }}>{e.date}</div>
-                          </div>
-                          <span className="font-nunito font-medium text-sm flex-shrink-0" style={{ color: BAD_COLOR }}>−{formatRp(e.amount)}</span>
-                          <button onClick={() => handleDeleteExpense(e.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
+                    {selectedExpenses.map((e, i) => (
+                      <div key={e.id} className="flex items-center gap-3 py-2.5" style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}0D` }}>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-nunito text-sm truncate" style={{ color: INK }}>{e.note || expenseCatLabel(e.category)}</div>
+                          <div className="font-nunito text-xs" style={{ color: MUTED }}>{e.date}</div>
                         </div>
-                      )
-                    })}
+                        <span className="font-nunito font-medium text-sm flex-shrink-0" style={{ color: BAD_COLOR }}>−{formatRp(e.amount)}</span>
+                        <button onClick={() => handleDeleteExpense(e.id)} className="text-sm flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: MUTED }}>✕</button>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
 
               {/* Travel companion */}
-              <div>
-                <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>🐾 Travel companion</div>
+              <div ref={el => { sectionRefs.current[4] = el }}>
+                <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>🐾 {tr.companionHeading}</div>
                 <div className="space-y-4 max-w-2xl">
                   <DailyChallenges trackerId="travel" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
                   <PetRoom
@@ -839,8 +948,8 @@ export default function Travel() {
               </div>
 
               {/* Games */}
-              <div>
-                <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>🎮 Layover games</div>
+              <div ref={el => { sectionRefs.current[5] = el }}>
+                <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>🎮 {tr.gamesHeading}</div>
                 <div className="max-w-xl">
                   <div className="flex items-center gap-5 mb-5" style={{ borderBottom: `1px solid ${INK}12` }}>
                     {(['clicker', 'arcade', 'puzzle'] as GameTab[]).map(g => (
@@ -854,7 +963,11 @@ export default function Travel() {
                           borderBottom: gameTab === g ? `2px solid ${ACCENT}` : '2px solid transparent',
                         }}
                       >
-                        {g === 'clicker' ? 'Clicker' : g === 'arcade' ? 'Arcade' : 'Puzzle'}
+                        <StableLabel
+                          a={g === 'clicker' ? TRAVEL_T.en.gameClicker : g === 'arcade' ? TRAVEL_T.en.gameArcade : TRAVEL_T.en.gamePuzzle}
+                          b={g === 'clicker' ? TRAVEL_T.id.gameClicker : g === 'arcade' ? TRAVEL_T.id.gameArcade : TRAVEL_T.id.gamePuzzle}
+                          active={lang === 'en' ? 'a' : 'b'}
+                        />
                       </button>
                     ))}
                   </div>
@@ -873,15 +986,15 @@ export default function Travel() {
             {petCard}
             {upcomingTrip && (
               <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${INK}0D` }}>
-                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Next adventure</div>
+                <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>{tr.sidebarNextAdventure}</div>
                 <div className="font-nunito text-sm" style={{ color: INK }}>{upcomingTrip.emoji} {upcomingTrip.destination}</div>
                 <div className="font-nunito text-xs" style={{ color: MUTED }}>
-                  {upcomingTrip.startDate <= today ? 'Happening now' : `${daysUntil(upcomingTrip.startDate)} days to go`}
+                  {upcomingTrip.startDate <= today ? tr.sidebarHappeningNow : tr.sidebarDaysToGo(daysUntil(upcomingTrip.startDate))}
                 </div>
               </div>
             )}
             <div className="font-nunito text-xs leading-relaxed mt-4 pt-4" style={{ color: MUTED, borderTop: `1px solid ${INK}0D` }}>
-              New trips earn +20 XP, expenses +8, packing an item +2, and finishing a trip under budget earns +50.
+              {tr.sidebarTip}
             </div>
           </Panel>
         </aside>
