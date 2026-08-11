@@ -5,7 +5,8 @@ import { getAllCharacters } from '../lib/storage'
 import { getImpactTotals, getWeekMissions, ensureWeeklyMissions, getCrowns, setCause, type Cause, type MissionRow } from '../lib/gamification'
 import { INK, MUTED, Panel, NProgress } from '../components/ui'
 import { CAUSES, CauseCards } from '../components/CausePicker'
-import type { TemplateId } from '../types'
+import { TEMPLATES } from '../data/templates'
+import type { TemplateId, CharacterState } from '../types'
 
 // /studios/impact — where crowns become real-world impact.
 // 1 crown = 1 plant planted (environment) or 1 person helped (social),
@@ -20,6 +21,7 @@ export default function Impact() {
   const [missions, setMissions] = useState<MissionRow[]>([])
   const [switching, setSwitching] = useState(false)
   const [crowns, setCrowns] = useState(0)
+  const [characters, setCharacters] = useState<Partial<Record<TemplateId, CharacterState>>>({})
 
   const cause = (profile?.cause ?? null) as Cause | null
   const causeInfo = CAUSES.find(c => c.id === cause) ?? null
@@ -30,7 +32,10 @@ export default function Impact() {
 
   useEffect(() => {
     if (!userId) return
-    getAllCharacters(userId).then(chars => setCrowns(getCrowns(chars)))
+    getAllCharacters(userId).then(chars => {
+      setCharacters(chars)
+      setCrowns(getCrowns(chars))
+    })
   }, [userId])
 
   useEffect(() => {
@@ -48,6 +53,12 @@ export default function Impact() {
 
   const activeMissions = missions.filter(m => !m.completedAt)
   const panelAccent = causeInfo?.accent ?? '#7C3AED'
+
+  const ownedIds = (profile?.owned_templates ?? []) as TemplateId[]
+  const rankedTrackers = TEMPLATES
+    .filter(t => ownedIds.includes(t.id))
+    .map(t => ({ template: t, xp: characters[t.id]?.xp ?? 0 }))
+    .sort((a, b) => b.xp - a.xp)
 
   return (
     <div className="h-full overflow-y-auto p-5 md:p-8 lg:p-12" style={{ background: '#F5F4F2' }}>
@@ -135,6 +146,29 @@ export default function Impact() {
             </Panel>
           )}
         </div>
+
+        {/* Your trackers, ranked by XP — top performer first */}
+        {rankedTrackers.length > 0 && (
+          <div className="mb-8">
+            <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>
+              Your top performing trackers
+            </div>
+            <div>
+              {rankedTrackers.map(({ template, xp }, i) => (
+                <div
+                  key={template.id}
+                  className="flex items-center gap-3 py-2.5"
+                  style={{ borderTop: i === 0 ? 'none' : `1px solid ${INK}12` }}
+                >
+                  <span className="font-nunito text-xs w-4 flex-shrink-0" style={{ color: MUTED }}>{i + 1}</span>
+                  <span className="text-lg flex-shrink-0">{template.emoji}</span>
+                  <span className="font-nunito text-sm flex-1 min-w-0 truncate" style={{ color: INK }}>{template.name}</span>
+                  <span className="font-nunito text-xs flex-shrink-0" style={{ color: template.accent }}>{xp.toLocaleString()} XP</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* How it works — plain paragraph */}
         <p className="font-nunito text-xs leading-relaxed mb-8 max-w-xl" style={{ color: MUTED }}>
