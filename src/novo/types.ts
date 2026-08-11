@@ -292,10 +292,19 @@ export interface TripExpense {
   date: string
 }
 
+export interface PackingItem {
+  id: string
+  tripId: string
+  text: string
+  category: string
+  packed: boolean
+}
+
 export interface TravelData {
   trips: Trip[]
   items: ItineraryItem[]
   expenses: TripExpense[]
+  packingItems: PackingItem[]
   character: CharacterState
 }
 

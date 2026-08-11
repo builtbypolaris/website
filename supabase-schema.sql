@@ -307,6 +307,16 @@ create table if not exists public.trip_expenses (
   created_at timestamptz default now()
 );
 
+create table if not exists public.travel_packing_items (
+  id         uuid default gen_random_uuid() primary key,
+  user_id    uuid references auth.users(id) on delete cascade not null,
+  trip_id    uuid references public.trips(id) on delete cascade not null,
+  text       text not null,
+  category   text default 'other' not null,
+  packed     boolean default false not null,
+  created_at timestamptz default now()
+);
+
 -- 27-30. BABY
 create table if not exists public.babies (
   id         uuid default gen_random_uuid() primary key,
@@ -464,6 +474,7 @@ alter table public.cycle_logs       enable row level security;
 alter table public.trips            enable row level security;
 alter table public.itinerary_items  enable row level security;
 alter table public.trip_expenses    enable row level security;
+alter table public.travel_packing_items enable row level security;
 alter table public.babies           enable row level security;
 alter table public.baby_events      enable row level security;
 alter table public.growth_entries   enable row level security;
@@ -550,6 +561,8 @@ create policy "trips: own rows" on public.trips
 create policy "itinerary_items: own rows" on public.itinerary_items
   for all using (auth.uid() = user_id);
 create policy "trip_expenses: own rows" on public.trip_expenses
+  for all using (auth.uid() = user_id);
+create policy "travel_packing_items: own rows" on public.travel_packing_items
   for all using (auth.uid() = user_id);
 create policy "babies: own rows" on public.babies
   for all using (auth.uid() = user_id);

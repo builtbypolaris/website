@@ -1,13 +1,14 @@
 import { supabase } from '../supabase'
-import type { CharacterState, ItineraryItem, TravelData, Trip, TripExpense } from '../../types'
+import type { CharacterState, ItineraryItem, PackingItem, TravelData, Trip, TripExpense } from '../../types'
 import { getCharacter, saveCharacter } from './core'
 
 export async function getTravelData(userId: string): Promise<TravelData> {
-  const [character, { data: tripRows }, { data: itemRows }, { data: expenseRows }] = await Promise.all([
+  const [character, { data: tripRows }, { data: itemRows }, { data: expenseRows }, { data: packingRows }] = await Promise.all([
     getCharacter(userId, 'travel'),
     supabase.from('trips').select('*').eq('user_id', userId).order('start_date'),
     supabase.from('itinerary_items').select('*').eq('user_id', userId).order('day').order('time'),
     supabase.from('trip_expenses').select('*').eq('user_id', userId).order('date', { ascending: false }),
+    supabase.from('travel_packing_items').select('*').eq('user_id', userId).order('created_at'),
   ])
   const trips: Trip[] = (tripRows ?? []).map(r => ({
     id: r.id, destination: r.destination, emoji: r.emoji ?? '✈️',
@@ -19,7 +20,10 @@ export async function getTravelData(userId: string): Promise<TravelData> {
   const expenses: TripExpense[] = (expenseRows ?? []).map(r => ({
     id: r.id, tripId: r.trip_id, amount: Number(r.amount), category: r.category, note: r.note ?? '', date: r.date,
   }))
-  return { trips, items, expenses, character }
+  const packingItems: PackingItem[] = (packingRows ?? []).map(r => ({
+    id: r.id, tripId: r.trip_id, text: r.text, category: r.category, packed: r.packed,
+  }))
+  return { trips, items, expenses, packingItems, character }
 }
 
 export async function addTrip(
@@ -74,6 +78,27 @@ export async function addTripExpense(
 
 export async function deleteTripExpense(id: string) {
   await supabase.from('trip_expenses').delete().eq('id', id)
+}
+
+export async function addPackingItem(
+  userId: string,
+  p: { tripId: string; text: string; category: string },
+): Promise<PackingItem> {
+  const { data, error } = await supabase
+    .from('travel_packing_items')
+    .insert({ user_id: userId, trip_id: p.tripId, text: p.text, category: p.category })
+    .select()
+    .single()
+  if (error || !data) throw new Error(error?.message ?? 'Insert failed')
+  return { id: data.id, tripId: data.trip_id, text: data.text, category: data.category, packed: data.packed }
+}
+
+export async function setPackingItemPacked(id: string, packed: boolean) {
+  await supabase.from('travel_packing_items').update({ packed }).eq('id', id)
+}
+
+export async function deletePackingItem(id: string) {
+  await supabase.from('travel_packing_items').delete().eq('id', id)
 }
 
 export async function saveTravelCharacter(userId: string, c: CharacterState) {
