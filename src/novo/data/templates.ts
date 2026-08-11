@@ -279,7 +279,9 @@ export const TEMPLATES: TemplateInfo[] = [
     petMessages: ['Adventure awaits!', 'Pack light, dream big!', 'Budget kept = trip earned!', 'Where to next?'],
     category: 'life',
     previewStats: ['Bali in 12 days', 'Rp 3.2M / 5M budget', '8 itinerary items'],
-    comingSoon: true,
+    originalPriceIdr: 25000,
+    salePriceIdr: 20000,
+    lynkUrl: 'https://lynk.id/builtbypolaris/e62wplry2l88',
   },
   {
     id: 'baby',
