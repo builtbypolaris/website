@@ -34,8 +34,6 @@ const XP_CHECKINS_PER_DAY = 3
 const LANG_KEY = 'novo-lang'
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
-type MainTab = 'overview' | 'history' | 'trends' | 'pet' | 'games'
-const MAIN_TAB_KEYS: MainTab[] = ['overview', 'history', 'trends', 'pet', 'games']
 
 const ACCENT = '#DB2777'
 
@@ -48,8 +46,8 @@ function moodLevelClamped(level: number): 1 | 2 | 3 | 4 | 5 { return Math.min(5,
 
 function TourCoachmark({ step, steps, targetEl, tr, onNext, onSkip }: {
   step: number
-  steps: { tab: MainTab; text: string }[]
-  targetEl: HTMLButtonElement | null
+  steps: { text: string }[]
+  targetEl: HTMLElement | null
   tr: MoodDict
   onNext: () => void
   onSkip: () => void
@@ -57,14 +55,16 @@ function TourCoachmark({ step, steps, targetEl, tr, onNext, onSkip }: {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
 
   useEffect(() => {
+    if (!targetEl) return
+    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
     const place = () => {
-      if (!targetEl) return
       const r = targetEl.getBoundingClientRect()
       setPos({ top: r.bottom + 10, left: r.left + r.width / 2 })
     }
-    place()
+    const t = setTimeout(place, 260)
     window.addEventListener('resize', place)
-    return () => window.removeEventListener('resize', place)
+    window.addEventListener('scroll', place, true)
+    return () => { clearTimeout(t); window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true) }
   }, [targetEl, step])
 
   if (!pos) return null
@@ -99,7 +99,7 @@ export default function Mood() {
   const userId = session?.user.id ?? ''
 
   const [data, setData] = useState<MoodData | null>(null)
-  const [mainTab, setMainTab] = useState<MainTab>('overview')
+  const [expanded, setExpanded] = useState<'pet' | 'trends' | 'games' | null>(null)
   const [gameTab, setGameTab] = useState<GameTab>('clicker')
   const [checkin, setCheckin] = useState<{ mood: MoodLevel | null; tags: string[]; note: string }>({ mood: null, tags: [], note: '' })
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
@@ -109,7 +109,7 @@ export default function Mood() {
   const [missions, setMissions] = useState<MissionRow[]>([])
   const [lang, setLang] = useState<Lang>(() => (localStorage.getItem(LANG_KEY) as Lang | null) ?? 'en')
   const [tourStep, setTourStep] = useState<number | null>(null)
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const sectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const { celebrate, layer } = useCelebrations()
 
   const tr = MOOD_T[lang]
@@ -118,17 +118,14 @@ export default function Mood() {
   const moodLabel = (level: number) => MOOD_LABEL[lang][moodLevelClamped(level)]
   const WEEKDAYS = WEEKDAY_SHORT[lang]
 
-  const tabLabelKey = (key: MainTab): keyof MoodDict => ({
-    overview: 'tabCheckin', history: 'tabHistory', trends: 'tabTrends', pet: 'tabPet', games: 'tabGames',
-  } as const)[key]
-  const MAIN_TABS = MAIN_TAB_KEYS.map(key => ({ key, label: tr[tabLabelKey(key)] as string, enLabel: MOOD_T.en[tabLabelKey(key)] as string, idLabel: MOOD_T.id[tabLabelKey(key)] as string }))
-
-  const TOUR_STEPS: { tab: MainTab; text: string }[] = [
-    { tab: 'overview', text: tr.tourOverview },
-    { tab: 'history', text: tr.tourHistory },
-    { tab: 'trends', text: tr.tourTrends },
-    { tab: 'pet', text: tr.tourPet },
-    { tab: 'games', text: tr.tourGames },
+  // Tour walks the bento cards top to bottom instead of switching tabs —
+  // there's nothing hidden to reveal, just cards to scroll to and highlight.
+  const TOUR_STEPS: { text: string }[] = [
+    { text: tr.tourOverview },
+    { text: tr.tourHistory },
+    { text: tr.tourTrends },
+    { text: tr.tourPet },
+    { text: tr.tourGames },
   ]
 
   useEffect(() => {
@@ -141,12 +138,6 @@ export default function Mood() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
 
-  useEffect(() => {
-    if (tourStep === null) return
-    setMainTab(TOUR_STEPS[tourStep].tab)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tourStep])
-
   const endTour = () => {
     localStorage.setItem(introKey(userId), '1')
     setTourStep(null)
@@ -156,10 +147,8 @@ export default function Mood() {
     if (tourStep >= TOUR_STEPS.length - 1) endTour()
     else setTourStep(tourStep + 1)
   }
-  const handleTabClick = (key: MainTab) => {
-    setMainTab(key)
-    if (tourStep !== null) endTour()
-  }
+
+  const toggleExpanded = (key: 'pet' | 'trends' | 'games') => setExpanded(e => e === key ? null : key)
 
   // Idle-day happiness decay, guarded to once per tracker per day
   useEffect(() => {
@@ -344,7 +333,7 @@ export default function Mood() {
       {layer}
 
       {tourStep !== null && (
-        <TourCoachmark step={tourStep} steps={TOUR_STEPS} targetEl={tabRefs.current[tourStep] ?? null} tr={tr} onNext={advanceTour} onSkip={endTour} />
+        <TourCoachmark step={tourStep} steps={TOUR_STEPS} targetEl={sectionRefs.current[tourStep] ?? null} tr={tr} onNext={advanceTour} onSkip={endTour} />
       )}
 
       {toast && (
@@ -387,130 +376,130 @@ export default function Mood() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
 
-          {/* Mobile pet, plain */}
-          <div className="lg:hidden mb-5">{petCard}</div>
-
-          {/* Metrics */}
-          <div className="flex flex-wrap gap-x-8 gap-y-3 mb-6">
-            {[
-              { key: 'avg7', en: MOOD_T.en.avgMood7d, id: MOOD_T.id.avgMood7d, value: avg7 !== null ? `${moodMeta(Math.round(avg7)).emoji} ${avg7.toFixed(1)}` : '—', color: avg7 !== null ? moodMeta(Math.round(avg7)).color : INK },
-              { key: 'streak', en: MOOD_T.en.dayStreak, id: MOOD_T.id.dayStreak, value: String(streak), color: '#D97706' },
-              { key: 'today', en: MOOD_T.en.todayHeading, id: MOOD_T.id.todayHeading, value: tr.checkInCount(todayEntries.length), color: ACCENT },
-              { key: 'total', en: MOOD_T.en.totalEntries, id: MOOD_T.id.totalEntries, value: String(data.entries.length), color: INK },
-            ].map(m => (
-              <div key={m.key}>
-                <div className="font-nunito font-bold text-lg md:text-xl leading-none" style={{ color: m.color }}>{m.value}</div>
-                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
-                  <StableLabel a={m.en} b={m.id} active={lang === 'en' ? 'a' : 'b'} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Tabs */}
-          <div className="flex mb-6 overflow-x-auto scrollbar-hidden gap-5" style={{ borderBottom: `1px solid ${INK}12` }}>
-            {MAIN_TABS.map((t, i) => {
-              const isTourTarget = tourStep !== null && TOUR_STEPS[tourStep].tab === t.key
-              return (
-                <button
-                  key={t.key}
-                  ref={el => { tabRefs.current[i] = el }}
-                  onClick={() => handleTabClick(t.key)}
-                  className="pb-2.5 font-nunito text-sm whitespace-nowrap flex-shrink-0 transition-colors"
-                  style={{
-                    color: mainTab === t.key ? INK : MUTED,
-                    fontWeight: mainTab === t.key ? 600 : 400,
-                    borderBottom: mainTab === t.key ? `2px solid ${ACCENT}` : isTourTarget ? `2px solid ${ACCENT}80` : '2px solid transparent',
-                  }}
-                >
-                  <StableLabel a={t.enLabel} b={t.idLabel} active={lang === 'en' ? 'a' : 'b'} />
-                </button>
-              )
-            })}
-          </div>
-
-          {/* ── CHECK-IN (overview) ──────────────────────────── */}
-          {mainTab === 'overview' && (
-            <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
-              <div>
-                <Panel tone="tint" accent={ACCENT} className="p-4 md:p-5">
-                  <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>{tr.howAreYouFeeling}</div>
-
-                  <div className="flex justify-between gap-1 mb-4 max-w-sm mx-auto">
-                    {MOOD_META.map(m => (
-                      <button
-                        key={m.level}
-                        onClick={() => setCheckin(c => ({ ...c, mood: m.level }))}
-                        className="flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl transition-colors"
-                        style={{ background: checkin.mood === m.level ? `${m.color}20` : 'transparent' }}
-                      >
-                        <span className="text-2xl md:text-3xl" style={{ filter: checkin.mood && checkin.mood !== m.level ? 'grayscale(0.7)' : 'none' }}>
-                          {m.emoji}
-                        </span>
-                        <span className="font-nunito text-[10px] font-medium" style={{ color: checkin.mood === m.level ? m.color : MUTED }}>
-                          <StableLabel a={MOOD_LABEL.en[m.level]} b={MOOD_LABEL.id[m.level]} active={lang === 'en' ? 'a' : 'b'} />
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="flex gap-1.5 flex-wrap mb-3">
-                    {TAGS.map(tag => (
-                      <button
-                        key={tag}
-                        onClick={() => toggleTag(tag)}
-                        className="px-3 py-1.5 rounded-full font-nunito text-xs transition-colors"
-                        style={checkin.tags.includes(tag) ? { background: ACCENT, color: '#FFFFFF' } : { background: '#FFFFFF', color: MUTED }}
-                      >
-                        #<StableLabel a={TAG_WORD.en[tag]} b={TAG_WORD.id[tag]} active={lang === 'en' ? 'a' : 'b'} />
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder={tr.notePlaceholder}
-                      value={checkin.note}
-                      onChange={e => setCheckin(c => ({ ...c, note: e.target.value }))}
-                      onKeyDown={e => e.key === 'Enter' && handleCheckin()}
-                      className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
-                      style={{ background: '#FFFFFF', color: INK }}
-                    />
-                    <NButton onClick={handleCheckin} disabled={!checkin.mood} accent={ACCENT}>{tr.checkInButton}</NButton>
-                  </div>
-                  {todayEntries.length >= XP_CHECKINS_PER_DAY && (
-                    <div className="font-nunito text-xs mt-2" style={{ color: MUTED }}>
-                      {tr.dailyCapReached(XP_CHECKINS_PER_DAY)}
-                    </div>
-                  )}
-                </Panel>
-              </div>
-
-              <div>
-                {todayEntries.length > 0 && (
-                  <div>
-                    <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>{tr.todayHeading}</div>
-                    <div>{todayEntries.map((e, i) => entryRow(e, i))}</div>
-                  </div>
-                )}
-
-                {data.entries.length === 0 && (
-                  <div className="py-10 text-center">
-                    <div className="font-nunito text-sm" style={{ color: INK }}>{tr.noCheckinsYet}</div>
-                    <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{tr.noCheckinsYetSub}</div>
-                  </div>
-                )}
+        {/* Metrics */}
+        <div className="flex flex-wrap gap-x-8 gap-y-3 mb-6">
+          {[
+            { key: 'avg7', en: MOOD_T.en.avgMood7d, id: MOOD_T.id.avgMood7d, value: avg7 !== null ? `${moodMeta(Math.round(avg7)).emoji} ${avg7.toFixed(1)}` : '—', color: avg7 !== null ? moodMeta(Math.round(avg7)).color : INK },
+            { key: 'streak', en: MOOD_T.en.dayStreak, id: MOOD_T.id.dayStreak, value: String(streak), color: '#D97706' },
+            { key: 'today', en: MOOD_T.en.todayHeading, id: MOOD_T.id.todayHeading, value: tr.checkInCount(todayEntries.length), color: ACCENT },
+            { key: 'total', en: MOOD_T.en.totalEntries, id: MOOD_T.id.totalEntries, value: String(data.entries.length), color: INK },
+          ].map(m => (
+            <div key={m.key}>
+              <div className="font-nunito font-bold text-lg md:text-xl leading-none" style={{ color: m.color }}>{m.value}</div>
+              <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
+                <StableLabel a={m.en} b={m.id} active={lang === 'en' ? 'a' : 'b'} />
               </div>
             </div>
-          )}
+          ))}
+        </div>
 
-          {/* ── HISTORY (heatmap) ────────────────────────────── */}
-          {mainTab === 'history' && (
-            <div className="max-w-2xl">
+        {/* ── BENTO GRID — no tabs, everything's a card on one page ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 max-w-6xl">
+
+          {/* Check-in hero — the featured card, tints to whichever mood is picked */}
+          <div ref={el => { sectionRefs.current[0] = el }} className="md:col-span-2">
+            <Panel
+              tone="tint"
+              accent={checkin.mood ? moodMeta(checkin.mood).color : ACCENT}
+              className="p-5 md:p-6 rounded-3xl h-full transition-colors duration-300"
+              style={tourStep === 0 ? { boxShadow: `0 0 0 3px ${ACCENT}80` } : undefined}
+            >
+              <div className="font-nunito font-bold text-base mb-4 flex items-center gap-2" style={{ color: INK }}>
+                <span className="text-xl">🌤️</span> {tr.howAreYouFeeling}
+              </div>
+
+              <div className="flex justify-between gap-1 mb-4 max-w-sm mx-auto">
+                {MOOD_META.map(m => (
+                  <button
+                    key={m.level}
+                    onClick={() => setCheckin(c => ({ ...c, mood: m.level }))}
+                    className="flex-1 flex flex-col items-center gap-1 py-2.5 rounded-2xl transition-all duration-150 hover:scale-110"
+                    style={{ background: checkin.mood === m.level ? `${m.color}20` : 'transparent' }}
+                  >
+                    <span className="text-3xl md:text-4xl" style={{ filter: checkin.mood && checkin.mood !== m.level ? 'grayscale(0.7)' : 'none' }}>
+                      {m.emoji}
+                    </span>
+                    <span className="font-nunito text-[10px] font-medium" style={{ color: checkin.mood === m.level ? m.color : MUTED }}>
+                      <StableLabel a={MOOD_LABEL.en[m.level]} b={MOOD_LABEL.id[m.level]} active={lang === 'en' ? 'a' : 'b'} />
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-1.5 flex-wrap mb-3">
+                {TAGS.map(tag => (
+                  <button
+                    key={tag}
+                    onClick={() => toggleTag(tag)}
+                    className="px-3 py-1.5 rounded-full font-nunito text-xs transition-colors"
+                    style={checkin.tags.includes(tag) ? { background: ACCENT, color: '#FFFFFF' } : { background: '#FFFFFF', color: MUTED }}
+                  >
+                    #<StableLabel a={TAG_WORD.en[tag]} b={TAG_WORD.id[tag]} active={lang === 'en' ? 'a' : 'b'} />
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder={tr.notePlaceholder}
+                  value={checkin.note}
+                  onChange={e => setCheckin(c => ({ ...c, note: e.target.value }))}
+                  onKeyDown={e => e.key === 'Enter' && handleCheckin()}
+                  className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
+                  style={{ background: '#FFFFFF', color: INK }}
+                />
+                <NButton onClick={handleCheckin} disabled={!checkin.mood} accent={ACCENT}>{tr.checkInButton}</NButton>
+              </div>
+              {todayEntries.length >= XP_CHECKINS_PER_DAY && (
+                <div className="font-nunito text-xs mt-2" style={{ color: MUTED }}>
+                  {tr.dailyCapReached(XP_CHECKINS_PER_DAY)}
+                </div>
+              )}
+
+              {todayEntries.length > 0 && (
+                <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${INK}0D` }}>
+                  <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>{tr.todayHeading}</div>
+                  <div>{todayEntries.map((e, i) => entryRow(e, i))}</div>
+                </div>
+              )}
+
+              {data.entries.length === 0 && (
+                <div className="py-6 text-center">
+                  <div className="font-nunito text-sm" style={{ color: INK }}>{tr.noCheckinsYet}</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{tr.noCheckinsYetSub}</div>
+                </div>
+              )}
+            </Panel>
+          </div>
+
+          {/* Pet — tap to open the full pet room */}
+          <div ref={el => { sectionRefs.current[3] = el }}>
+            <Panel
+              tone="fill"
+              accent={ACCENT}
+              onClick={() => toggleExpanded('pet')}
+              className="p-5 rounded-3xl h-full"
+              style={tourStep === 3 ? { boxShadow: `0 0 0 3px ${ACCENT}80` } : undefined}
+            >
+              <div className="font-nunito font-bold text-sm text-white mb-2">{tr.petCardTitle}</div>
+              {petCard}
+              <div className="font-nunito text-xs text-white/70 mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+                {expanded === 'pet' ? tr.tapToCollapse : tr.tapToOpen}
+              </div>
+            </Panel>
+          </div>
+
+          {/* Heatmap */}
+          <div ref={el => { sectionRefs.current[1] = el }} className="md:col-span-2">
+            <Panel
+              tone="tint"
+              accent="#7C3AED"
+              className="p-5 rounded-3xl"
+              style={tourStep === 1 ? { boxShadow: `0 0 0 3px ${ACCENT}80` } : undefined}
+            >
               <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>{tr.last12Weeks}</div>
               <div className="flex gap-1 overflow-x-auto pb-1">
                 <div className="flex flex-col gap-1 mr-1 flex-shrink-0">
@@ -529,7 +518,7 @@ export default function Mood() {
                           key={day}
                           onClick={() => !future && setSelectedDay(selectedDay === day ? null : day)}
                           title={avg !== undefined ? `${day}: avg ${avg.toFixed(1)}` : day}
-                          className="w-5 h-5 rounded transition-opacity"
+                          className="w-5 h-5 rounded-full transition-opacity"
                           style={{
                             background: future ? 'transparent' : meta ? meta.color : `${INK}0D`,
                             opacity: future ? 0 : meta ? 0.85 : 1,
@@ -547,7 +536,7 @@ export default function Mood() {
                   <StableLabel a={MOOD_LABEL.en[1]} b={MOOD_LABEL.id[1]} active={lang === 'en' ? 'a' : 'b'} />
                 </span>
                 {MOOD_META.map(m => (
-                  <div key={m.level} className="w-4 h-4 rounded" style={{ background: m.color, opacity: 0.85 }} />
+                  <div key={m.level} className="w-4 h-4 rounded-full" style={{ background: m.color, opacity: 0.85 }} />
                 ))}
                 <span className="font-nunito text-[10px]" style={{ color: MUTED }}>
                   <StableLabel a={MOOD_LABEL.en[5]} b={MOOD_LABEL.id[5]} active={lang === 'en' ? 'a' : 'b'} />
@@ -566,136 +555,150 @@ export default function Mood() {
               {!selectedDay && (
                 <div className="font-nunito text-xs mt-4" style={{ color: MUTED }}>{tr.tapDayToSeeCheckins}</div>
               )}
-            </div>
-          )}
+            </Panel>
+          </div>
 
-          {/* ── TRENDS ───────────────────────────────────────── */}
-          {mainTab === 'trends' && (
-            <div className="space-y-8 max-w-5xl">
+          {/* Trends snapshot — tap for the full breakdown */}
+          <div ref={el => { sectionRefs.current[2] = el }}>
+            <Panel
+              tone="tint"
+              accent="#0EA5E9"
+              onClick={() => toggleExpanded('trends')}
+              className="p-5 rounded-3xl h-full"
+              style={tourStep === 2 ? { boxShadow: `0 0 0 3px ${ACCENT}80` } : undefined}
+            >
+              <div className="font-nunito font-semibold text-sm mb-3" style={{ color: INK }}>{tr.trendsCardTitle}</div>
               {data.entries.length === 0 ? (
-                <div className="py-10 text-center">
-                  <div className="font-nunito text-sm" style={{ color: INK }}>{tr.noDataYet}</div>
-                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{tr.checkInToUnlockTrends}</div>
-                </div>
+                <div className="font-nunito text-xs" style={{ color: MUTED }}>{tr.checkInToUnlockTrends}</div>
               ) : (
-                <>
-                  <div className="flex flex-wrap gap-x-8 gap-y-3">
-                    {[
-                      { key: 'avg7', en: MOOD_T.en.avgLast7, id: MOOD_T.id.avgLast7, value: avg7 !== null ? `${moodMeta(Math.round(avg7)).emoji} ${avg7.toFixed(1)}` : '—', color: avg7 !== null ? moodMeta(Math.round(avg7)).color : INK },
-                      { key: 'avg30', en: MOOD_T.en.avgLast30, id: MOOD_T.id.avgLast30, value: avg30 !== null ? `${moodMeta(Math.round(avg30)).emoji} ${avg30.toFixed(1)}` : '—', color: avg30 !== null ? moodMeta(Math.round(avg30)).color : INK },
-                      { key: 'best', en: MOOD_T.en.bestDay, id: MOOD_T.id.bestDay, value: bestDay ? `${bestDay.label} (${bestDay.avg!.toFixed(1)})` : '—', color: '#16A34A' },
-                      { key: 'worst', en: MOOD_T.en.toughestDay, id: MOOD_T.id.toughestDay, value: worstDay ? `${worstDay.label} (${worstDay.avg!.toFixed(1)})` : '—', color: '#DC2626' },
-                    ].map(s => (
-                      <div key={s.key}>
-                        <div className="font-nunito font-bold text-lg leading-none" style={{ color: s.color }}>{s.value}</div>
-                        <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
-                          <StableLabel a={s.en} b={s.id} active={lang === 'en' ? 'a' : 'b'} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="grid lg:grid-cols-2 gap-x-10 gap-y-8">
-                    <div>
-                      <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>{tr.moodByWeekday}</div>
-                      <div className="space-y-3">
-                        {weekdayAvgs.map((w, i) => (
-                          <div key={i}>
-                            <div className="flex justify-between font-nunito text-xs mb-1.5">
-                              <span style={{ color: INK }}>{w.label}</span>
-                              <span style={{ color: MUTED }}>
-                                {w.avg !== null ? `${moodMeta(Math.round(w.avg)).emoji} ${w.avg.toFixed(1)} · ${tr.entryCount(w.count)}` : tr.noData}
-                              </span>
-                            </div>
-                            <NProgress pct={w.avg !== null ? (w.avg / 5) * 100 : 0} accent={w.avg !== null ? moodMeta(Math.round(w.avg)).color : MUTED} height={4} />
-                          </div>
-                        ))}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                  {[
+                    { en: MOOD_T.en.avgLast7, id: MOOD_T.id.avgLast7, value: avg7 !== null ? `${moodMeta(Math.round(avg7)).emoji} ${avg7.toFixed(1)}` : '—', color: avg7 !== null ? moodMeta(Math.round(avg7)).color : INK },
+                    { en: MOOD_T.en.avgLast30, id: MOOD_T.id.avgLast30, value: avg30 !== null ? `${moodMeta(Math.round(avg30)).emoji} ${avg30.toFixed(1)}` : '—', color: avg30 !== null ? moodMeta(Math.round(avg30)).color : INK },
+                    { en: MOOD_T.en.bestDay, id: MOOD_T.id.bestDay, value: bestDay ? bestDay.label : '—', color: '#16A34A' },
+                    { en: MOOD_T.en.toughestDay, id: MOOD_T.id.toughestDay, value: worstDay ? worstDay.label : '—', color: '#DC2626' },
+                  ].map((s, i) => (
+                    <div key={i}>
+                      <div className="font-nunito font-bold text-base leading-none" style={{ color: s.color }}>{s.value}</div>
+                      <div className="font-nunito text-[10px] mt-1" style={{ color: MUTED }}>
+                        <StableLabel a={s.en} b={s.id} active={lang === 'en' ? 'a' : 'b'} />
                       </div>
                     </div>
-
-                    {tagAvgs.length > 0 && (
-                      <div>
-                        <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>{tr.moodByTag}</div>
-                        <div className="space-y-3">
-                          {tagAvgs.map(t => (
-                            <div key={t.tag}>
-                              <div className="flex justify-between font-nunito text-xs mb-1.5">
-                                <span style={{ color: INK }}>#{tagLabel(t.tag)}</span>
-                                <span style={{ color: MUTED }}>
-                                  {moodMeta(Math.round(t.avg!)).emoji} {t.avg!.toFixed(1)} · {tr.entryCount(t.count)}
-                                </span>
-                              </div>
-                              <NProgress pct={(t.avg! / 5) * 100} accent={moodMeta(Math.round(t.avg!)).color} height={4} />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </>
+                  ))}
+                </div>
               )}
-            </div>
-          )}
-
-          {/* ── PET ──────────────────────────────────────────── */}
-          {mainTab === 'pet' && (
-            <div className="space-y-4 max-w-2xl">
-              <DailyChallenges trackerId="mood" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
-              <PetRoom
-                userId={userId}
-                trackerId="mood"
-                character={data.character}
-                streak={dayStreak}
-                earnedBadges={earnedBadges}
-                missions={missions}
-                onCharacter={c => setData(d => d ? { ...d, character: c } : d)}
-              />
-            </div>
-          )}
-
-          {mainTab === 'games' && (
-            <div className="max-w-xl">
-              <div className="flex items-center gap-5 mb-5" style={{ borderBottom: `1px solid ${INK}12` }}>
-                {(['clicker', 'arcade', 'puzzle'] as GameTab[]).map(g => (
-                  <button
-                    key={g}
-                    onClick={() => setGameTab(g)}
-                    className="pb-2.5 font-nunito text-sm transition-colors"
-                    style={{
-                      color: gameTab === g ? INK : MUTED,
-                      fontWeight: gameTab === g ? 600 : 400,
-                      borderBottom: gameTab === g ? `2px solid ${ACCENT}` : '2px solid transparent',
-                    }}
-                  >
-                    <StableLabel
-                      a={g === 'clicker' ? MOOD_T.en.gameClicker : g === 'arcade' ? MOOD_T.en.gameArcade : MOOD_T.en.gamePuzzle}
-                      b={g === 'clicker' ? MOOD_T.id.gameClicker : g === 'arcade' ? MOOD_T.id.gameArcade : MOOD_T.id.gamePuzzle}
-                      active={lang === 'en' ? 'a' : 'b'}
-                    />
-                  </button>
-                ))}
+              <div className="font-nunito text-xs mt-4 pt-3" style={{ color: MUTED, borderTop: `1px solid ${INK}0D` }}>
+                {expanded === 'trends' ? tr.tapToCollapse : tr.tapForBreakdown}
               </div>
-              {gameTab === 'clicker' && <ZenPop onXPEarned={handleXPEarned} />}
-              {gameTab === 'arcade' && <CloudGlide onXPEarned={handleXPEarned} />}
-              {gameTab === 'puzzle' && <EmojiFlow onXPEarned={handleXPEarned} />}
-            </div>
-          )}
+            </Panel>
+          </div>
+
+          {/* Games teaser — tap to play */}
+          <div ref={el => { sectionRefs.current[4] = el }} className="md:col-span-3">
+            <Panel
+              tone="tint"
+              accent="#F59E0B"
+              onClick={() => toggleExpanded('games')}
+              className="p-5 rounded-3xl flex items-center justify-between gap-4"
+              style={tourStep === 4 ? { boxShadow: `0 0 0 3px ${ACCENT}80` } : undefined}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">🎮</span>
+                <div>
+                  <div className="font-nunito font-bold text-sm" style={{ color: INK }}>{tr.gamesCardTitle}</div>
+                  <div className="font-nunito text-xs" style={{ color: MUTED }}>{tr.gamesCardSub}</div>
+                </div>
+              </div>
+              <div className="font-nunito text-xs font-semibold flex-shrink-0" style={{ color: '#F59E0B' }}>
+                {expanded === 'games' ? tr.tapToCollapse : tr.tapToPlay}
+              </div>
+            </Panel>
+          </div>
         </div>
 
-        {/* RIGHT PANEL, desktop only */}
-        <aside className="w-72 flex-shrink-0 hidden lg:block overflow-y-auto" style={{ borderLeft: `1px solid ${INK}0D`, background: '#F5F4F2' }}>
-          <Panel tone="tint" accent={ACCENT} className="m-6 p-5">
-            {petCard}
-            <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${INK}0D` }}>
-              <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>{tr.sidebarStreak}</div>
-              <div className="font-nunito font-bold text-2xl" style={{ color: INK }}>{tr.sidebarStreakDays(streak)}</div>
-              <div className="font-nunito text-xs" style={{ color: MUTED }}>{tr.sidebarStreakCaption}</div>
+        {/* ── EXPANDED SECTIONS — progressive disclosure below the grid ── */}
+        {expanded === 'pet' && (
+          <div className="mt-5 max-w-2xl space-y-4">
+            <DailyChallenges trackerId="mood" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
+            <PetRoom
+              userId={userId}
+              trackerId="mood"
+              character={data.character}
+              streak={dayStreak}
+              earnedBadges={earnedBadges}
+              missions={missions}
+              onCharacter={c => setData(d => d ? { ...d, character: c } : d)}
+            />
+          </div>
+        )}
+
+        {expanded === 'trends' && (
+          <div className="mt-5 max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-8">
+            <div>
+              <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>{tr.moodByWeekday}</div>
+              <div className="space-y-3">
+                {weekdayAvgs.map((w, i) => (
+                  <div key={i}>
+                    <div className="flex justify-between font-nunito text-xs mb-1.5">
+                      <span style={{ color: INK }}>{w.label}</span>
+                      <span style={{ color: MUTED }}>
+                        {w.avg !== null ? `${moodMeta(Math.round(w.avg)).emoji} ${w.avg.toFixed(1)} · ${tr.entryCount(w.count)}` : tr.noData}
+                      </span>
+                    </div>
+                    <NProgress pct={w.avg !== null ? (w.avg / 5) * 100 : 0} accent={w.avg !== null ? moodMeta(Math.round(w.avg)).color : MUTED} height={4} />
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="font-nunito text-xs leading-relaxed mt-4 pt-4" style={{ color: MUTED, borderTop: `1px solid ${INK}0D` }}>
-              {tr.sidebarTip(XP_CHECKINS_PER_DAY)}
+
+            {tagAvgs.length > 0 && (
+              <div>
+                <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>{tr.moodByTag}</div>
+                <div className="space-y-3">
+                  {tagAvgs.map(t => (
+                    <div key={t.tag}>
+                      <div className="flex justify-between font-nunito text-xs mb-1.5">
+                        <span style={{ color: INK }}>#{tagLabel(t.tag)}</span>
+                        <span style={{ color: MUTED }}>
+                          {moodMeta(Math.round(t.avg!)).emoji} {t.avg!.toFixed(1)} · {tr.entryCount(t.count)}
+                        </span>
+                      </div>
+                      <NProgress pct={(t.avg! / 5) * 100} accent={moodMeta(Math.round(t.avg!)).color} height={4} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {expanded === 'games' && (
+          <div className="mt-5 max-w-xl">
+            <div className="flex items-center gap-5 mb-5" style={{ borderBottom: `1px solid ${INK}12` }}>
+              {(['clicker', 'arcade', 'puzzle'] as GameTab[]).map(g => (
+                <button
+                  key={g}
+                  onClick={() => setGameTab(g)}
+                  className="pb-2.5 font-nunito text-sm transition-colors"
+                  style={{
+                    color: gameTab === g ? INK : MUTED,
+                    fontWeight: gameTab === g ? 600 : 400,
+                    borderBottom: gameTab === g ? `2px solid ${ACCENT}` : '2px solid transparent',
+                  }}
+                >
+                  <StableLabel
+                    a={g === 'clicker' ? MOOD_T.en.gameClicker : g === 'arcade' ? MOOD_T.en.gameArcade : MOOD_T.en.gamePuzzle}
+                    b={g === 'clicker' ? MOOD_T.id.gameClicker : g === 'arcade' ? MOOD_T.id.gameArcade : MOOD_T.id.gamePuzzle}
+                    active={lang === 'en' ? 'a' : 'b'}
+                  />
+                </button>
+              ))}
             </div>
-          </Panel>
-        </aside>
+            {gameTab === 'clicker' && <ZenPop onXPEarned={handleXPEarned} />}
+            {gameTab === 'arcade' && <CloudGlide onXPEarned={handleXPEarned} />}
+            {gameTab === 'puzzle' && <EmojiFlow onXPEarned={handleXPEarned} />}
+          </div>
+        )}
       </div>
     </div>
   )
