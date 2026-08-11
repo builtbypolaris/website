@@ -110,6 +110,7 @@ export default function Mood() {
   const [lang, setLang] = useState<Lang>(() => (localStorage.getItem(LANG_KEY) as Lang | null) ?? 'en')
   const [tourStep, setTourStep] = useState<number | null>(null)
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([])
+  const expandedRef = useRef<HTMLDivElement | null>(null)
   const { celebrate, layer } = useCelebrations()
 
   const tr = MOOD_T[lang]
@@ -149,6 +150,14 @@ export default function Mood() {
   }
 
   const toggleExpanded = (key: 'pet' | 'trends' | 'games') => setExpanded(e => e === key ? null : key)
+
+  // Expanding a card renders its content below the whole grid, which can be
+  // off-screen — scroll it into view so tapping visibly does something.
+  useEffect(() => {
+    if (!expanded) return
+    const t = setTimeout(() => expandedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+    return () => clearTimeout(t)
+  }, [expanded])
 
   // Idle-day happiness decay, guarded to once per tracker per day
   useEffect(() => {
@@ -478,16 +487,16 @@ export default function Mood() {
           {/* Pet — tap to open the full pet room */}
           <div ref={el => { sectionRefs.current[3] = el }}>
             <Panel
-              tone="fill"
+              tone="tint"
               accent={ACCENT}
               onClick={() => toggleExpanded('pet')}
               className="p-5 rounded-3xl h-full"
               style={tourStep === 3 ? { boxShadow: `0 0 0 3px ${ACCENT}80` } : undefined}
             >
-              <div className="font-nunito font-bold text-sm text-white mb-2">{tr.petCardTitle}</div>
+              <div className="font-nunito font-bold text-sm mb-2" style={{ color: INK }}>{tr.petCardTitle}</div>
               {petCard}
-              <div className="font-nunito text-xs text-white/70 mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
-                {expanded === 'pet' ? tr.tapToCollapse : tr.tapToOpen}
+              <div className="font-nunito text-xs font-semibold mt-3 pt-3 flex items-center justify-center gap-1" style={{ color: ACCENT, borderTop: `1px solid ${INK}0D` }}>
+                {expanded === 'pet' ? tr.tapToCollapse : tr.tapToOpen} <span>{expanded === 'pet' ? '▲' : '▼'}</span>
               </div>
             </Panel>
           </div>
@@ -587,8 +596,8 @@ export default function Mood() {
                   ))}
                 </div>
               )}
-              <div className="font-nunito text-xs mt-4 pt-3" style={{ color: MUTED, borderTop: `1px solid ${INK}0D` }}>
-                {expanded === 'trends' ? tr.tapToCollapse : tr.tapForBreakdown}
+              <div className="font-nunito text-xs font-semibold mt-4 pt-3 flex items-center gap-1" style={{ color: '#0EA5E9', borderTop: `1px solid ${INK}0D` }}>
+                {expanded === 'trends' ? tr.tapToCollapse : tr.tapForBreakdown} <span>{expanded === 'trends' ? '▲' : '▼'}</span>
               </div>
             </Panel>
           </div>
@@ -609,14 +618,15 @@ export default function Mood() {
                   <div className="font-nunito text-xs" style={{ color: MUTED }}>{tr.gamesCardSub}</div>
                 </div>
               </div>
-              <div className="font-nunito text-xs font-semibold flex-shrink-0" style={{ color: '#F59E0B' }}>
-                {expanded === 'games' ? tr.tapToCollapse : tr.tapToPlay}
+              <div className="font-nunito text-xs font-semibold flex-shrink-0 flex items-center gap-1" style={{ color: '#F59E0B' }}>
+                {expanded === 'games' ? tr.tapToCollapse : tr.tapToPlay} <span>{expanded === 'games' ? '▲' : '▼'}</span>
               </div>
             </Panel>
           </div>
         </div>
 
         {/* ── EXPANDED SECTIONS — progressive disclosure below the grid ── */}
+        <div ref={expandedRef} />
         {expanded === 'pet' && (
           <div className="mt-5 max-w-2xl space-y-4">
             <DailyChallenges trackerId="mood" accent={ACCENT} challenges={dailyChallenges} onClaim={handleClaimChallenge} />
