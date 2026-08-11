@@ -168,7 +168,10 @@ export async function getCharacter(userId: string, trackerType: TemplateId): Pro
 export async function saveCharacter(userId: string, trackerType: TemplateId, c: CharacterState) {
   await supabase
     .from('characters')
-    .upsert({ user_id: userId, tracker_type: trackerType, xp: c.xp, happiness: c.happiness, prestige: c.prestige })
+    .upsert(
+      { user_id: userId, tracker_type: trackerType, xp: c.xp, happiness: c.happiness, prestige: c.prestige },
+      { onConflict: 'user_id,tracker_type' },
+    )
 }
 
 export async function getAllCharacters(userId: string): Promise<Partial<Record<TemplateId, CharacterState>>> {
