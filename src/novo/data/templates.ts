@@ -173,7 +173,9 @@ export const TEMPLATES: TemplateInfo[] = [
     petMessages: ['How are you feeling?', 'Every feeling is valid!', 'Breathe in, breathe out!', 'You showed up today!'],
     category: 'wellness',
     previewStats: ['Avg mood 4.2', '21-day streak', '3 check-ins today'],
-    comingSoon: true,
+    originalPriceIdr: 25000,
+    salePriceIdr: 20000,
+    lynkUrl: 'https://lynk.id/builtbypolaris/37r2nvm9w77p',
   },
   {
     id: 'freelance',
