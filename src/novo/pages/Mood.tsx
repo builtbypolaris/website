@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   getMoodData,
@@ -14,39 +14,79 @@ import { DailyChallenges } from '../components/DailyChallenges'
 import { useAuth } from '../contexts/AuthContext'
 import { MOOD_STAGES, getStageFromXP } from '../data/creatures'
 import Character from '../components/Character'
-import { INK, MUTED, Panel, NButton, NProgress } from '../components/ui'
+import { INK, MUTED, Panel, NButton, NProgress, StableLabel } from '../components/ui'
 import ZenPop from '../games/ZenPop'
 import CloudGlide from '../games/CloudGlide'
 import EmojiFlow from '../games/EmojiFlow'
 import type { CharacterState, MoodData, MoodEntry, MoodLevel } from '../types'
+import { MOOD_T, MOOD_LABEL, TAG_WORD, WEEKDAY_SHORT, type Lang, type MoodDict } from './Mood.i18n'
 
-const MOOD_META: { level: MoodLevel; emoji: string; label: string; color: string }[] = [
-  { level: 1, emoji: '😢', label: 'Awful', color: '#DC2626' },
-  { level: 2, emoji: '😕', label: 'Bad',   color: '#F97316' },
-  { level: 3, emoji: '😐', label: 'Okay',  color: '#EAB308' },
-  { level: 4, emoji: '😊', label: 'Good',  color: '#84CC16' },
-  { level: 5, emoji: '😄', label: 'Great', color: '#16A34A' },
+const MOOD_META: { level: MoodLevel; emoji: string; color: string }[] = [
+  { level: 1, emoji: '😢', color: '#DC2626' },
+  { level: 2, emoji: '😕', color: '#F97316' },
+  { level: 3, emoji: '😐', color: '#EAB308' },
+  { level: 4, emoji: '😊', color: '#84CC16' },
+  { level: 5, emoji: '😄', color: '#16A34A' },
 ]
 
 const TAGS = ['work', 'family', 'health', 'social', 'study', 'other']
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const XP_CHECKINS_PER_DAY = 3
+const LANG_KEY = 'novo-lang'
 
 type GameTab = 'clicker' | 'arcade' | 'puzzle'
 type MainTab = 'overview' | 'history' | 'trends' | 'pet' | 'games'
+const MAIN_TAB_KEYS: MainTab[] = ['overview', 'history', 'trends', 'pet', 'games']
 
 const ACCENT = '#DB2777'
-const MAIN_TABS: { key: MainTab; label: string }[] = [
-  { key: 'overview', label: 'Check-in' },
-  { key: 'history', label: 'History' },
-  { key: 'trends', label: 'Trends' },
-  { key: 'pet', label: 'Pet' },
-  { key: 'games', label: 'Games' },
-]
+
+const introKey = (userId: string) => `novo-intro-mood-seen-${userId}`
 
 function entryDate(e: MoodEntry) { return e.entryAt.slice(0, 10) }
 function entryTime(e: MoodEntry) { return new Date(e.entryAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) }
 function moodMeta(level: number) { return MOOD_META[Math.min(4, Math.max(0, level - 1))] }
+function moodLevelClamped(level: number): 1 | 2 | 3 | 4 | 5 { return Math.min(5, Math.max(1, Math.round(level))) as 1 | 2 | 3 | 4 | 5 }
+
+function TourCoachmark({ step, steps, targetEl, tr, onNext, onSkip }: {
+  step: number
+  steps: { tab: MainTab; text: string }[]
+  targetEl: HTMLButtonElement | null
+  tr: MoodDict
+  onNext: () => void
+  onSkip: () => void
+}) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+
+  useEffect(() => {
+    const place = () => {
+      if (!targetEl) return
+      const r = targetEl.getBoundingClientRect()
+      setPos({ top: r.bottom + 10, left: r.left + r.width / 2 })
+    }
+    place()
+    window.addEventListener('resize', place)
+    return () => window.removeEventListener('resize', place)
+  }, [targetEl, step])
+
+  if (!pos) return null
+  const last = step === steps.length - 1
+
+  return (
+    <div className="fixed bounce-in" style={{ top: pos.top, left: pos.left, transform: 'translateX(-50%)', zIndex: 9990, width: 260 }}>
+      <Panel tone="fill" accent={ACCENT} className="p-4">
+        <div className="font-nunito text-xs text-white/70 mb-1.5">{step + 1} / {steps.length}</div>
+        <div className="font-nunito text-sm text-white leading-relaxed mb-3">{steps[step].text}</div>
+        <div className="flex items-center justify-between">
+          <button onClick={onSkip} className="font-nunito text-xs text-white/60 hover:text-white/90 transition-colors">
+            {tr.tourSkip}
+          </button>
+          <NButton onClick={onNext} style={{ background: '#FFFFFF', color: ACCENT }} size="sm">
+            {last ? tr.tourDone : tr.tourNext}
+          </NButton>
+        </div>
+      </Panel>
+    </div>
+  )
+}
 
 function avgMood(entries: MoodEntry[]): number | null {
   if (entries.length === 0) return null
@@ -67,7 +107,29 @@ export default function Mood() {
   const [dayStreak, setDayStreak] = useState<StreakRow | null>(null)
   const [earnedBadges, setEarnedBadges] = useState<Set<string>>(new Set())
   const [missions, setMissions] = useState<MissionRow[]>([])
+  const [lang, setLang] = useState<Lang>(() => (localStorage.getItem(LANG_KEY) as Lang | null) ?? 'en')
+  const [tourStep, setTourStep] = useState<number | null>(null)
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
   const { celebrate, layer } = useCelebrations()
+
+  const tr = MOOD_T[lang]
+  const changeLang = (l: Lang) => { localStorage.setItem(LANG_KEY, l); setLang(l) }
+  const tagLabel = (tag: string) => TAG_WORD[lang][tag] ?? tag
+  const moodLabel = (level: number) => MOOD_LABEL[lang][moodLevelClamped(level)]
+  const WEEKDAYS = WEEKDAY_SHORT[lang]
+
+  const tabLabelKey = (key: MainTab): keyof MoodDict => ({
+    overview: 'tabCheckin', history: 'tabHistory', trends: 'tabTrends', pet: 'tabPet', games: 'tabGames',
+  } as const)[key]
+  const MAIN_TABS = MAIN_TAB_KEYS.map(key => ({ key, label: tr[tabLabelKey(key)] as string, enLabel: MOOD_T.en[tabLabelKey(key)] as string, idLabel: MOOD_T.id[tabLabelKey(key)] as string }))
+
+  const TOUR_STEPS: { tab: MainTab; text: string }[] = [
+    { tab: 'overview', text: tr.tourOverview },
+    { tab: 'history', text: tr.tourHistory },
+    { tab: 'trends', text: tr.tourTrends },
+    { tab: 'pet', text: tr.tourPet },
+    { tab: 'games', text: tr.tourGames },
+  ]
 
   useEffect(() => {
     if (!userId) return
@@ -75,7 +137,29 @@ export default function Mood() {
     getBadges(userId, 'mood').then(rows => setEarnedBadges(new Set(rows.map(b => b.badgeId))))
     getWeekMissions(userId).then(setMissions)
     getMoodData(userId).then(setData)
+    if (!localStorage.getItem(introKey(userId))) setTourStep(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
+
+  useEffect(() => {
+    if (tourStep === null) return
+    setMainTab(TOUR_STEPS[tourStep].tab)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tourStep])
+
+  const endTour = () => {
+    localStorage.setItem(introKey(userId), '1')
+    setTourStep(null)
+  }
+  const advanceTour = () => {
+    if (tourStep === null) return
+    if (tourStep >= TOUR_STEPS.length - 1) endTour()
+    else setTourStep(tourStep + 1)
+  }
+  const handleTabClick = (key: MainTab) => {
+    setMainTab(key)
+    if (tourStep !== null) endTour()
+  }
 
   // Idle-day happiness decay, guarded to once per tracker per day
   useEffect(() => {
@@ -104,7 +188,7 @@ export default function Mood() {
   if (!data) {
     return (
       <div className="h-full flex items-center justify-center" style={{ background: '#F5F4F2' }}>
-        <div className="font-nunito text-sm" style={{ color: MUTED }}>Loading…</div>
+        <div className="font-nunito text-sm" style={{ color: MUTED }}>{tr.loading}</div>
       </div>
     )
   }
@@ -188,9 +272,9 @@ export default function Mood() {
       setData(d => d ? { ...d, entries: [entry, ...d.entries], character: xpGain > 0 ? addXP(before, xpGain) : d.character } : d)
       if (xpGain > 0) runAward(before, xpGain)
       setCheckin({ mood: null, tags: [], note: '' })
-      showToast(xpGain > 0 ? `Checked in! +${xpGain} XP` : 'Checked in. Daily XP cap reached')
+      showToast(xpGain > 0 ? tr.checkedInXp(xpGain) : tr.checkedInCapped)
     } catch {
-      showToast('Failed to save check-in', false)
+      showToast(tr.failedToSaveCheckin, false)
     }
   }
 
@@ -203,14 +287,14 @@ export default function Mood() {
     const before = data.character
     setData(d => d ? { ...d, character: addXP(before, xp) } : d)
     runAward(before, xp, 'game')
-    showToast(`+${xp} XP from game!`)
+    showToast(tr.xpFromGame(xp))
   }
 
   const handleClaimChallenge = (xp: number, title: string) => {
     const before = data.character
     setData(d => d ? { ...d, character: addXP(before, xp) } : d)
     runAward(before, xp)
-    showToast(`${title}: +${xp} XP!`)
+    showToast(tr.challengeClaimed(title, xp))
   }
 
   const toggleTag = (tag: string) =>
@@ -225,8 +309,8 @@ export default function Mood() {
         <div className="text-xl flex-shrink-0">{meta.emoji}</div>
         <div className="flex-1 min-w-0">
           <div className="font-nunito font-medium text-sm" style={{ color: meta.color }}>
-            {meta.label}
-            {e.tags.length > 0 && <span className="ml-2 font-normal font-nunito text-xs" style={{ color: MUTED }}>{e.tags.map(t => `#${t}`).join(' ')}</span>}
+            {moodLabel(e.mood)}
+            {e.tags.length > 0 && <span className="ml-2 font-normal font-nunito text-xs" style={{ color: MUTED }}>{e.tags.map(t => `#${tagLabel(t)}`).join(' ')}</span>}
           </div>
           <div className="font-nunito text-xs truncate" style={{ color: MUTED }}>
             {entryDate(e)} {entryTime(e)}{e.note ? ` · ${e.note}` : ''}
@@ -243,21 +327,25 @@ export default function Mood() {
       xp={data.character.xp}
       happiness={data.character.happiness}
       prestige={data.character.prestige}
-      onEvolution={s => showToast(`Evolved to ${s.name}!`, true)}
-      onPrestige={p => showToast(`Prestige ${p}! Pet reborn!`, true)}
+      onEvolution={s => showToast(tr.evolved(s.name), true)}
+      onPrestige={p => showToast(tr.prestige(p), true)}
     />
   )
 
   const entriesToday = data.entries.filter(e => e.entryAt.startsWith(todayStr()))
   const dailyChallenges = [
-    { id: 'checkin', title: 'Check in once', emoji: '🌤️', xp: 10, met: entriesToday.length >= 1 },
-    { id: 'note', title: 'Write a note with a check-in', emoji: '✍️', xp: 15, met: entriesToday.some(e => e.note.trim().length > 0) },
-    { id: 'tags', title: 'Tag 2 feelings', emoji: '🏷️', xp: 15, met: entriesToday.some(e => e.tags.length >= 2) },
+    { id: 'checkin', title: tr.challengeCheckinOnce, emoji: '🌤️', xp: 10, met: entriesToday.length >= 1 },
+    { id: 'note', title: tr.challengeNote, emoji: '✍️', xp: 15, met: entriesToday.some(e => e.note.trim().length > 0) },
+    { id: 'tags', title: tr.challengeTags, emoji: '🏷️', xp: 15, met: entriesToday.some(e => e.tags.length >= 2) },
   ]
 
   return (
     <div className="h-full flex flex-col" style={{ background: '#F5F4F2' }}>
       {layer}
+
+      {tourStep !== null && (
+        <TourCoachmark step={tourStep} steps={TOUR_STEPS} targetEl={tabRefs.current[tourStep] ?? null} tr={tr} onNext={advanceTour} onSkip={endTour} />
+      )}
 
       {toast && (
         <div className="fixed top-[72px] right-4 z-50 px-4 py-2.5 rounded-2xl font-nunito font-semibold text-white text-sm bounce-in" style={{ background: toast.good ? '#16A34A' : '#DC2626' }}>
@@ -270,17 +358,33 @@ export default function Mood() {
         className="flex items-center justify-between px-4 md:px-6 py-3 sticky top-0 z-30 flex-shrink-0"
         style={{ background: 'rgba(245,244,242,0.97)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #E5E4E2' }}
       >
-        <button onClick={() => navigate('/studios/dashboard')} className="font-nunito text-sm transition-opacity hover:opacity-70" style={{ color: MUTED }}>
-          Back
+        <button onClick={() => navigate('/studios/dashboard')} className="font-nunito text-sm transition-opacity hover:opacity-70 flex-shrink-0" style={{ color: MUTED }}>
+          <StableLabel a={MOOD_T.en.back} b={MOOD_T.id.back} active={lang === 'en' ? 'a' : 'b'} />
         </button>
-        <div className="font-nunito font-semibold text-sm flex items-center gap-2" style={{ color: INK }}>
-          Mood <StreakBadge streak={dayStreak} />
+        <div className="font-nunito font-semibold text-sm flex items-center gap-2 flex-shrink-0" style={{ color: INK }}>
+          <StableLabel a={MOOD_T.en.headerTitle} b={MOOD_T.id.headerTitle} active={lang === 'en' ? 'a' : 'b'} /> <StreakBadge streak={dayStreak} />
         </div>
-        <div className="hidden lg:flex items-center gap-1.5 font-nunito text-xs" style={{ color: MUTED }}>
-          <span>{petStage.emoji}</span>
-          <span>{data.character.xp} XP</span>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="hidden lg:flex items-center gap-3 text-xs font-nunito" style={{ color: MUTED }}>
+            <span>{petStage.emoji}</span>
+            <span>{data.character.xp} XP</span>
+            <button onClick={() => setTourStep(0)} className="transition-opacity hover:opacity-70" style={{ color: MUTED }}>
+              <StableLabel a={MOOD_T.en.howThisWorks} b={MOOD_T.id.howThisWorks} active={lang === 'en' ? 'a' : 'b'} />
+            </button>
+          </div>
+          <div className="flex rounded-full overflow-hidden" style={{ background: `${INK}08` }}>
+            {(['en', 'id'] as Lang[]).map(l => (
+              <button
+                key={l}
+                onClick={() => changeLang(l)}
+                className="px-2.5 py-1 font-nunito text-xs font-semibold transition-colors"
+                style={lang === l ? { background: ACCENT, color: '#FFFFFF' } : { color: MUTED }}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="lg:hidden w-10" />
       </header>
 
       <div className="flex flex-1 overflow-hidden">
@@ -292,34 +396,40 @@ export default function Mood() {
           {/* Metrics */}
           <div className="flex flex-wrap gap-x-8 gap-y-3 mb-6">
             {[
-              { label: 'Avg mood, 7d', value: avg7 !== null ? `${moodMeta(Math.round(avg7)).emoji} ${avg7.toFixed(1)}` : '—', color: avg7 !== null ? moodMeta(Math.round(avg7)).color : INK },
-              { label: 'Day streak', value: String(streak), color: '#D97706' },
-              { label: 'Today', value: `${todayEntries.length} check-in${todayEntries.length === 1 ? '' : 's'}`, color: ACCENT },
-              { label: 'Total entries', value: String(data.entries.length), color: INK },
+              { key: 'avg7', en: MOOD_T.en.avgMood7d, id: MOOD_T.id.avgMood7d, value: avg7 !== null ? `${moodMeta(Math.round(avg7)).emoji} ${avg7.toFixed(1)}` : '—', color: avg7 !== null ? moodMeta(Math.round(avg7)).color : INK },
+              { key: 'streak', en: MOOD_T.en.dayStreak, id: MOOD_T.id.dayStreak, value: String(streak), color: '#D97706' },
+              { key: 'today', en: MOOD_T.en.todayHeading, id: MOOD_T.id.todayHeading, value: tr.checkInCount(todayEntries.length), color: ACCENT },
+              { key: 'total', en: MOOD_T.en.totalEntries, id: MOOD_T.id.totalEntries, value: String(data.entries.length), color: INK },
             ].map(m => (
-              <div key={m.label}>
+              <div key={m.key}>
                 <div className="font-nunito font-bold text-lg md:text-xl leading-none" style={{ color: m.color }}>{m.value}</div>
-                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{m.label}</div>
+                <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
+                  <StableLabel a={m.en} b={m.id} active={lang === 'en' ? 'a' : 'b'} />
+                </div>
               </div>
             ))}
           </div>
 
           {/* Tabs */}
           <div className="flex mb-6 overflow-x-auto scrollbar-hidden gap-5" style={{ borderBottom: `1px solid ${INK}12` }}>
-            {MAIN_TABS.map(t => (
-              <button
-                key={t.key}
-                onClick={() => setMainTab(t.key)}
-                className="pb-2.5 font-nunito text-sm whitespace-nowrap flex-shrink-0 transition-colors"
-                style={{
-                  color: mainTab === t.key ? INK : MUTED,
-                  fontWeight: mainTab === t.key ? 600 : 400,
-                  borderBottom: mainTab === t.key ? `2px solid ${ACCENT}` : '2px solid transparent',
-                }}
-              >
-                {t.label}
-              </button>
-            ))}
+            {MAIN_TABS.map((t, i) => {
+              const isTourTarget = tourStep !== null && TOUR_STEPS[tourStep].tab === t.key
+              return (
+                <button
+                  key={t.key}
+                  ref={el => { tabRefs.current[i] = el }}
+                  onClick={() => handleTabClick(t.key)}
+                  className="pb-2.5 font-nunito text-sm whitespace-nowrap flex-shrink-0 transition-colors"
+                  style={{
+                    color: mainTab === t.key ? INK : MUTED,
+                    fontWeight: mainTab === t.key ? 600 : 400,
+                    borderBottom: mainTab === t.key ? `2px solid ${ACCENT}` : isTourTarget ? `2px solid ${ACCENT}80` : '2px solid transparent',
+                  }}
+                >
+                  <StableLabel a={t.enLabel} b={t.idLabel} active={lang === 'en' ? 'a' : 'b'} />
+                </button>
+              )
+            })}
           </div>
 
           {/* ── CHECK-IN (overview) ──────────────────────────── */}
@@ -327,7 +437,7 @@ export default function Mood() {
             <div className="max-w-5xl grid lg:grid-cols-2 gap-x-10 gap-y-6">
               <div>
                 <Panel tone="tint" accent={ACCENT} className="p-4 md:p-5">
-                  <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>How are you feeling?</div>
+                  <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>{tr.howAreYouFeeling}</div>
 
                   <div className="flex justify-between gap-1 mb-4 max-w-sm mx-auto">
                     {MOOD_META.map(m => (
@@ -341,7 +451,7 @@ export default function Mood() {
                           {m.emoji}
                         </span>
                         <span className="font-nunito text-[10px] font-medium" style={{ color: checkin.mood === m.level ? m.color : MUTED }}>
-                          {m.label}
+                          <StableLabel a={MOOD_LABEL.en[m.level]} b={MOOD_LABEL.id[m.level]} active={lang === 'en' ? 'a' : 'b'} />
                         </span>
                       </button>
                     ))}
@@ -355,7 +465,7 @@ export default function Mood() {
                         className="px-3 py-1.5 rounded-full font-nunito text-xs transition-colors"
                         style={checkin.tags.includes(tag) ? { background: ACCENT, color: '#FFFFFF' } : { background: '#FFFFFF', color: MUTED }}
                       >
-                        #{tag}
+                        #<StableLabel a={TAG_WORD.en[tag]} b={TAG_WORD.id[tag]} active={lang === 'en' ? 'a' : 'b'} />
                       </button>
                     ))}
                   </div>
@@ -363,18 +473,18 @@ export default function Mood() {
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="Add a note (optional)"
+                      placeholder={tr.notePlaceholder}
                       value={checkin.note}
                       onChange={e => setCheckin(c => ({ ...c, note: e.target.value }))}
                       onKeyDown={e => e.key === 'Enter' && handleCheckin()}
                       className="flex-1 px-3 py-2.5 rounded-xl font-nunito text-sm outline-none"
                       style={{ background: '#FFFFFF', color: INK }}
                     />
-                    <NButton onClick={handleCheckin} disabled={!checkin.mood} accent={ACCENT}>Check in</NButton>
+                    <NButton onClick={handleCheckin} disabled={!checkin.mood} accent={ACCENT}>{tr.checkInButton}</NButton>
                   </div>
                   {todayEntries.length >= XP_CHECKINS_PER_DAY && (
                     <div className="font-nunito text-xs mt-2" style={{ color: MUTED }}>
-                      Daily XP cap reached ({XP_CHECKINS_PER_DAY} check-ins). More check-ins still count, just no XP.
+                      {tr.dailyCapReached(XP_CHECKINS_PER_DAY)}
                     </div>
                   )}
                 </Panel>
@@ -383,15 +493,15 @@ export default function Mood() {
               <div>
                 {todayEntries.length > 0 && (
                   <div>
-                    <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Today</div>
+                    <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>{tr.todayHeading}</div>
                     <div>{todayEntries.map((e, i) => entryRow(e, i))}</div>
                   </div>
                 )}
 
                 {data.entries.length === 0 && (
                   <div className="py-10 text-center">
-                    <div className="font-nunito text-sm" style={{ color: INK }}>No check-ins yet</div>
-                    <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Tap an emoji above and log your first mood, your sky pet is waiting</div>
+                    <div className="font-nunito text-sm" style={{ color: INK }}>{tr.noCheckinsYet}</div>
+                    <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{tr.noCheckinsYetSub}</div>
                   </div>
                 )}
               </div>
@@ -401,7 +511,7 @@ export default function Mood() {
           {/* ── HISTORY (heatmap) ────────────────────────────── */}
           {mainTab === 'history' && (
             <div className="max-w-2xl">
-              <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Last 12 weeks</div>
+              <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>{tr.last12Weeks}</div>
               <div className="flex gap-1 overflow-x-auto pb-1">
                 <div className="flex flex-col gap-1 mr-1 flex-shrink-0">
                   {WEEKDAYS.map(d => (
@@ -433,11 +543,15 @@ export default function Mood() {
                 ))}
               </div>
               <div className="flex items-center gap-2 mt-4">
-                <span className="font-nunito text-[10px]" style={{ color: MUTED }}>Awful</span>
+                <span className="font-nunito text-[10px]" style={{ color: MUTED }}>
+                  <StableLabel a={MOOD_LABEL.en[1]} b={MOOD_LABEL.id[1]} active={lang === 'en' ? 'a' : 'b'} />
+                </span>
                 {MOOD_META.map(m => (
                   <div key={m.level} className="w-4 h-4 rounded" style={{ background: m.color, opacity: 0.85 }} />
                 ))}
-                <span className="font-nunito text-[10px]" style={{ color: MUTED }}>Great</span>
+                <span className="font-nunito text-[10px]" style={{ color: MUTED }}>
+                  <StableLabel a={MOOD_LABEL.en[5]} b={MOOD_LABEL.id[5]} active={lang === 'en' ? 'a' : 'b'} />
+                </span>
               </div>
 
               {selectedDay && (
@@ -445,12 +559,12 @@ export default function Mood() {
                   <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>{selectedDay}</div>
                   {selectedDayEntries.length > 0
                     ? <div>{selectedDayEntries.map((e, i) => entryRow(e, i))}</div>
-                    : <div className="font-nunito text-xs" style={{ color: MUTED }}>No check-ins on this day</div>}
+                    : <div className="font-nunito text-xs" style={{ color: MUTED }}>{tr.noCheckinsOnDay}</div>}
                 </div>
               )}
 
               {!selectedDay && (
-                <div className="font-nunito text-xs mt-4" style={{ color: MUTED }}>Tap a day to see its check-ins</div>
+                <div className="font-nunito text-xs mt-4" style={{ color: MUTED }}>{tr.tapDayToSeeCheckins}</div>
               )}
             </div>
           )}
@@ -460,35 +574,37 @@ export default function Mood() {
             <div className="space-y-8 max-w-5xl">
               {data.entries.length === 0 ? (
                 <div className="py-10 text-center">
-                  <div className="font-nunito text-sm" style={{ color: INK }}>No data yet</div>
-                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>Check in a few times to unlock trends</div>
+                  <div className="font-nunito text-sm" style={{ color: INK }}>{tr.noDataYet}</div>
+                  <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{tr.checkInToUnlockTrends}</div>
                 </div>
               ) : (
                 <>
                   <div className="flex flex-wrap gap-x-8 gap-y-3">
                     {[
-                      { label: 'Avg last 7 days', value: avg7 !== null ? `${moodMeta(Math.round(avg7)).emoji} ${avg7.toFixed(1)}` : '—', color: avg7 !== null ? moodMeta(Math.round(avg7)).color : INK },
-                      { label: 'Avg last 30 days', value: avg30 !== null ? `${moodMeta(Math.round(avg30)).emoji} ${avg30.toFixed(1)}` : '—', color: avg30 !== null ? moodMeta(Math.round(avg30)).color : INK },
-                      { label: 'Best day', value: bestDay ? `${bestDay.label} (${bestDay.avg!.toFixed(1)})` : '—', color: '#16A34A' },
-                      { label: 'Toughest day', value: worstDay ? `${worstDay.label} (${worstDay.avg!.toFixed(1)})` : '—', color: '#DC2626' },
+                      { key: 'avg7', en: MOOD_T.en.avgLast7, id: MOOD_T.id.avgLast7, value: avg7 !== null ? `${moodMeta(Math.round(avg7)).emoji} ${avg7.toFixed(1)}` : '—', color: avg7 !== null ? moodMeta(Math.round(avg7)).color : INK },
+                      { key: 'avg30', en: MOOD_T.en.avgLast30, id: MOOD_T.id.avgLast30, value: avg30 !== null ? `${moodMeta(Math.round(avg30)).emoji} ${avg30.toFixed(1)}` : '—', color: avg30 !== null ? moodMeta(Math.round(avg30)).color : INK },
+                      { key: 'best', en: MOOD_T.en.bestDay, id: MOOD_T.id.bestDay, value: bestDay ? `${bestDay.label} (${bestDay.avg!.toFixed(1)})` : '—', color: '#16A34A' },
+                      { key: 'worst', en: MOOD_T.en.toughestDay, id: MOOD_T.id.toughestDay, value: worstDay ? `${worstDay.label} (${worstDay.avg!.toFixed(1)})` : '—', color: '#DC2626' },
                     ].map(s => (
-                      <div key={s.label}>
+                      <div key={s.key}>
                         <div className="font-nunito font-bold text-lg leading-none" style={{ color: s.color }}>{s.value}</div>
-                        <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>{s.label}</div>
+                        <div className="font-nunito text-xs mt-1" style={{ color: MUTED }}>
+                          <StableLabel a={s.en} b={s.id} active={lang === 'en' ? 'a' : 'b'} />
+                        </div>
                       </div>
                     ))}
                   </div>
 
                   <div className="grid lg:grid-cols-2 gap-x-10 gap-y-8">
                     <div>
-                      <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Mood by weekday</div>
+                      <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>{tr.moodByWeekday}</div>
                       <div className="space-y-3">
-                        {weekdayAvgs.map(w => (
-                          <div key={w.label}>
+                        {weekdayAvgs.map((w, i) => (
+                          <div key={i}>
                             <div className="flex justify-between font-nunito text-xs mb-1.5">
                               <span style={{ color: INK }}>{w.label}</span>
                               <span style={{ color: MUTED }}>
-                                {w.avg !== null ? `${moodMeta(Math.round(w.avg)).emoji} ${w.avg.toFixed(1)} · ${w.count} entr${w.count === 1 ? 'y' : 'ies'}` : 'no data'}
+                                {w.avg !== null ? `${moodMeta(Math.round(w.avg)).emoji} ${w.avg.toFixed(1)} · ${tr.entryCount(w.count)}` : tr.noData}
                               </span>
                             </div>
                             <NProgress pct={w.avg !== null ? (w.avg / 5) * 100 : 0} accent={w.avg !== null ? moodMeta(Math.round(w.avg)).color : MUTED} height={4} />
@@ -499,14 +615,14 @@ export default function Mood() {
 
                     {tagAvgs.length > 0 && (
                       <div>
-                        <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>Mood by tag</div>
+                        <div className="font-nunito font-semibold text-sm mb-4" style={{ color: INK }}>{tr.moodByTag}</div>
                         <div className="space-y-3">
                           {tagAvgs.map(t => (
                             <div key={t.tag}>
                               <div className="flex justify-between font-nunito text-xs mb-1.5">
-                                <span style={{ color: INK }}>#{t.tag}</span>
+                                <span style={{ color: INK }}>#{tagLabel(t.tag)}</span>
                                 <span style={{ color: MUTED }}>
-                                  {moodMeta(Math.round(t.avg!)).emoji} {t.avg!.toFixed(1)} · {t.count} entr{t.count === 1 ? 'y' : 'ies'}
+                                  {moodMeta(Math.round(t.avg!)).emoji} {t.avg!.toFixed(1)} · {tr.entryCount(t.count)}
                                 </span>
                               </div>
                               <NProgress pct={(t.avg! / 5) * 100} accent={moodMeta(Math.round(t.avg!)).color} height={4} />
@@ -551,7 +667,11 @@ export default function Mood() {
                       borderBottom: gameTab === g ? `2px solid ${ACCENT}` : '2px solid transparent',
                     }}
                   >
-                    {g === 'clicker' ? 'Clicker' : g === 'arcade' ? 'Arcade' : 'Puzzle'}
+                    <StableLabel
+                      a={g === 'clicker' ? MOOD_T.en.gameClicker : g === 'arcade' ? MOOD_T.en.gameArcade : MOOD_T.en.gamePuzzle}
+                      b={g === 'clicker' ? MOOD_T.id.gameClicker : g === 'arcade' ? MOOD_T.id.gameArcade : MOOD_T.id.gamePuzzle}
+                      active={lang === 'en' ? 'a' : 'b'}
+                    />
                   </button>
                 ))}
               </div>
@@ -567,12 +687,12 @@ export default function Mood() {
           <Panel tone="tint" accent={ACCENT} className="m-6 p-5">
             {petCard}
             <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${INK}0D` }}>
-              <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>Streak</div>
-              <div className="font-nunito font-bold text-2xl" style={{ color: INK }}>{streak} day{streak === 1 ? '' : 's'}</div>
-              <div className="font-nunito text-xs" style={{ color: MUTED }}>Check in daily to keep it going</div>
+              <div className="font-nunito font-semibold text-sm mb-1" style={{ color: INK }}>{tr.sidebarStreak}</div>
+              <div className="font-nunito font-bold text-2xl" style={{ color: INK }}>{tr.sidebarStreakDays(streak)}</div>
+              <div className="font-nunito text-xs" style={{ color: MUTED }}>{tr.sidebarStreakCaption}</div>
             </div>
             <div className="font-nunito text-xs leading-relaxed mt-4 pt-4" style={{ color: MUTED, borderTop: `1px solid ${INK}0D` }}>
-              Each check-in earns +10 XP, up to {XP_CHECKINS_PER_DAY} per day, and the first of the day gets a +5 bonus.
+              {tr.sidebarTip(XP_CHECKINS_PER_DAY)}
             </div>
           </Panel>
         </aside>
