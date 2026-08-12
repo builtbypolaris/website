@@ -151,7 +151,9 @@ export const TEMPLATES: TemplateInfo[] = [
     petMessages: ['One step closer!', 'Every rep counts!', 'Progress, not perfection!', 'You showed up today!'],
     category: 'wellness',
     previewStats: ['38% to goal', '3 workouts this week', '70.2 kg'],
-    comingSoon: true,
+    originalPriceIdr: 25000,
+    salePriceIdr: 20000,
+    lynkUrl: 'https://lynk.id/builtbypolaris/w971zr83kp1v',
   },
   {
     id: 'habit',
