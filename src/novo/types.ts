@@ -230,15 +230,38 @@ export interface WeightLog {
   date: string
 }
 
+export interface Measurement {
+  id: string
+  date: string
+  waistCm?: number
+  chestCm?: number
+  hipsCm?: number
+  armsCm?: number
+  thighsCm?: number
+}
+
+export interface ExerciseLog {
+  id: string
+  date: string
+  activity: string
+  durationMin: number
+  caloriesBurned?: number
+}
+
 export interface HealthGoals {
   calorieTarget: number
   waterTarget: number
+  goalWeightKg?: number
+  heightCm?: number
+  targetDate?: string
 }
 
 export interface HealthData {
   meals: Meal[]
   waterByDate: Record<string, number>
   weights: WeightLog[]
+  measurements: Measurement[]
+  exerciseLogs: ExerciseLog[]
   goals: HealthGoals
   character: CharacterState
 }

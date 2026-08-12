@@ -252,7 +252,32 @@ create table if not exists public.weight_logs (
 create table if not exists public.health_goals (
   user_id        uuid references auth.users(id) on delete cascade primary key,
   calorie_target integer default 2000 not null,
-  water_target   integer default 8 not null
+  water_target   integer default 8 not null,
+  goal_weight_kg numeric,
+  height_cm      numeric,
+  target_date    date
+);
+
+create table if not exists public.weightloss_measurements (
+  id         uuid default gen_random_uuid() primary key,
+  user_id    uuid references auth.users(id) on delete cascade not null,
+  date       date not null,
+  waist_cm   numeric,
+  chest_cm   numeric,
+  hips_cm    numeric,
+  arms_cm    numeric,
+  thighs_cm  numeric,
+  created_at timestamptz default now()
+);
+
+create table if not exists public.weightloss_exercise_logs (
+  id              uuid default gen_random_uuid() primary key,
+  user_id         uuid references auth.users(id) on delete cascade not null,
+  date            date not null,
+  activity        text not null,
+  duration_min    integer not null,
+  calories_burned integer,
+  created_at      timestamptz default now()
 );
 
 -- 22-23. CYCLE
@@ -469,6 +494,8 @@ alter table public.meals            enable row level security;
 alter table public.water_logs       enable row level security;
 alter table public.weight_logs      enable row level security;
 alter table public.health_goals     enable row level security;
+alter table public.weightloss_measurements   enable row level security;
+alter table public.weightloss_exercise_logs  enable row level security;
 alter table public.periods          enable row level security;
 alter table public.cycle_logs       enable row level security;
 alter table public.trips            enable row level security;
@@ -551,6 +578,10 @@ create policy "water_logs: own rows" on public.water_logs
 create policy "weight_logs: own rows" on public.weight_logs
   for all using (auth.uid() = user_id);
 create policy "health_goals: own rows" on public.health_goals
+  for all using (auth.uid() = user_id);
+create policy "weightloss_measurements: own rows" on public.weightloss_measurements
+  for all using (auth.uid() = user_id);
+create policy "weightloss_exercise_logs: own rows" on public.weightloss_exercise_logs
   for all using (auth.uid() = user_id);
 create policy "periods: own rows" on public.periods
   for all using (auth.uid() = user_id);

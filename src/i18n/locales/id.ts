@@ -635,9 +635,9 @@ export const id: EnTranslations = {
           desc: 'Klien, proyek, deadline, dan penghasilan dalam satu tempat. Pet gigihmu tumbuh tiap proyek.',
         },
         health: {
-          headline1: 'Makan sehat.',
-          headline2: 'Hidup bugar.',
-          desc: 'Makanan, kalori, air, dan berat badan dalam satu rutinitas. Pet vitalmu tumbuh bersamamu.',
+          headline1: 'Tentukan targetmu.',
+          headline2: 'Capai dengan caramu.',
+          desc: 'Target berat, proyeksi progres, ukuran tubuh, dan olahraga — catat dengan cara yang cocok untukmu. Pet perjalananmu berevolusi di setiap langkah.',
         },
         cycle: {
           headline1: 'Kenali ritmemu.',

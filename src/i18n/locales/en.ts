@@ -751,9 +751,9 @@ export const en = {
           desc: 'Clients, projects, deadlines and earnings in one hub. Your hustle pet grows with every gig.',
         },
         health: {
-          headline1: 'Eat well.',
-          headline2: 'Feel better.',
-          desc: 'Meals, calories, water and weight in one gentle daily loop. Your vitality pet thrives as you do.',
+          headline1: 'Set the goal.',
+          headline2: 'Get there your way.',
+          desc: 'Goal weight, pace projection, measurements and workouts — log however actually works for you. Your journey pet evolves with every step forward.',
         },
         cycle: {
           headline1: 'Know your rhythm.',
